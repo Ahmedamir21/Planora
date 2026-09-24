@@ -47,14 +47,14 @@ export function ShareScheduleImage({
     const line = cssVar('--line', '#d7dbe3');
     const muted = cssVar('--muted', '#687080');
     const ink = cssVar('--ink', '#1d2433');
-    const accent = cssVar('--accent', '#c97a2b');
+    const accent = cssVar('--accent', '#6755e9');
 
     ctx.fillStyle = paper;
     ctx.fillRect(0, 0, width, height);
 
     ctx.fillStyle = ink;
     ctx.font = '700 42px Inter, system-ui, sans-serif';
-    ctx.fillText('Zewail City Schedule', margin, margin + 44);
+    ctx.fillText('Planora', margin, margin + 44);
 
     ctx.fillStyle = muted;
     ctx.font = '500 24px Inter, system-ui, sans-serif';
