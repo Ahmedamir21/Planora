@@ -2,17 +2,19 @@
 
 :root,
 [data-theme='dark'] {
-  --bg: #0f1218;
-  --paper: #161a23;
-  --surface: #1d222d;
-  --surface-2: #252b38;
-  --line: #2a3040;
-  --line-soft: #212734;
-  --ink: #eaecf1;
-  --muted: #8d97ac;
-  --muted-2: #6d7690;
-  --accent: #e8a957;
-  --accent-ink: #1b1508;
+  --bg: #0b0f1a;
+  --paper: #11172a;
+  --surface: #171e34;
+  --surface-2: #202844;
+  --line: #2b3558;
+  --line-soft: #202944;
+  --ink: #f8fafc;
+  --muted: #a8b0c3;
+  --muted-2: #77829b;
+  --accent: #7c63f4;
+  --accent-2: #3b82f6;
+  --accent-warm: #f59e0b;
+  --accent-ink: #ffffff;
   --ok: #6fd9a6;
   --warn: #f2879a;
   --warn-bg: #3a2129;
@@ -38,16 +40,18 @@
 }
 
 [data-theme='light'] {
-  --bg: #eef1f6;
+  --bg: #f4f6fb;
   --paper: #ffffff;
-  --surface: #f6f8fb;
-  --surface-2: #eceff5;
-  --line: #dee3ec;
-  --line-soft: #e7ebf2;
-  --ink: #1c2230;
-  --muted: #6a7180;
-  --muted-2: #8891a0;
-  --accent: #c97a2b;
+  --surface: #f7f8fd;
+  --surface-2: #eef0fb;
+  --line: #dfe3f2;
+  --line-soft: #e9ebf5;
+  --ink: #171b2d;
+  --muted: #66708a;
+  --muted-2: #8a93aa;
+  --accent: #6755e9;
+  --accent-2: #2563eb;
+  --accent-warm: #d97706;
   --accent-ink: #ffffff;
   --ok: #2f9e64;
   --warn: #b3392a;
@@ -1136,4 +1140,71 @@ body {
   font-size:11px;
   font-weight:800;
   line-height:1.3;
+}
+
+
+.planora-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+.planora-brand img {
+  width: 42px;
+  height: 42px;
+  flex: none;
+}
+.planora-brand-name {
+  background: linear-gradient(110deg, var(--accent), var(--accent-2));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.planora-status-stack {
+  position: fixed;
+  z-index: 160;
+  top: max(12px, env(safe-area-inset-top));
+  left: 50%;
+  transform: translateX(-50%);
+  display: grid;
+  gap: 8px;
+  width: min(94vw, 620px);
+  pointer-events: none;
+}
+.planora-status-card {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--paper) 94%, transparent);
+  color: var(--ink);
+  box-shadow: var(--shadow);
+  padding: 10px 13px;
+  font-size: 12px;
+  backdrop-filter: blur(14px);
+}
+.planora-status-card.is-offline {
+  border-color: color-mix(in srgb, var(--accent-warm) 55%, var(--line));
+}
+.planora-status-card.is-update {
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--line));
+}
+.planora-status-card button {
+  border: 0;
+  border-radius: 8px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font: inherit;
+  font-weight: 700;
+  padding: 5px 9px;
+  cursor: pointer;
+}
+.planora-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--accent-warm);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent-warm) 16%, transparent);
 }
