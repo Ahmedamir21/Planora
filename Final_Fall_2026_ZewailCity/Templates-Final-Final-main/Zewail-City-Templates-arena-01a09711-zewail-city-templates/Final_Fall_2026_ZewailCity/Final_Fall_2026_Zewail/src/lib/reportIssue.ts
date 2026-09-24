@@ -23,7 +23,7 @@ export function courseIssueText(course: Course, pick?: Pick): string {
 
 export function generalIssueText(): string {
   return [
-    'Zewail City Schedule Builder · Data issue report',
+    'Planora · Data issue report',
     'Course code: ',
     'Component (Lecture/Lab/Tutorial): ',
     'Section: ',
