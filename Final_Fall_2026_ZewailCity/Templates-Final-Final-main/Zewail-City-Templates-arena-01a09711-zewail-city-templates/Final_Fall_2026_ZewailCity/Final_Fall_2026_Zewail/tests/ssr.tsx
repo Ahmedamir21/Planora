@@ -15,7 +15,7 @@ import { renderToString } from 'react-dom/server';
 import App from '../src/App';
 
 const html = renderToString(React.createElement(App));
-const want = ['Zewail City', 'Schedule Builder', 'Major', 'Fall 2026'];
+const want = ['Planora', 'Major', 'Fall 2026'];
 for (const w of want) {
   if (!html.includes(w)) {
     console.error('SSR missing expected text:', w);

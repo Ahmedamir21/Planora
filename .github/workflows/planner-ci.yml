@@ -2,9 +2,9 @@ name: Planner CI
 
 on:
   push:
-    branches: [add-year-1-courses, semester-ready-refactor, 'internal-*']
+    branches: [main, 'planora-*']
   pull_request:
-    branches: [add-year-1-courses]
+    branches: [main]
   workflow_dispatch:
 
 jobs:

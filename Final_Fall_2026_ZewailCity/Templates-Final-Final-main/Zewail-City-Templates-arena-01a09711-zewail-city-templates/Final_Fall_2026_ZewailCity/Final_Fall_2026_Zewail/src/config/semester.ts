@@ -14,7 +14,7 @@ export const LEGACY_UNTAGGED_SEMESTER_KEY = 'fall-2026-main';
 export const SEMESTER_CONFIG = {
   key: 'fall-2026-main',
   institution: 'Zewail City',
-  plannerName: 'Schedule Builder',
+  plannerName: 'Planora',
   term: 'Fall',
   year: 2026,
   session: 'Main Session',
@@ -28,11 +28,11 @@ export const SEMESTER_CONFIG = {
 export const TERM_LABEL = `${SEMESTER_CONFIG.term} ${SEMESTER_CONFIG.year}`;
 export const TERM_SESSION_LABEL = `${TERM_LABEL} · ${SEMESTER_CONFIG.session}`;
 export const TERM_SESSION_PAREN_LABEL = `${TERM_LABEL} (${SEMESTER_CONFIG.session})`;
-export const PRODUCT_TITLE = `${SEMESTER_CONFIG.institution} — ${TERM_LABEL} ${SEMESTER_CONFIG.plannerName}`;
+export const PRODUCT_TITLE = `Planora — ${TERM_LABEL} Student Schedule Planner`;
 export const SHARE_TITLE = `My ${TERM_LABEL} schedule`;
-export const SHARE_TEXT = `Check out my ${SEMESTER_CONFIG.institution} ${TERM_LABEL} schedule.`;
+export const SHARE_TEXT = `Check out my ${TERM_LABEL} schedule on Planora.`;
 
 export const DOCUMENT_TITLE = PRODUCT_TITLE;
-export const DOCUMENT_DESCRIPTION = `${PRODUCT_TITLE}. Choose your major, pick courses and sections, catch time conflicts instantly, and share your finished schedule with a link.`;
+export const DOCUMENT_DESCRIPTION = `Planora is a student-built schedule planner for choosing courses and sections, detecting conflicts, comparing schedules, and sharing the final plan.`;
 
 export const CREATOR_CREDIT = 'Directed by Ahmed Amir & Youssef Taha (الريبات المشطشطين)';

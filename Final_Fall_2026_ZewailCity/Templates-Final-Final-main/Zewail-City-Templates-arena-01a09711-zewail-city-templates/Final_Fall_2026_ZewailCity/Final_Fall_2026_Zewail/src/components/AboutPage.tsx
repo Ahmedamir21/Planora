@@ -1,7 +1,7 @@
 import { COURSE_DATA_LAST_VERIFIED } from '../data/meta';
 import { CREATOR_CREDIT, PRODUCT_TITLE, SEMESTER_CONFIG, TERM_LABEL, TERM_SESSION_LABEL } from '../config/semester';
 
-const GITHUB_REPO_URL = 'https://github.com/Ahmedamir21/Fall_2026_ZewailCity';
+const GITHUB_REPO_URL = 'https://github.com/Ahmedamir21/Planora';
 
 const STEPS = [
   'Pick your major — it decides which courses this planner shows you.',
@@ -35,7 +35,7 @@ export function AboutPage({ onBack }: { onBack: () => void }) {
           <div>
             <h2 className="text-[13.5px] font-bold tracking-tight">What is this?</h2>
             <p className="mt-1.5 text-[13px] leading-relaxed" style={{ color: 'var(--muted)' }}>
-              This website helps Zewail City students build and organize their {TERM_LABEL} course schedules. Pick a
+              Planora helps students build and organize their {TERM_LABEL} course schedules. Pick a
               major, tick the courses you're registering, and choose real lecture, lab and tutorial times — the
               planner checks for time conflicts exactly (a 2:00–2:59 session next to a 3:00–3:59 session is fine; two
               overlapping meetings never are), tracks credit hours and free time, and its Best Schedule search finds

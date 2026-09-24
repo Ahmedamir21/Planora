@@ -67,7 +67,7 @@ export default async function handler(req: any, res: any) {
   }
 
   const system = [
-    'You are Schedule Assistant inside the current Zewail City Schedule Builder.',
+    'You are Schedule Assistant inside Planora, an independent student schedule planner for Zewail City CSAI.',
     'LANGUAGE MIRRORING IS REQUIRED. Base the reply primarily on the student\'s CURRENT message, not older history.',
     'If the current message is English, reply in English.',
     'If the current message is Arabic script, reply in natural Egyptian Arabic using Arabic script.',

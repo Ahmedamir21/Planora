@@ -60,6 +60,7 @@ import { Toast, type ToastState } from './components/Toast';
 import { ScheduleAssistant, type AssistantLockAction, type AssistantProposal, type AssistantProposalPreview } from './components/ScheduleAssistant';
 import { ShareScheduleImage } from './components/ShareScheduleImage';
 import { InstallAppButton } from './components/InstallAppButton';
+import { AppStatus } from './components/AppStatus';
 import { COURSE_DATA_LAST_VERIFIED } from './data/meta';
 import { CREATOR_CREDIT, DOCUMENT_DESCRIPTION, DOCUMENT_TITLE, LEGACY_UNTAGGED_SEMESTER_KEY, SEMESTER_CONFIG, TERM_SESSION_LABEL, TERM_SESSION_PAREN_LABEL } from './config/semester';
 import {
@@ -1351,7 +1352,7 @@ export default function App() {
 
   const copySummary = useCallback(() => {
     const lines: string[] = [
-      `My Zewail City schedule — ${TERM_SESSION_PAREN_LABEL}`,
+      `My Planora schedule — ${TERM_SESSION_PAREN_LABEL}`,
       '--------------------------------',
     ];
 
@@ -1402,6 +1403,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen pb-14">
+      <AppStatus />
       <div className="mx-auto max-w-[1560px] px-3 py-4 sm:px-6 sm:py-6">
         <header className="panel mb-3 flex flex-col gap-4 p-4 sm:flex-row sm:items-start sm:justify-between sm:p-5">
           <div>
@@ -1412,9 +1414,15 @@ export default function App() {
               {TERM_SESSION_LABEL}
             </p>
 
-            <h1 className="mt-1 text-[20px] font-extrabold tracking-tight sm:text-[23px]">
-              Zewail City Schedule Builder
-            </h1>
+            <div className="mt-1 flex items-center gap-2.5">
+              <img src="/icons/planner-icon.svg" alt="" className="h-10 w-10 rounded-[12px]" />
+              <div>
+                <h1 className="text-[23px] font-extrabold tracking-[-0.03em] sm:text-[27px]">Planora</h1>
+                <p className="text-[10px] font-bold uppercase tracking-[0.18em]" style={{ color: 'var(--brand-soft)' }}>
+                  Build · Compare · Share
+                </p>
+              </div>
+            </div>
 
             <p
               className="mt-1.5 max-w-[72ch] text-[12.5px] leading-relaxed"
@@ -1936,7 +1944,7 @@ export default function App() {
           className="mt-6 flex flex-wrap items-center justify-center gap-x-3 gap-y-1.5 text-center text-[11px]"
           style={{ color: 'var(--muted-2)' }}
         >
-          <span>Zewail City Schedule Builder · Version 2.1</span>
+          <span>Planora · Version 2.1</span>
 
           <span aria-hidden>·</span>
 

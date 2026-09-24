@@ -54,7 +54,7 @@ export function ShareScheduleImage({
 
     ctx.fillStyle = ink;
     ctx.font = '700 42px Inter, system-ui, sans-serif';
-    ctx.fillText('Zewail City Schedule', margin, margin + 44);
+    ctx.fillText('Planora Schedule', margin, margin + 44);
 
     ctx.fillStyle = muted;
     ctx.font = '500 24px Inter, system-ui, sans-serif';
