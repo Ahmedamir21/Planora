@@ -60,6 +60,7 @@ import { Toast, type ToastState } from './components/Toast';
 import { ScheduleAssistant, type AssistantLockAction, type AssistantProposal, type AssistantProposalPreview } from './components/ScheduleAssistant';
 import { ShareScheduleImage } from './components/ShareScheduleImage';
 import { InstallAppButton } from './components/InstallAppButton';
+import { PwaStatus } from './components/PwaStatus';
 import { COURSE_DATA_LAST_VERIFIED } from './data/meta';
 import { CREATOR_CREDIT, DOCUMENT_DESCRIPTION, DOCUMENT_TITLE, LEGACY_UNTAGGED_SEMESTER_KEY, SEMESTER_CONFIG, TERM_SESSION_LABEL, TERM_SESSION_PAREN_LABEL } from './config/semester';
 import {
@@ -1402,19 +1403,24 @@ export default function App() {
 
   return (
     <div className="min-h-screen pb-14">
+      <PwaStatus />
       <div className="mx-auto max-w-[1560px] px-3 py-4 sm:px-6 sm:py-6">
         <header className="panel mb-3 flex flex-col gap-4 p-4 sm:flex-row sm:items-start sm:justify-between sm:p-5">
           <div>
-            <p
-              className="text-[10.5px] font-bold uppercase tracking-[0.09em]"
-              style={{ color: 'var(--accent)' }}
-            >
-              {TERM_SESSION_LABEL}
-            </p>
-
-            <h1 className="mt-1 text-[20px] font-extrabold tracking-tight sm:text-[23px]">
-              Zewail City Schedule Builder
-            </h1>
+            <div className="planora-brand">
+              <img src="/brand/planora-mark.svg" alt="" aria-hidden />
+              <div>
+                <p
+                  className="text-[10.5px] font-bold uppercase tracking-[0.09em]"
+                  style={{ color: 'var(--muted)' }}
+                >
+                  {TERM_SESSION_LABEL}
+                </p>
+                <h1 className="planora-brand-name mt-0.5 text-[24px] font-extrabold tracking-[-0.03em] sm:text-[28px]">
+                  Planora
+                </h1>
+              </div>
+            </div>
 
             <p
               className="mt-1.5 max-w-[72ch] text-[12.5px] leading-relaxed"
@@ -1936,7 +1942,7 @@ export default function App() {
           className="mt-6 flex flex-wrap items-center justify-center gap-x-3 gap-y-1.5 text-center text-[11px]"
           style={{ color: 'var(--muted-2)' }}
         >
-          <span>Zewail City Schedule Builder · Version 2.1</span>
+          <span>Planora · Version {SEMESTER_CONFIG.version}</span>
 
           <span aria-hidden>·</span>
 
