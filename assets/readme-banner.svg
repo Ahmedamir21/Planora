@@ -1,117 +1,46 @@
-<svg width="1400" height="420" viewBox="0 0 1400 420" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 520" role="img" aria-labelledby="title desc">
+  <title id="title">Planora — Build, Compare, Share</title>
+  <desc id="desc">Planora banner with a premium midnight background, violet-to-blue calendar mark and amber schedule highlight.</desc>
   <defs>
-    <linearGradient id="bg" x1="80" y1="30" x2="1320" y2="390" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#0F1218"/>
-      <stop offset="0.55" stop-color="#161A23"/>
-      <stop offset="1" stop-color="#101722"/>
+    <linearGradient id="bg" x1="0" y1="0" x2="1400" y2="520" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#090D18"/>
+      <stop offset=".55" stop-color="#11172A"/>
+      <stop offset="1" stop-color="#0B1224"/>
     </linearGradient>
-    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
-      <stop stop-color="#F5C77A"/>
-      <stop offset="1" stop-color="#C97A2B"/>
+    <radialGradient id="glow1" cx="0" cy="0" r="1" gradientTransform="translate(1100 80) rotate(135) scale(520 390)">
+      <stop stop-color="#6D5EF6" stop-opacity=".28"/>
+      <stop offset="1" stop-color="#6D5EF6" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glow2" cx="0" cy="0" r="1" gradientTransform="translate(1220 420) rotate(180) scale(420 300)">
+      <stop stop-color="#3B82F6" stop-opacity=".18"/>
+      <stop offset="1" stop-color="#3B82F6" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="brand" x1="92" y1="84" x2="355" y2="360" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#8B5CF6"/>
+      <stop offset=".5" stop-color="#6D5EF6"/>
+      <stop offset="1" stop-color="#3B82F6"/>
     </linearGradient>
-    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
-      <feGaussianBlur stdDeviation="18" result="blur"/>
-    </filter>
+    <linearGradient id="warm" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#FDBA45"/><stop offset="1" stop-color="#F59E0B"/>
+    </linearGradient>
   </defs>
-
-  <rect width="1400" height="420" rx="32" fill="url(#bg)"/>
-  <rect x="1" y="1" width="1398" height="418" rx="31" stroke="#2A3040" stroke-width="2"/>
-
-  <circle cx="1180" cy="85" r="150" fill="#E8A957" opacity="0.08" filter="url(#glow)"/>
-  <circle cx="1180" cy="85" r="72" fill="#E8A957" opacity="0.08"/>
-
-  <!-- Evergreen project branding inside the decorative circle -->
-  <g transform="translate(1180 85)">
-    <text x="0" y="-18" text-anchor="middle" fill="#F5D7A5" font-family="Inter,Segoe UI,sans-serif" font-size="17" font-weight="800" letter-spacing="0.8">SMART</text>
-    <text x="0" y="4" text-anchor="middle" fill="#EAECF1" font-family="Inter,Segoe UI,sans-serif" font-size="20" font-weight="900" letter-spacing="1.1">PLAN</text>
-    <text x="0" y="25" text-anchor="middle" fill="#A7B0C2" font-family="Inter,Segoe UI,sans-serif" font-size="6.9" font-weight="700" letter-spacing="0.7">BUILD • COMPARE • SHARE</text>
-    <text x="0" y="40" text-anchor="middle" fill="#6D7690" font-family="IBM Plex Mono,monospace" font-size="7.2" font-weight="700" letter-spacing="1.15">STUDENT-BUILT</text>
+  <rect width="1400" height="520" rx="36" fill="url(#bg)"/>
+  <rect width="1400" height="520" rx="36" fill="url(#glow1)"/>
+  <rect width="1400" height="520" rx="36" fill="url(#glow2)"/>
+  <g transform="translate(80 82)">
+    <rect x="0" y="46" width="260" height="244" rx="52" fill="none" stroke="url(#brand)" stroke-width="24"/>
+    <path d="M0 111h260" stroke="url(#brand)" stroke-width="24"/>
+    <path d="M66 22v54M194 22v54" stroke="url(#brand)" stroke-width="28" stroke-linecap="round"/>
+    <rect x="42" y="148" width="48" height="42" rx="10" fill="#7563F4"/>
+    <rect x="106" y="148" width="48" height="42" rx="10" fill="#6755E9"/>
+    <rect x="170" y="148" width="48" height="42" rx="10" fill="url(#warm)"/>
+    <rect x="42" y="206" width="48" height="42" rx="10" fill="#5F55E8"/>
+    <rect x="106" y="206" width="48" height="42" rx="10" fill="#8B5CF6"/>
+    <rect x="170" y="206" width="48" height="42" rx="10" fill="#3B82F6"/>
   </g>
-  <circle cx="1290" cy="325" r="120" fill="#7FB2FF" opacity="0.05" filter="url(#glow)"/>
-
-  <g opacity="0.24" stroke="#2A3040">
-    <path d="M100 320H1300"/>
-    <path d="M100 280H1300"/>
-    <path d="M100 240H1300"/>
-    <path d="M100 200H1300"/>
-    <path d="M100 160H1300"/>
-    <path d="M100 120H1300"/>
-    <path d="M260 80V340"/>
-    <path d="M420 80V340"/>
-    <path d="M580 80V340"/>
-    <path d="M740 80V340"/>
-    <path d="M900 80V340"/>
-    <path d="M1060 80V340"/>
-  </g>
-
-  <g transform="translate(92 80)">
-    <rect width="190" height="34" rx="17" fill="#E8A957" opacity="0.12"/>
-    <rect x="0.75" y="0.75" width="188.5" height="32.5" rx="16.25" stroke="#E8A957" stroke-opacity="0.55" stroke-width="1.5"/>
-    <text x="95" y="22" text-anchor="middle" fill="#E8A957" font-family="Inter,Segoe UI,sans-serif" font-size="13" font-weight="700" letter-spacing="1.2">FALL 2026 · MAIN SESSION</text>
-
-    <text x="0" y="92" fill="#EAECF1" font-family="Inter,Segoe UI,sans-serif" font-size="54" font-weight="800" letter-spacing="-1.6">Zewail City</text>
-    <text x="0" y="150" fill="#EAECF1" font-family="Inter,Segoe UI,sans-serif" font-size="54" font-weight="800" letter-spacing="-1.6">Schedule Builder</text>
-
-    <text x="2" y="198" fill="#8D97AC" font-family="Inter,Segoe UI,sans-serif" font-size="19" font-weight="500">
-      Smart course planning · Conflict detection · Best schedules · AI assistance
-    </text>
-
-    <g transform="translate(0 232)">
-      <rect width="168" height="42" rx="12" fill="url(#gold)"/>
-      <text x="84" y="27" text-anchor="middle" fill="#1B1508" font-family="Inter,Segoe UI,sans-serif" font-size="14" font-weight="800">PLAN. COMPARE. SHARE.</text>
-    </g>
-  </g>
-
-  <!-- Mini planner preview -->
-  <g transform="translate(990 96)">
-    <rect x="0" y="0" width="330" height="236" rx="22" fill="#1D222D" stroke="#303748"/>
-
-    <text x="22" y="28" fill="#EAECF1" font-family="Inter,Segoe UI,sans-serif" font-size="13" font-weight="800">BEST SCHEDULE PREVIEW</text>
-
-    <g transform="translate(22 42)">
-      <rect width="126" height="28" rx="8" fill="#7FB2FF" opacity="0.16"/>
-      <rect width="126" height="28" rx="8" stroke="#7FB2FF" opacity="0.8"/>
-      <text x="10" y="18" fill="#CFE1FF" font-family="IBM Plex Mono,monospace" font-size="10.5" font-weight="700">CSAI 201 · Tue 12–2</text>
-
-      <rect x="138" width="148" height="28" rx="8" fill="#5FDCB2" opacity="0.14"/>
-      <rect x="138" width="148" height="28" rx="8" stroke="#5FDCB2" opacity="0.75"/>
-      <text x="148" y="18" fill="#BFF3DF" font-family="IBM Plex Mono,monospace" font-size="10.5" font-weight="700">MATH 105 · Tue 10–12</text>
-
-      <rect y="38" width="286" height="28" rx="8" fill="#C1A2F5" opacity="0.13"/>
-      <rect y="38" width="286" height="28" rx="8" stroke="#C1A2F5" opacity="0.7"/>
-      <text x="10" y="56" fill="#E0D2F8" font-family="IBM Plex Mono,monospace" font-size="10.5" font-weight="700">CSAI 202 · Wed 10–12 · G011-E</text>
-
-      <rect y="76" width="196" height="28" rx="8" fill="#E8A957" opacity="0.14"/>
-      <rect y="76" width="196" height="28" rx="8" stroke="#E8A957" opacity="0.8"/>
-      <text x="10" y="94" fill="#F5D7A5" font-family="IBM Plex Mono,monospace" font-size="10.5" font-weight="700">IT 205 · Wed 8–10</text>
-
-      <g transform="translate(0 120)">
-        <rect width="84" height="34" rx="10" fill="#161A23" stroke="#2A3040"/>
-        <text x="42" y="14" text-anchor="middle" fill="#8D97AC" font-family="Inter,Segoe UI,sans-serif" font-size="8.5" font-weight="700">CAMPUS DAYS</text>
-        <text x="42" y="27" text-anchor="middle" fill="#EAECF1" font-family="IBM Plex Mono,monospace" font-size="12" font-weight="800">3</text>
-
-        <rect x="94" width="84" height="34" rx="10" fill="#161A23" stroke="#2A3040"/>
-        <text x="136" y="14" text-anchor="middle" fill="#8D97AC" font-family="Inter,Segoe UI,sans-serif" font-size="8.5" font-weight="700">TOTAL GAPS</text>
-        <text x="136" y="27" text-anchor="middle" fill="#EAECF1" font-family="IBM Plex Mono,monospace" font-size="12" font-weight="800">2h</text>
-
-        <rect x="188" width="98" height="34" rx="10" fill="#161A23" stroke="#2A3040"/>
-        <text x="237" y="14" text-anchor="middle" fill="#8D97AC" font-family="Inter,Segoe UI,sans-serif" font-size="8.5" font-weight="700">CREDITS</text>
-        <text x="237" y="27" text-anchor="middle" fill="#EAECF1" font-family="IBM Plex Mono,monospace" font-size="12" font-weight="800">16 / 21</text>
-      </g>
-
-      <g transform="translate(0 166)">
-        <rect width="138" height="28" rx="14" fill="#5FDCB2" opacity="0.12"/>
-        <rect x="0.75" y="0.75" width="136.5" height="26.5" rx="13.25" stroke="#5FDCB2" stroke-opacity="0.7" stroke-width="1.5"/>
-        <circle cx="16" cy="14" r="7" fill="#5FDCB2"/>
-        <path d="M12.8 14L15.2 16.4L19.6 11.6" stroke="#102219" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-        <text x="28" y="18" fill="#BFF3DF" font-family="Inter,Segoe UI,sans-serif" font-size="10" font-weight="800">CONFLICT FREE</text>
-
-        <rect x="148" width="138" height="28" rx="14" fill="#E8A957" opacity="0.12"/>
-        <rect x="148.75" y="0.75" width="136.5" height="26.5" rx="13.25" stroke="#E8A957" stroke-opacity="0.7" stroke-width="1.5"/>
-        <text x="217" y="18" text-anchor="middle" fill="#F5D7A5" font-family="Inter,Segoe UI,sans-serif" font-size="10" font-weight="800">✦ AI OPTIMIZED</text>
-      </g>
-    </g>
-  </g>
-
-  <text x="1290" y="385" text-anchor="end" fill="#6D7690" font-family="IBM Plex Mono,monospace" font-size="13">student-built · independent · verified 2026-09-24</text>
+  <text x="410" y="230" fill="#F8FAFC" font-family="Inter,Segoe UI,sans-serif" font-size="112" font-weight="800" letter-spacing="-4">Planora</text>
+  <text x="418" y="292" fill="#A8B0C3" font-family="Inter,Segoe UI,sans-serif" font-size="25" font-weight="600" letter-spacing="8">BUILD • COMPARE • SHARE</text>
+  <rect x="416" y="342" width="184" height="44" rx="22" fill="#171E34" stroke="#2B3558"/>
+  <text x="508" y="371" text-anchor="middle" fill="#F59E0B" font-family="Inter,Segoe UI,sans-serif" font-size="17" font-weight="700">FALL 2026</text>
+  <text x="418" y="430" fill="#77829B" font-family="Inter,Segoe UI,sans-serif" font-size="19" font-weight="500">Student-built. Unofficial. Your schedule, your choices.</text>
 </svg>
