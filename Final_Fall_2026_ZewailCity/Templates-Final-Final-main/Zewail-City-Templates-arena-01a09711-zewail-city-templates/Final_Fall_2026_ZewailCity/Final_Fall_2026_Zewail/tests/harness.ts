@@ -558,12 +558,13 @@ check('no duplicate uid within a course/kind', (() => {
 check('engine budgets configured', MAX_COMBOS === 200_000);
 
 /* ================= 11. year-scoped majors (Part 2) ================= */
-check('every major has y1/y2/y3/y4 in order with the fixed labels', MAJORS.every((mj) =>
+check('every major offers its published years in order', MAJORS.every((mj) =>
+  mj.id === 'it' ? mj.years.map(y => y.id).join(',') === 'y2,y3,y4' : (
   mj.years.length === 4 &&
   mj.years[0].id === 'y1' && mj.years[0].label === 'Year 1 (Freshman)' &&
   mj.years[1].id === 'y2' && mj.years[1].label === 'Year 2 (Sophomore)' &&
   mj.years[2].id === 'y3' && mj.years[2].label === 'Year 3 (Junior)' &&
-  mj.years[3].id === 'y4' && mj.years[3].label === 'Year 4 (Senior)'));
+  mj.years[3].id === 'y4' && mj.years[3].label === 'Year 4 (Senior)')));
 check('Year 2 lists keep the current five-course major plans', (() => {
   const y2 = (id: string) => MAJORS.find((m) => m.id === id)!.years.find((year) => year.id === 'y2')!.courseIds.join(',');
   return (
@@ -581,7 +582,7 @@ check('shared ids referenced, never duplicated (csai203/csai301/csai498 are sing
 })());
 check('yearPlanOf falls back to the first year for unknown/absent ids', (() => {
   const mj = MAJORS[0];
-  return yearPlanOf(mj, 'y3').id === 'y3' && yearPlanOf(mj, null).id === 'y1' && yearPlanOf(mj, 'zzz').id === 'y1';
+  return yearPlanOf(mj, 'y3').id === 'y3' && yearPlanOf(mj, null).id === 'y2' && yearPlanOf(mj, 'zzz').id === 'y2';
 })());
 check('allYearCourseIds spans every year of the major (cross-year browser source)', (() => {
   const ids = allYearCourseIds(MAJORS.find((m) => m.id === 'dsai')!);

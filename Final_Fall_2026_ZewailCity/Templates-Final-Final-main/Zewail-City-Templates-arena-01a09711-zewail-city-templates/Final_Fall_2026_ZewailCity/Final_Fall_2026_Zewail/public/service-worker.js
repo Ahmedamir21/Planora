@@ -1,4 +1,4 @@
-const CACHE_NAME = 'planora-shell-v2';
+const CACHE_NAME = 'planora-shell-__BUILD_HASH__';
 const APP_SHELL = ['/', '/manifest.webmanifest', '/icons/planner-icon.svg', '/planora-logo.svg'];
 
 self.addEventListener('install', (event) => {

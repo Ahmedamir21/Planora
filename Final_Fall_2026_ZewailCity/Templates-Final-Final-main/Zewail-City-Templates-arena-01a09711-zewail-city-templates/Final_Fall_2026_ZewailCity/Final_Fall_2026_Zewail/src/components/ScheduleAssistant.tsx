@@ -120,7 +120,7 @@ export function ScheduleAssistant({ context, onPreviewProposal, onApplyProposal,
     setSending(true);
 
     try {
-      const response = await fetch('/api/assistant?v=3', {
+      const response = await fetch('/api/assistant', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: clean, history: previous, context }),
@@ -142,6 +142,11 @@ export function ScheduleAssistant({ context, onPreviewProposal, onApplyProposal,
       if (!response.ok) throw new Error(data.error || 'The assistant could not answer right now.');
       if (!data.text) throw new Error('The assistant returned an empty response.');
 
+      const validation = data.proposal?.changes?.length ? onPreviewProposal?.(data.proposal) : null;
+      if (validation?.ok === false) {
+        setMessages((m) => [...m, { role: 'assistant', text: `I couldn't find a conflict-free change for that request. ${validation.message ?? 'Try another constraint.'}` }]);
+        return;
+      }
       setMessages((m) => [...m, { role: 'assistant', text: data.text! }]);
       if (Array.isArray(data.constraintsAdd) && data.constraintsAdd.length > 0) {
         onAddConstraints?.(data.constraintsAdd);
@@ -214,7 +219,7 @@ export function ScheduleAssistant({ context, onPreviewProposal, onApplyProposal,
                 <div className="flex items-center gap-2">
                   <span className="assistant-mark" aria-hidden>✦</span>
                   <h2 className="text-[14px] font-extrabold tracking-tight">Schedule Assistant</h2>
-                  <span className="pill">Beta · v3</span>
+                  <span className="pill">Beta</span>
                 </div>
                 <p className="mt-0.5 text-[10.5px]" style={{ color: 'var(--muted)' }}>
                   Arabic · English · Franco — grounded in your current planner

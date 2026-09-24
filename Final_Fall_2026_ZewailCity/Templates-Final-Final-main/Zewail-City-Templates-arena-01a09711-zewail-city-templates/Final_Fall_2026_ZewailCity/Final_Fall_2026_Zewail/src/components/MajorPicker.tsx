@@ -13,8 +13,8 @@ export function MajorPicker({ selectedId, onSelect, compact = false }: Props) {
     <div
       className={
         compact
-          ? 'grid gap-2 sm:grid-cols-3'
-          : 'grid gap-3 sm:grid-cols-2 lg:grid-cols-3'
+          ? 'grid gap-2 sm:grid-cols-2 lg:grid-cols-4'
+          : 'grid gap-3 sm:grid-cols-2 lg:grid-cols-4'
       }
     >
       {MAJORS.map((major) => (
@@ -83,8 +83,8 @@ function MajorCard({
             {major.blurb}
           </p>
           <div className="mt-3 flex flex-wrap gap-1.5">
-            {/* Same chips as before the year split: the major's first year (Year 2) list. */}
-            {major.years[0].courseIds.map((id) => {
+            {/* Preview the first published year's courses. */}
+            {(major.years.find(year => year.courseIds.length > 0)?.courseIds ?? []).map((id) => {
               const course = COURSE_BY_ID[id];
               return (
                 <span

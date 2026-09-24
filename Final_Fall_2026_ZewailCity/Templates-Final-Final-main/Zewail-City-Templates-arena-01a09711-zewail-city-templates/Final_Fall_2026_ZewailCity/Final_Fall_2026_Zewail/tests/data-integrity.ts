@@ -36,6 +36,10 @@ MAJORS.forEach((major) => {
   });
 });
 
+check('Year 1 IT is not selectable', !MAJORS.find(major => major.id === 'it')?.years.some(year => year.id === 'y1'));
+check('Cyber Security offers Years 1–4 with unpublished courses',
+  ['y1', 'y2', 'y3', 'y4'].every(id => MAJORS.find(major => major.id === 'cyber')?.years.find(year => year.id === id)?.courseIds.length === 0));
+
 COMMON_COURSE_IDS.forEach((id) => check(`common course ${id} exists`, Boolean(COURSE_BY_ID[id])));
 
 const validDays = new Set(['Sun', 'Mon', 'Tue', 'Wed', 'Thu']);

@@ -11,10 +11,10 @@
   --ink: #f8fafc;
   --muted: #9ba7c0;
   --muted-2: #6f7b96;
-  --accent: #90b9ff;
+  --accent: #668bcc;
   --accent-ink: #10132b;
-  --brand-soft: #90b9ff;
-  --brand-blue: #90b9ff;
+  --brand-soft: #668bcc;
+  --brand-blue: #668bcc;
   --brand-warm: #f59e0b;
   --ok: #6fd9a6;
   --warn: #f2879a;
@@ -50,10 +50,10 @@
   --ink: #12172a;
   --muted: #667085;
   --muted-2: #8b94a8;
-  --accent: #3159b6;
+  --accent: #315b92;
   --accent-ink: #ffffff;
-  --brand-soft: #3159b6;
-  --brand-blue: #3159b6;
+  --brand-soft: #315b92;
+  --brand-blue: #315b92;
   --brand-warm: #d97706;
   --ok: #2f9e64;
   --warn: #b3392a;
@@ -231,7 +231,8 @@ body {
   border-left-width: 3px;
   font-size: 10.5px;
   line-height: 1.35;
-  cursor: default;
+  cursor: pointer;
+  text-align: left;
   transition: transform 0.12s ease, filter 0.12s ease;
 }
 .event-card:hover {

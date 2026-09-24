@@ -1,0 +1,13 @@
+{
+  "key": "replace-with-next-semester-key",
+  "institution": "Zewail City",
+  "plannerName": "Planora",
+  "term": "Fall",
+  "year": 2026,
+  "session": "Main Session",
+  "version": "2.1",
+  "dataLastVerified": "YYYY-MM-DD",
+  "calendarStartDate": "YYYY-MM-DD",
+  "calendarEndDate": "YYYY-MM-DD",
+  "publicHostLabel": "planora-zc.vercel.app"
+}

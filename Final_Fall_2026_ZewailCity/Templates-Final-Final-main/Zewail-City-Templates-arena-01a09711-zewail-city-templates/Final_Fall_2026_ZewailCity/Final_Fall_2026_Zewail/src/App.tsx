@@ -139,8 +139,8 @@ export default function App() {
    * default to the major's first year ('y1') instead of crashing or emptying the list.
    */
   const [yearId, setYearId] = useState<string | null>(() => {
-    if (urlState && MAJOR_BY_ID[urlState.majorId]) return urlState.yearId ?? 'y1';
-    if (savedState?.majorId && MAJOR_BY_ID[savedState.majorId]) return savedState.yearId ?? 'y1';
+    if (urlState && MAJOR_BY_ID[urlState.majorId]) return MAJOR_BY_ID[urlState.majorId].years.some(y => y.id === urlState.yearId) ? urlState.yearId! : MAJOR_BY_ID[urlState.majorId].years[0].id;
+    if (savedState?.majorId && MAJOR_BY_ID[savedState.majorId]) return MAJOR_BY_ID[savedState.majorId].years.some(y => y.id === savedState.yearId) ? savedState.yearId! : MAJOR_BY_ID[savedState.majorId].years[0].id;
     return null;
   });
 
@@ -332,7 +332,7 @@ export default function App() {
     if (!major || !yearPlan) return [];
 
     // Current year's courses + common courses (e.g. SCH) available to every year.
-    const baseIds = [...yearPlan.courseIds, ...COMMON_COURSE_IDS];
+    const baseIds = [...yearPlan.courseIds, ...(major.id === 'cyber' ? [] : COMMON_COURSE_IDS)];
 
     const base = baseIds
       .map((id) => COURSE_BY_ID[id])

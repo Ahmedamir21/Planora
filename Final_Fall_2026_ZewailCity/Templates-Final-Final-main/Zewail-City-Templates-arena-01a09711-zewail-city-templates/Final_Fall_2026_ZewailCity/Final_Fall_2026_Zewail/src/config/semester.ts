@@ -11,19 +11,8 @@
  */
 export const LEGACY_UNTAGGED_SEMESTER_KEY = 'fall-2026-main';
 
-export const SEMESTER_CONFIG = {
-  key: 'fall-2026-main',
-  institution: 'Zewail City',
-  plannerName: 'Planora',
-  term: 'Fall',
-  year: 2026,
-  session: 'Main Session',
-  version: '2.1',
-  dataLastVerified: '2026-09-24',
-  calendarStartDate: '2026-09-20',
-  calendarEndDate: '2026-12-31',
-  publicHostLabel: 'planora-zc.vercel.app',
-} as const;
+import semesterData from '../semester/semester.json';
+export const SEMESTER_CONFIG = semesterData;
 
 export const TERM_LABEL = `${SEMESTER_CONFIG.term} ${SEMESTER_CONFIG.year}`;
 export const TERM_SESSION_LABEL = `${TERM_LABEL} · ${SEMESTER_CONFIG.session}`;

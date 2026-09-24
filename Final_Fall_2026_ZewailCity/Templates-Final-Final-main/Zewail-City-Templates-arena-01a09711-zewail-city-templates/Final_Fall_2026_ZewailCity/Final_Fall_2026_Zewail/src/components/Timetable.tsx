@@ -1,7 +1,8 @@
+import { useEffect, useState } from 'react';
 import type { Course, Meeting } from '../types';
 import { DAYS, DAY_LABEL, formatRange, packLanes, to12h } from '../lib/time';
 import { uid } from '../lib/picks';
-import { TERM_SESSION_LABEL } from '../config/semester';
+import { SEMESTER_CONFIG, TERM_SESSION_LABEL } from '../config/semester';
 
 export interface TimetableEvent {
   meeting: Meeting;
@@ -28,6 +29,13 @@ export function Timetable({
   /** Course currently hovered/focused in the picker; other timetable events dim slightly. */
   highlightedCourseId?: string | null;
 }) {
+  const [selectedEvent, setSelectedEvent] = useState<TimetableEvent | null>(null);
+  useEffect(() => {
+    if (!selectedEvent) return;
+    const close = (event: KeyboardEvent) => { if (event.key === 'Escape') setSelectedEvent(null); };
+    window.addEventListener('keydown', close);
+    return () => window.removeEventListener('keydown', close);
+  }, [selectedEvent]);
   const starts = events.map((e) => e.meeting.start);
   const ends = events.map((e) => e.meeting.end);
   const firstHour = Math.floor(Math.min(8 * 60, ...(starts.length ? starts : [8 * 60])) / 60);
@@ -57,6 +65,7 @@ export function Timetable({
   const overlapCount = clashing.size / 2;
 
   return (
+    <>
     <section className="panel overflow-hidden" aria-label="Weekly timetable">
       <div className="flex flex-wrap items-center justify-between gap-2 border-b px-4 py-3" style={{ borderColor: 'var(--line)' }}>
         <div className="flex items-center gap-2">
@@ -146,7 +155,10 @@ export function Timetable({
                   const compact = h < 52;
                   const clash = clashing.has(uid(meeting));
                   return (
-                    <div
+                    <button
+                      type="button"
+                      onClick={() => setSelectedEvent(ev)}
+                      aria-label={`View ${ev.course.code} ${meeting.type} section ${meeting.sec} details`}
                       key={uid(meeting)}
                       className={`event-card ${highlightedCourseId && highlightedCourseId !== ev.course.id ? 'event-dimmed-by-course' : ''} ${highlightedCourseId === ev.course.id ? 'event-course-highlight' : ''}`}
                       data-clash={clash ? 'true' : 'false'}
@@ -187,7 +199,7 @@ export function Timetable({
                           {formatRange(meeting.start, meeting.end)}
                         </p>
                       )}
-                    </div>
+                    </button>
                   );
                 })}
                 {items.length === 0 && (
@@ -204,7 +216,34 @@ export function Timetable({
         </div>
       </div>
     </section>
+    {selectedEvent && (
+      <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/70 p-3 sm:p-6" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setSelectedEvent(null); }}>
+        <div className="panel max-h-[92vh] w-full max-w-[680px] overflow-y-auto p-5 sm:p-7" role="dialog" aria-modal="true" aria-labelledby="session-details-title">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-widest" style={{ color: 'var(--accent)' }}>Planora · course details</p>
+              <h2 id="session-details-title" className="mt-2 text-xl font-bold">{selectedEvent.course.code}: {selectedEvent.course.name}</h2>
+            </div>
+            <button type="button" className="btn px-3 py-1.5" aria-label="Close course details" onClick={() => setSelectedEvent(null)}>✕</button>
+          </div>
+          <div className="mt-5 grid gap-3 sm:grid-cols-2">
+            <Detail label="Term" value={TERM_SESSION_LABEL} />
+            <Detail label="Credits" value={selectedEvent.course.credits == null ? 'Not published' : String(selectedEvent.course.credits)} />
+            <Detail label="Component and section" value={`${selectedEvent.meeting.type} · ${selectedEvent.meeting.sec}`} />
+            <Detail label="Instructor" value={selectedEvent.course.instructors.find(instructor => [...instructor.lectures, ...instructor.labs, ...instructor.tutorials].includes(selectedEvent.meeting))?.name ?? 'Not published'} />
+            <Detail label="Schedule" value={`${DAY_LABEL[selectedEvent.meeting.day]} · ${formatRange(selectedEvent.meeting.start, selectedEvent.meeting.end)}`} />
+            <Detail label="Room" value={selectedEvent.meeting.room || 'Not published'} />
+          </div>
+          <p className="mt-5 text-[11px]" style={{ color: 'var(--muted)' }}>Student planner · unofficial · data last verified {SEMESTER_CONFIG.dataLastVerified}. Enrollment, seats and course descriptions are not published in this planner.</p>
+        </div>
+      </div>
+    )}
+    </>
   );
+}
+
+function Detail({ label, value }: { label: string; value: string }) {
+  return <div className="rounded-xl border p-3" style={{ borderColor: 'var(--line)', background: 'var(--surface)' }}><p className="text-[10px] uppercase tracking-wide" style={{ color: 'var(--muted)' }}>{label}</p><p className="mt-1 text-sm font-semibold">{value}</p></div>;
 }
 
 function shortType(type: Meeting['type']): string {

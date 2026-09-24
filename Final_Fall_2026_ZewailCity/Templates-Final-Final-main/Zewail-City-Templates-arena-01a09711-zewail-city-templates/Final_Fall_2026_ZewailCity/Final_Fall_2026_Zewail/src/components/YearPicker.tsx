@@ -40,7 +40,7 @@ export function YearPicker({ major, selectedYearId, onSelect, compact = false }:
                   className="truncate text-[10px] font-bold uppercase tracking-[0.09em]"
                   style={{ color: selected ? 'var(--accent)' : 'var(--muted-2)' }}
                 >
-                  {year.courseIds.length} course{year.courseIds.length === 1 ? '' : 's'}
+                  {year.courseIds.length ? `${year.courseIds.length} course${year.courseIds.length === 1 ? '' : 's'}` : 'Courses coming next term'}
                 </p>
                 <h3 className={`mt-1 truncate font-bold tracking-tight ${compact ? 'text-[13.5px]' : 'text-[15px]'}`}>
                   {year.label}

@@ -1,0 +1,3263 @@
+[
+  {
+    "id": "csai201",
+    "code": "CSAI 201",
+    "name": "Data Structures",
+    "c": 1,
+    "credits": 3,
+    "instructors": [
+      {
+        "name": "Mayada Mansour Ali",
+        "lectures": [
+          {
+            "type": "Lecture",
+            "sec": "01",
+            "day": "Tue",
+            "start": 720,
+            "end": 840,
+            "room": "G038B"
+          }
+        ],
+        "labs": [
+          {
+            "type": "Lab",
+            "sec": "01",
+            "day": "Wed",
+            "start": 840,
+            "end": 960,
+            "room": "G012-E"
+          },
+          {
+            "type": "Lab",
+            "sec": "02",
+            "day": "Wed",
+            "start": 600,
+            "end": 720,
+            "room": "G012-E"
+          },
+          {
+            "type": "Lab",
+            "sec": "03",
+            "day": "Wed",
+            "start": 840,
+            "end": 960,
+            "room": "G013-E"
+          },
+          {
+            "type": "Lab",
+            "sec": "04",
+            "day": "Wed",
+            "start": 600,
+            "end": 720,
+            "room": "G013-E"
+          }
+        ],
+        "tutorials": []
+      },
+      {
+        "name": "Elmahdy Maree Maree",
+        "lectures": [
+          {
+            "type": "Lecture",
+            "sec": "02",
+            "day": "Tue",
+            "start": 840,
+            "end": 960,
+            "room": "G038B"
+          },
+          {
+            "type": "Lecture",
+            "sec": "04",
+            "day": "Tue",
+            "start": 720,
+            "end": 840,
+            "room": "G033B"
+          }
+        ],
+        "labs": [],
+        "tutorials": []
+      },
+      {
+        "name": "Mohamed Elhalaby Elhalaby",
+        "lectures": [
+          {
+            "type": "Lecture",
+            "sec": "03",
+            "day": "Wed",
+            "start": 480,
+            "end": 600,
+            "room": "G038B"
+          }
+        ],
+        "labs": [
+          {
+            "type": "Lab",
+            "sec": "05",
+            "day": "Wed",
+            "start": 960,
+            "end": 1080,
+            "room": "G013-E"
+          },
+          {
+            "type": "Lab",
+            "sec": "06",
+            "day": "Wed",
+            "start": 840,
+            "end": 960,
+            "room": "G014-E"
+          },
+          {
+            "type": "Lab",
+            "sec": "07",
+            "day": "Sun",
+            "start": 720,
+            "end": 840,
+            "room": "G007D"
+          },
+          {
+            "type": "Lab",
+            "sec": "08",
+            "day": "Sun",
+            "start": 480,
+            "end": 600,
+            "room": "G0010D"
+          },
+          {
+            "type": "Lab",
+            "sec": "09",
+            "day": "Mon",
+            "start": 840,
+            "end": 960,
+            "room": "G015-E"
+          },
+          {
+            "type": "Lab",
+            "sec": "10",
+            "day": "Tue",
+            "start": 600,
+            "end": 720,
+            "room": "G016-E"
+          },
+          {
+            "type": "Lab",
+            "sec": "11",
+            "day": "Sun",
+            "start": 480,
+            "end": 600,
+            "room": "G014-E"
+          },
+          {
+            "type": "Lab",
+            "sec": "12",
+            "day": "Sun",
+            "start": 720,
+            "end": 840,
+            "room": "G014-E"
+          }
+        ],
+        "tutorials": []
+      },
+      {
+        "name": "Instructor Not Assigned",
+        "unassigned": true,
+        "lectures": [],
+        "labs": [
+          {
+            "type": "Lab",
+            "sec": "13",
+            "day": "Sun",
+            "start": 840,
+            "end": 960,
+            "room": "S043-E"
+          },
+          {
+            "type": "Lab",
+            "sec": "14",
+            "day": "Sun",
+            "start": 960,
+            "end": 1080,
+            "room": "S043-E"
+          },
+          {
+            "type": "Lab",
+            "sec": "15",
+            "day": "Mon",
+            "start": 480,
+            "end": 600,
+            "room": "G009-D"
+          },
+          {
+            "type": "Lab",
+            "sec": "16",
+            "day": "Sun",
+            "start": 600,
+            "end": 720,
+            "room": "G009-D"
+          }
+        ],
+        "tutorials": []
+      }
+    ]
+  },
+  {
+    "id": "csai202",
+    "code": "CSAI 202",
+    "name": "Introduction to Database Systems",
+    "c": 1,
+    "credits": 3,
+    "instructors": [
+      {
+        "name": "Yousry Abdelazeem Abdelazeem",
+        "lectures": [
+          {
+            "type": "Lecture",
+            "sec": "01",
+            "day": "Mon",
+            "start": 600,
+            "end": 720,
+            "room": "G038B"
+          },
+          {
+            "type": "Lecture",
+            "sec": "02",
+            "day": "Mon",
+            "start": 960,
+            "end": 1080,
+            "room": "G038B"
+          }
+        ],
+        "labs": [
+          {
+            "type": "Lab",
+            "sec": "01",
+            "day": "Tue",
+            "start": 840,
+            "end": 960,
+            "room": "G011-E"
+          },
+          {
+            "type": "Lab",
+            "sec": "02",
+            "day": "Tue",
+            "start": 600,
+            "end": 720,
+            "room": "G011-E"
+          },
+          {
+            "type": "Lab",
+            "sec": "03",
+            "day": "Tue",
+            "start": 600,
+            "end": 720,
+            "room": "G012-E"
+          },
+          {
+            "type": "Lab",
+            "sec": "04",
+            "day": "Tue",
+            "start": 600,
+            "end": 720,
+            "room": "G015-D"
+          },
+          {
+            "type": "Lab",
+            "sec": "05",
+            "day": "Tue",
+            "start": 720,
+            "end": 840,
+            "room": "G015-D"
+          },
+          {
+            "type": "Lab",
+            "sec": "06",
+            "day": "Wed",
+            "start": 600,
+            "end": 720,
+            "room": "G011-E"
+          },
+          {
+            "type": "Lab",
+            "sec": "07",
+            "day": "Wed",
+            "start": 960,
+            "end": 1080,
+            "room": "G016-E"
+          },
+          {
+            "type": "Lab",
+            "sec": "08",
+            "day": "Wed",
+            "start": 480,
+            "end": 600,
+            "room": "G012-E"
+          }
+        ],
+        "tutorials": []
+      },
+      {
+        "name": "Ashraf Hendam Hendam",
+        "lectures": [
+          {
+            "type": "Lecture",
+            "sec": "03",
+            "day": "Sun",
+            "start": 600,
+            "end": 720,
+            "room": "G033B"
+          }
+        ],
+        "labs": [],
+        "tutorials": []
+      },
+      {
+        "name": "Instructor Not Assigned",
+        "unassigned": true,
+        "lectures": [],
+        "labs": [
+          {
+            "type": "Lab",
+            "sec": "09",
+            "day": "Tue",
+            "start": 720,
+            "end": 840,
+            "room": "G012-E"
+          },
+          {
+            "type": "Lab",
+            "sec": "10",
+            "day": "Tue",
+            "start": 840,
+            "end": 960,
+            "room": "G012-E"
+          },
+          {
+            "type": "Lab",
+            "sec": "11",
+            "day": "Wed",
+            "start": 480,
+            "end": 600,
+            "room": "G013-E"
+          },
+          {
+            "type": "Lab",
+            "sec": "12",
+            "day": "Sun",
+            "start": 960,
+            "end": 1080,
+            "room": "G0011D"
+          },
+          {
+            "type": "Lab",
+            "sec": "13",
+            "day": "Mon",
+            "start": 960,
+            "end": 1080,
+            "room": "S043-E"
+          },
+          {
+            "type": "Lab",
+            "sec": "14",
+            "day": "Mon",
+            "start": 480,
+            "end": 600,
+            "room": "G015-D"
+          },
+          {
+            "type": "Lab",
+            "sec": "15",
+            "day": "Sun",
+            "start": 960,
+            "end": 1080,
+            "room": "G009-D"
+          },
+          {
+            "type": "Lab",
+            "sec": "16",
+            "day": "Mon",
+            "start": 960,
+            "end": 1080,
+            "room": "G011-E"
+          }
+        ],
+        "tutorials": []
+      }
+    ]
+  },
+  {
+    "id": "csai205",
+    "code": "CSAI 205",
+    "name": "Fundamentals of Circuits and Electronics",
+    "c": 1,
+    "credits": 3,
+    "instructors": [
+      {
+        "name": "Mohamed Maher Ata",
+        "lectures": [
+          {
+            "type": "Lecture",
+            "sec": "01",
+            "day": "Mon",
+            "start": 480,
+            "end": 600,
+            "room": "G019-B"
+          },
+          {
+            "type": "Lecture",
+            "sec": "02",
+            "day": "Mon",
+            "start": 840,
+            "end": 960,
+            "room": "G025B"
+          },
+          {
+            "type": "Lecture",
+            "sec": "03",
+            "day": "Tue",
+            "start": 600,
+            "end": 720,
+            "room": "G006-B"
+          }
+        ],
+        "labs": [
+          {
+            "type": "Lab",
+            "sec": "01",
+            "day": "Tue",
+            "start": 480,
+            "end": 600,
+            "room": "G012-E"
+          },
+          {
+            "type": "Lab",
+            "sec": "02",
+            "day": "Tue",
+            "start": 600,
+            "end": 720,
+            "room": "G014-E"
+          },
+          {
+            "type": "Lab",
+            "sec": "03",
+            "day": "Tue",
+            "start": 960,
+            "end": 1080,
+            "room": "G014-E"
+          },
+          {
+            "type": "Lab",
+            "sec": "04",
+            "day": "Wed",
+            "start": 600,
+            "end": 720,
+            "room": "G009-D"
+          },
+          {
+            "type": "Lab",
+            "sec": "05",
+            "day": "Sun",
+            "start": 600,
+            "end": 720,
+            "room": "S043-E"
+          },
+          {
+            "type": "Lab",
+            "sec": "06",
+            "day": "Sun",
+            "start": 720,
+            "end": 840,
+            "room": "S043-E"
+          },
+          {
+            "type": "Lab",
+            "sec": "07",
+            "day": "Sun",
+            "start": 480,
+            "end": 600,
+            "room": "S043-E"
+          },
+          {
+            "type": "Lab",
+            "sec": "08",
+            "day": "Sun",
+            "start": 600,
+            "end": 720,
+            "room": "S001-A"
+          },
+          {
+            "type": "Lab",
+            "sec": "09",
+            "day": "Sun",
+            "start": 720,
+            "end": 840,
+            "room": "S001-A"
+          },
+          {
+            "type": "Lab",
+            "sec": "10",
+            "day": "Sun",
+            "start": 840,
+            "end": 960,
+            "room": "S001-A"
+          },
+          {
+            "type": "Lab",
+            "sec": "11",
+            "day": "Mon",
+            "start": 840,
+            "end": 960,
+            "room": "S001-A"
+          },
+          {
+            "type": "Lab",
+            "sec": "12",
+            "day": "Mon",
+            "start": 960,
+            "end": 1080,
+            "room": "S001-A"
+          }
+        ],
+        "tutorials": []
+      }
+    ]
+  },
+  {
+    "id": "math105",
+    "code": "MATH 105",
+    "name": "Probability and Statistics",
+    "c": 4,
+    "credits": 3,
+    "instructors": [
+      {
+        "name": "Walaa El-Sharkawy El-Sharkawy",
+        "lectures": [
+          {
+            "type": "Lecture",
+            "sec": "01",
+            "day": "Tue",
+            "start": 480,
+            "end": 600,
+            "room": "G025B"
+          }
+        ],
+        "labs": [],
+        "tutorials": [
+          {
+            "type": "Tutorial",
+            "sec": "01",
+            "day": "Tue",
+            "start": 720,
+            "end": 840,
+            "room": "G009-B"
+          },
+          {
+            "type": "Tutorial",
+            "sec": "02",
+            "day": "Wed",
+            "start": 960,
+            "end": 1080,
+            "room": "G009-B"
+          },
+          {
+            "type": "Tutorial",
+            "sec": "03",
+            "day": "Tue",
+            "start": 840,
+            "end": 960,
+            "room": "G008-C"
+          }
+        ]
+      },
+      {
+        "name": "Mohamed Fawzy Fawzy",
+        "lectures": [
+          {
+            "type": "Lecture",
+            "sec": "02",
+            "day": "Wed",
+            "start": 840,
+            "end": 960,
+            "room": "G019-B"
+          }
+        ],
+        "labs": [],
+        "tutorials": [
+          {
+            "type": "Tutorial",
+            "sec": "04",
+            "day": "Sun",
+            "start": 480,
+            "end": 600,
+            "room": "G008-C"
+          },
+          {
+            "type": "Tutorial",
+            "sec": "05",
+            "day": "Tue",
+            "start": 480,
+            "end": 600,
+            "room": "G008-C"
+          },
+          {
+            "type": "Tutorial",
+            "sec": "06",
+            "day": "Sun",
+            "start": 720,
+            "end": 840,
+            "room": "G008-C"
+          }
+        ]
+      },
+      {
+        "name": "Ahmed El-Deeb",
+        "lectures": [
+          {
+            "type": "Lecture",
+            "sec": "03",
+            "day": "Tue",
+            "start": 600,
+            "end": 720,
+            "room": "G025B"
+          }
+        ],
+        "labs": [],
+        "tutorials": []
+      },
+      {
+        "name": "Instructor Not Assigned",
+        "unassigned": true,
+        "lectures": [
+          {
+            "type": "Lecture",
+            "sec": "04",
+            "day": "Wed",
+            "start": 840,
+            "end": 960,
+            "room": "G006-B"
+          }
+        ],
+        "labs": [],
+        "tutorials": [
+          {
+            "type": "Tutorial",
+            "sec": "07",
+            "day": "Mon",
+            "start": 960,
+            "end": 1080,
+            "room": "F004-D"
+          },
+          {
+            "type": "Tutorial",
+            "sec": "08",
+            "day": "Sun",
+            "start": 600,
+            "end": 720,
+            "room": "G035-B"
+          },
+          {
+            "type": "Tutorial",
+            "sec": "09",
+            "day": "Mon",
+            "start": 960,
+            "end": 1080,
+            "room": "F001-D"
+          },
+          {
+            "type": "Tutorial",
+            "sec": "10",
+            "day": "Wed",
+            "start": 960,
+            "end": 1080,
+            "room": "F011-D"
+          },
+          {
+            "type": "Tutorial",
+            "sec": "11",
+            "day": "Mon",
+            "start": 840,
+            "end": 960,
+            "room": "F32-B4"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "it205",
+    "code": "IT 205",
+    "name": "Enterprise System Architecture",
+    "c": 5,
+    "credits": 2,
+    "group": "slot5",
+    "instructors": [
+      {
+        "name": "Mohamed Mahdy",
+        "lectures": [
+          {
+            "type": "Lecture",
+            "sec": "01",
+            "day": "Wed",
+            "start": 480,
+            "end": 600,
+            "room": "F022-E"
+          }
+        ],
+        "labs": [
+          {
+            "type": "Lab",
+            "sec": "01",
+            "day": "Mon",
+            "start": 840,
+            "end": 960,
+            "room": "S043-E"
+          }
+        ],
+        "tutorials": []
+      }
+    ]
+  },
+  {
+    "id": "dsai203",
+    "code": "DSAI 203",
+    "name": "Data Integration and Visualization",
+    "c": 1,
+    "credits": 3,
+    "instructors": [
+      {
+        "name": "Saeed Mohsen",
+        "lectures": [
+          {
+            "type": "Lecture",
+            "sec": "01",
+            "day": "Tue",
+            "start": 480,
+            "end": 600,
+            "room": "G006-B"
+          }
+        ],
+        "labs": [
+          {
+            "type": "Lab",
+            "sec": "01",
+            "day": "Wed",
+            "start": 480,
+            "end": 600,
+            "room": "G0012D"
+          },
+          {
+            "type": "Lab",
+            "sec": "02",
+            "day": "Wed",
+            "start": 480,
+            "end": 600,
+            "room": "S001-A"
+          },
+          {
+            "type": "Lab",
+            "sec": "03",
+            "day": "Wed",
+            "start": 600,
+            "end": 720,
+            "room": "S001-A"
+          },
+          {
+            "type": "Lab",
+            "sec": "04",
+            "day": "Wed",
+            "start": 840,
+            "end": 960,
+            "room": "S001-A"
+          }
+        ],
+        "tutorials": []
+      },
+      {
+        "name": "Mohamed Elhalaby Elhalaby",
+        "lectures": [
+          {
+            "type": "Lecture",
+            "sec": "02",
+            "day": "Mon",
+            "start": 600,
+            "end": 720,
+            "room": "G033B"
+          },
+          {
+            "type": "Lecture",
+            "sec": "03",
+            "day": "Mon",
+            "start": 480,
+            "end": 600,
+            "room": "G033B"
+          }
+        ],
+        "labs": [
+          {
+            "type": "Lab",
+            "sec": "05",
+            "day": "Wed",
+            "start": 960,
+            "end": 1080,
+            "room": "S001-A"
+          },
+          {
+            "type": "Lab",
+            "sec": "06",
+            "day": "Tue",
+            "start": 480,
+            "end": 600,
+            "room": "S001-A"
+          },
+          {
+            "type": "Lab",
+            "sec": "07",
+            "day": "Tue",
+            "start": 720,
+            "end": 840,
+            "room": "S001-A"
+          },
+          {
+            "type": "Lab",
+            "sec": "08",
+            "day": "Tue",
+            "start": 600,
+            "end": 720,
+            "room": "S001-A"
+          },
+          {
+            "type": "Lab",
+            "sec": "09",
+            "day": "Wed",
+            "start": 600,
+            "end": 720,
+            "room": "S043-E"
+          },
+          {
+            "type": "Lab",
+            "sec": "10",
+            "day": "Wed",
+            "start": 480,
+            "end": 600,
+            "room": "S043-E"
+          },
+          {
+            "type": "Lab",
+            "sec": "11",
+            "day": "Wed",
+            "start": 840,
+            "end": 960,
+            "room": "S043-E"
+          },
+          {
+            "type": "Lab",
+            "sec": "12",
+            "day": "Wed",
+            "start": 960,
+            "end": 1080,
+            "room": "S043-E"
+          }
+        ],
+        "tutorials": []
+      }
+    ]
+  },
+  {
+    "id": "csai203",
+    "code": "CSAI 203",
+    "name": "Introduction to Software Engineering",
+    "c": 1,
+    "credits": 3,
+    "instructors": [
+      {
+        "name": "Mohamed Sami Rakha",
+        "lectures": [
+          {
+            "type": "Lecture",
+            "sec": "01",
+            "day": "Sun",
+            "start": 840,
+            "end": 960,
+            "room": "G006-B"
+          }
+        ],
+        "labs": [
+          {
+            "type": "Lab",
+            "sec": "01",
+            "day": "Mon",
+            "start": 960,
+            "end": 1080,
+            "room": "G0011D"
+          },
+          {
+            "type": "Lab",
+            "sec": "02",
+            "day": "Mon",
+            "start": 480,
+            "end": 600,
+            "room": "G014-E"
+          },
+          {
+            "type": "Lab",
+            "sec": "03",
+            "day": "Mon",
+            "start": 960,
+            "end": 1080,
+            "room": "G014-E"
+          },
+          {
+            "type": "Lab",
+            "sec": "04",
+            "day": "Mon",
+            "start": 480,
+            "end": 600,
+            "room": "G011-E"
+          }
+        ],
+        "tutorials": []
+      },
+      {
+        "name": "Sabah Sayed Sayed",
+        "lectures": [
+          {
+            "type": "Lecture",
+            "sec": "02",
+            "day": "Sun",
+            "start": 480,
+            "end": 600,
+            "room": ""
+          }
+        ],
+        "labs": [
+          {
+            "type": "Lab",
+            "sec": "05",
+            "day": "Wed",
+            "start": 480,
+            "end": 600,
+            "room": "G015-E"
+          },
+          {
+            "type": "Lab",
+            "sec": "06",
+            "day": "Mon",
+            "start": 720,
+            "end": 840,
+            "room": "G009-D"
+          },
+          {
+            "type": "Lab",
+            "sec": "07",
+            "day": "Tue",
+            "start": 720,
+            "end": 840,
+            "room": "G011-E"
+          },
+          {
+            "type": "Lab",
+            "sec": "08",
+            "day": "Tue",
+            "start": 480,
+            "end": 600,
+            "room": "G011-E"
+          }
+        ],
+        "tutorials": []
+      },
+      {
+        "name": "Instructor Not Assigned",
+        "unassigned": true,
+        "lectures": [
+          {
+            "type": "Lecture",
+            "sec": "03",
+            "day": "Sun",
+            "start": 840,
+            "end": 960,
+            "room": "G033B"
+          }
+        ],
+        "labs": [
+          {
+            "type": "Lab",
+            "sec": "09",
+            "day": "Tue",
+            "start": 720,
+            "end": 840,
+            "room": "G013-E"
+          },
+          {
+            "type": "Lab",
+            "sec": "10",
+            "day": "Tue",
+            "start": 840,
+            "end": 960,
+            "room": "G013-E"
+          },
+          {
+            "type": "Lab",
+            "sec": "11",
+            "day": "Tue",
+            "start": 720,
+            "end": 840,
+            "room": "G014-E"
+          },
+          {
+            "type": "Lab",
+            "sec": "12",
+            "day": "Tue",
+            "start": 600,
+            "end": 720,
+            "room": "G013-E"
+          }
+        ],
+        "tutorials": []
+      }
+    ]
+  },
+  {
+    "id": "phys104",
+    "code": "PHYS 104",
+    "name": "Physics 2",
+    "c": 1,
+    "credits": 3,
+    "instructors": [
+      {
+        "name": "Ashraf Abdelwahed",
+        "lectures": [
+          {
+            "type": "Lecture",
+            "sec": "01",
+            "day": "Tue",
+            "start": 720,
+            "end": 840,
+            "room": "F027B1"
+          }
+        ],
+        "labs": [],
+        "tutorials": [
+          {
+            "type": "Tutorial",
+            "sec": "01",
+            "day": "Sun",
+            "start": 480,
+            "end": 540,
+            "room": "F026B1"
+          },
+          {
+            "type": "Tutorial",
+            "sec": "02",
+            "day": "Sun",
+            "start": 540,
+            "end": 600,
+            "room": "F026B1"
+          },
+          {
+            "type": "Tutorial",
+            "sec": "03",
+            "day": "Mon",
+            "start": 900,
+            "end": 960,
+            "room": "F004-D"
+          },
+          {
+            "type": "Tutorial",
+            "sec": "04",
+            "day": "Mon",
+            "start": 840,
+            "end": 900,
+            "room": "F014-E"
+          }
+        ]
+      },
+      {
+        "name": "Essam Mohamed Aly Karamani / Ashraf Abdelwahed",
+        "lectures": [],
+        "labs": [
+          {
+            "type": "Lab",
+            "sec": "01",
+            "day": "Mon",
+            "start": 600,
+            "end": 720,
+            "room": "S26-B3"
+          },
+          {
+            "type": "Lab",
+            "sec": "02",
+            "day": "Mon",
+            "start": 840,
+            "end": 960,
+            "room": "S26-B3"
+          },
+          {
+            "type": "Lab",
+            "sec": "03",
+            "day": "Sun",
+            "start": 600,
+            "end": 720,
+            "room": "S26-B3"
+          },
+          {
+            "type": "Lab",
+            "sec": "04",
+            "day": "Sun",
+            "start": 840,
+            "end": 960,
+            "room": "S26-B3"
+          }
+        ],
+        "tutorials": []
+      }
+    ]
+  },
+  {
+    "id": "csai101",
+    "code": "CSAI 101",
+    "name": "Fundamentals of Programming and Computer Science",
+    "c": 1,
+    "credits": 2,
+    "instructors": [
+      {
+        "name": "Ghada Dahy",
+        "lectures": [
+          {
+            "type": "Lecture",
+            "sec": "03",
+            "day": "Wed",
+            "start": 480,
+            "end": 600,
+            "room": "G033B"
+          },
+          {
+            "type": "Lecture",
+            "sec": "04",
+            "day": "Wed",
+            "start": 600,
+            "end": 720,
+            "room": "F009-D"
+          }
+        ],
+        "labs": [
+          {
+            "type": "Lab",
+            "sec": "07",
+            "day": "Wed",
+            "start": 600,
+            "end": 720,
+            "room": "G0012D"
+          },
+          {
+            "type": "Lab",
+            "sec": "08",
+            "day": "Wed",
+            "start": 600,
+            "end": 720,
+            "room": "G007D"
+          },
+          {
+            "type": "Lab",
+            "sec": "09",
+            "day": "Mon",
+            "start": 600,
+            "end": 720,
+            "room": "G015-D"
+          },
+          {
+            "type": "Lab",
+            "sec": "10",
+            "day": "Tue",
+            "start": 840,
+            "end": 960,
+            "room": "G009-D"
+          },
+          {
+            "type": "Lab",
+            "sec": "11",
+            "day": "Sun",
+            "start": 720,
+            "end": 840,
+            "room": "G012-E"
+          },
+          {
+            "type": "Lab",
+            "sec": "12",
+            "day": "Sun",
+            "start": 720,
+            "end": 840,
+            "room": "G011-E"
+          }
+        ],
+        "tutorials": []
+      },
+      {
+        "name": "Ibrahim Eldesouky",
+        "lectures": [
+          {
+            "type": "Lecture",
+            "sec": "06",
+            "day": "Tue",
+            "start": 600,
+            "end": 720,
+            "room": "G033B"
+          },
+          {
+            "type": "Lecture",
+            "sec": "07",
+            "day": "Tue",
+            "start": 720,
+            "end": 840,
+            "room": "F011-E"
+          }
+        ],
+        "labs": [
+          {
+            "type": "Lab",
+            "sec": "16",
+            "day": "Sun",
+            "start": 720,
+            "end": 840,
+            "room": "G0011D"
+          },
+          {
+            "type": "Lab",
+            "sec": "17",
+            "day": "Sun",
+            "start": 720,
+            "end": 840,
+            "room": "G0012D"
+          },
+          {
+            "type": "Lab",
+            "sec": "18",
+            "day": "Sun",
+            "start": 480,
+            "end": 600,
+            "room": "G0012D"
+          },
+          {
+            "type": "Lab",
+            "sec": "19",
+            "day": "Sun",
+            "start": 840,
+            "end": 960,
+            "room": "G0011D"
+          },
+          {
+            "type": "Lab",
+            "sec": "20",
+            "day": "Sun",
+            "start": 840,
+            "end": 960,
+            "room": "G0010D"
+          }
+        ],
+        "tutorials": []
+      }
+    ]
+  },
+  {
+    "id": "csai102",
+    "code": "CSAI 102",
+    "name": "Digital Logic and Computer Architecture",
+    "c": 2,
+    "credits": 3,
+    "instructors": [
+      {
+        "name": "Elmahdy Maree Maree",
+        "lectures": [
+          {
+            "type": "Lecture",
+            "sec": "03",
+            "day": "Sun",
+            "start": 720,
+            "end": 840,
+            "room": ""
+          },
+          {
+            "type": "Lecture",
+            "sec": "04",
+            "day": "Sun",
+            "start": 840,
+            "end": 960,
+            "room": "G019-B"
+          }
+        ],
+        "labs": [
+          {
+            "type": "Lab",
+            "sec": "07",
+            "day": "Tue",
+            "start": 840,
+            "end": 960,
+            "room": "G016-E"
+          },
+          {
+            "type": "Lab",
+            "sec": "08",
+            "day": "Wed",
+            "start": 960,
+            "end": 1080,
+            "room": "G008-E"
+          },
+          {
+            "type": "Lab",
+            "sec": "09",
+            "day": "Wed",
+            "start": 600,
+            "end": 720,
+            "room": "G020-E"
+          },
+          {
+            "type": "Lab",
+            "sec": "10",
+            "day": "Mon",
+            "start": 600,
+            "end": 720,
+            "room": "G020-E"
+          },
+          {
+            "type": "Lab",
+            "sec": "11",
+            "day": "Mon",
+            "start": 600,
+            "end": 720,
+            "room": "G008-E"
+          },
+          {
+            "type": "Lab",
+            "sec": "12",
+            "day": "Mon",
+            "start": 960,
+            "end": 1080,
+            "room": "G008-E"
+          }
+        ],
+        "tutorials": []
+      },
+      {
+        "name": "Mohamed Ghalwash",
+        "lectures": [
+          {
+            "type": "Lecture",
+            "sec": "06",
+            "day": "Tue",
+            "start": 720,
+            "end": 840,
+            "room": "G008-C"
+          }
+        ],
+        "labs": [
+          {
+            "type": "Lab",
+            "sec": "16",
+            "day": "Sun",
+            "start": 840,
+            "end": 960,
+            "room": "G020-E"
+          },
+          {
+            "type": "Lab",
+            "sec": "17",
+            "day": "Sun",
+            "start": 480,
+            "end": 600,
+            "room": "G020-E"
+          },
+          {
+            "type": "Lab",
+            "sec": "18",
+            "day": "Sun",
+            "start": 720,
+            "end": 840,
+            "room": "G020-E"
+          }
+        ],
+        "tutorials": []
+      },
+      {
+        "name": "Ibrahim Swelam",
+        "lectures": [
+          {
+            "type": "Lecture",
+            "sec": "07",
+            "day": "Sun",
+            "start": 720,
+            "end": 840,
+            "room": "G011-B"
+          }
+        ],
+        "labs": [
+          {
+            "type": "Lab",
+            "sec": "19",
+            "day": "Tue",
+            "start": 480,
+            "end": 600,
+            "room": "G016-E"
+          },
+          {
+            "type": "Lab",
+            "sec": "20",
+            "day": "Mon",
+            "start": 480,
+            "end": 600,
+            "room": "G020-E"
+          }
+        ],
+        "tutorials": []
+      }
+    ]
+  },
+  {
+    "id": "csai252",
+    "code": "CSAI 252",
+    "name": "Introduction to Computer Networks",
+    "c": 3,
+    "credits": 3,
+    "instructors": [
+      {
+        "name": "Heba Aty Aty",
+        "lectures": [
+          {
+            "type": "Lecture",
+            "sec": "03",
+            "day": "Wed",
+            "start": 840,
+            "end": 960,
+            "room": "G011-B"
+          },
+          {
+            "type": "Lecture",
+            "sec": "04",
+            "day": "Wed",
+            "start": 480,
+            "end": 600,
+            "room": "G019-B"
+          }
+        ],
+        "labs": [
+          {
+            "type": "Lab",
+            "sec": "07",
+            "day": "Sun",
+            "start": 600,
+            "end": 720,
+            "room": "G012-E"
+          },
+          {
+            "type": "Lab",
+            "sec": "08",
+            "day": "Sun",
+            "start": 480,
+            "end": 600,
+            "room": "G013-E"
+          },
+          {
+            "type": "Lab",
+            "sec": "09",
+            "day": "Sun",
+            "start": 600,
+            "end": 720,
+            "room": "G013-E"
+          },
+          {
+            "type": "Lab",
+            "sec": "10",
+            "day": "Mon",
+            "start": 960,
+            "end": 1080,
+            "room": "G011-E"
+          },
+          {
+            "type": "Lab",
+            "sec": "11",
+            "day": "Mon",
+            "start": 840,
+            "end": 960,
+            "room": "G011-E"
+          },
+          {
+            "type": "Lab",
+            "sec": "12",
+            "day": "Mon",
+            "start": 840,
+            "end": 960,
+            "room": "G012-E"
+          },
+          {
+            "type": "Lab",
+            "sec": "16",
+            "day": "Mon",
+            "start": 600,
+            "end": 720,
+            "room": "G012-E"
+          },
+          {
+            "type": "Lab",
+            "sec": "17",
+            "day": "Mon",
+            "start": 960,
+            "end": 1080,
+            "room": "G013-E"
+          },
+          {
+            "type": "Lab",
+            "sec": "18",
+            "day": "Mon",
+            "start": 600,
+            "end": 720,
+            "room": "G013-E"
+          }
+        ],
+        "tutorials": []
+      },
+      {
+        "name": "Tarek Mohamed Salem",
+        "lectures": [
+          {
+            "type": "Lecture",
+            "sec": "07",
+            "day": "Thu",
+            "start": 600,
+            "end": 720,
+            "room": "Online"
+          }
+        ],
+        "labs": [],
+        "tutorials": [],
+        "note": "Online lecture — no lab published under this instructor."
+      },
+      {
+        "name": "Mohamed ElMikaty",
+        "lectures": [],
+        "labs": [
+          {
+            "type": "Lab",
+            "sec": "19",
+            "day": "Mon",
+            "start": 480,
+            "end": 600,
+            "room": "G013-E"
+          },
+          {
+            "type": "Lab",
+            "sec": "20",
+            "day": "Sun",
+            "start": 600,
+            "end": 720,
+            "room": "G014-E"
+          },
+          {
+            "type": "Lab",
+            "sec": "21",
+            "day": "Wed",
+            "start": 840,
+            "end": 960,
+            "room": "G0010D"
+          }
+        ],
+        "tutorials": [],
+        "note": "No lecture assigned to this instructor in self-service — lab sections only."
+      },
+      {
+        "name": "Instructor not assigned",
+        "unassigned": true,
+        "lectures": [],
+        "labs": [
+          {
+            "type": "Lab",
+            "sec": "22",
+            "day": "Sun",
+            "start": 840,
+            "end": 960,
+            "room": "G014-E"
+          },
+          {
+            "type": "Lab",
+            "sec": "23",
+            "day": "Mon",
+            "start": 600,
+            "end": 720,
+            "room": "G014-E"
+          }
+        ],
+        "tutorials": [],
+        "note": "Sections listed without an instructor in self-service — kept together exactly as published."
+      }
+    ]
+  },
+  {
+    "id": "csai100",
+    "code": "CSAI 100",
+    "name": "Intro to Computational Science and AI",
+    "c": 6,
+    "credits": 1,
+    "instructors": [
+      {
+        "name": "Khaled El Sayed El Sayed",
+        "lectures": [
+          {
+            "type": "Lecture",
+            "sec": "01",
+            "day": "Wed",
+            "start": 660,
+            "end": 720,
+            "room": "G008-C"
+          }
+        ],
+        "labs": [],
+        "tutorials": []
+      }
+    ]
+  },
+  {
+    "id": "math104",
+    "code": "MATH 104",
+    "name": "Linear Algebra",
+    "c": 1,
+    "credits": 3,
+    "instructors": [
+      {
+        "name": "Waleed Abdel Magued",
+        "lectures": [
+          {
+            "type": "Lecture",
+            "sec": "01",
+            "day": "Sun",
+            "start": 840,
+            "end": 960,
+            "room": "G025B"
+          }
+        ],
+        "labs": [],
+        "tutorials": [
+          {
+            "type": "Tutorial",
+            "sec": "01",
+            "day": "Mon",
+            "start": 480,
+            "end": 600,
+            "room": "F012-D"
+          },
+          {
+            "type": "Tutorial",
+            "sec": "02",
+            "day": "Sun",
+            "start": 960,
+            "end": 1080,
+            "room": "F012-D"
+          },
+          {
+            "type": "Tutorial",
+            "sec": "03",
+            "day": "Tue",
+            "start": 720,
+            "end": 840,
+            "room": "F011-E"
+          }
+        ]
+      },
+      {
+        "name": "Mohamed Fawzy Fawzy",
+        "lectures": [
+          {
+            "type": "Lecture",
+            "sec": "02",
+            "day": "Wed",
+            "start": 960,
+            "end": 1080,
+            "room": "G004-C"
+          }
+        ],
+        "labs": [],
+        "tutorials": [
+          {
+            "type": "Tutorial",
+            "sec": "04",
+            "day": "Sun",
+            "start": 720,
+            "end": 840,
+            "room": "F009-D"
+          },
+          {
+            "type": "Tutorial",
+            "sec": "05",
+            "day": "Sun",
+            "start": 720,
+            "end": 840,
+            "room": "F014-E"
+          },
+          {
+            "type": "Tutorial",
+            "sec": "06",
+            "day": "Mon",
+            "start": 480,
+            "end": 600,
+            "room": "F013-E"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "dsai104",
+    "code": "DSAI 104",
+    "name": "Knowledge Representation and Reasoning",
+    "c": 4,
+    "credits": 2,
+    "instructors": [
+      {
+        "name": "Saeed Mohsen",
+        "lectures": [
+          {
+            "type": "Lecture",
+            "sec": "01",
+            "day": "Thu",
+            "start": 960,
+            "end": 1080,
+            "room": "Online"
+          }
+        ],
+        "labs": [
+          {
+            "type": "Lab",
+            "sec": "01",
+            "day": "Tue",
+            "start": 960,
+            "end": 1080,
+            "room": "G007D"
+          }
+        ],
+        "tutorials": []
+      }
+    ]
+  },
+  {
+    "id": "math103",
+    "code": "MATH 103",
+    "name": "Calculus for Computational Sciences",
+    "c": 1,
+    "credits": 3,
+    "instructors": [
+      {
+        "name": "Azza Adel Ahmed Rabie",
+        "lectures": [
+          {
+            "type": "Lecture",
+            "sec": "04",
+            "day": "Tue",
+            "start": 720,
+            "end": 840,
+            "room": "G011-B"
+          },
+          {
+            "type": "Lecture",
+            "sec": "06",
+            "day": "Sun",
+            "start": 600,
+            "end": 720,
+            "room": "G019-B"
+          }
+        ],
+        "labs": [],
+        "tutorials": [
+          {
+            "type": "Tutorial",
+            "sec": "08",
+            "day": "Tue",
+            "start": 480,
+            "end": 600,
+            "room": "F011-D"
+          },
+          {
+            "type": "Tutorial",
+            "sec": "09",
+            "day": "Tue",
+            "start": 480,
+            "end": 600,
+            "room": "F012-D"
+          },
+          {
+            "type": "Tutorial",
+            "sec": "10",
+            "day": "Wed",
+            "start": 840,
+            "end": 960,
+            "room": "F012-D"
+          },
+          {
+            "type": "Tutorial",
+            "sec": "12",
+            "day": "Tue",
+            "start": 840,
+            "end": 960,
+            "room": "F012-D"
+          }
+        ]
+      },
+      {
+        "name": "Ahmed Etman Etman",
+        "lectures": [],
+        "labs": [],
+        "tutorials": [
+          {
+            "type": "Tutorial",
+            "sec": "14",
+            "day": "Mon",
+            "start": 480,
+            "end": 600,
+            "room": "F007-D"
+          },
+          {
+            "type": "Tutorial",
+            "sec": "17",
+            "day": "Mon",
+            "start": 480,
+            "end": 600,
+            "room": "F008-D"
+          }
+        ]
+      },
+      {
+        "name": "Ahmed Said abdelmawgoud",
+        "lectures": [],
+        "labs": [],
+        "tutorials": [
+          {
+            "type": "Tutorial",
+            "sec": "19",
+            "day": "Tue",
+            "start": 840,
+            "end": 960,
+            "room": "F011-D"
+          },
+          {
+            "type": "Tutorial",
+            "sec": "20",
+            "day": "Tue",
+            "start": 840,
+            "end": 960,
+            "room": "F015-E"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "csai151",
+    "code": "CSAI 151",
+    "name": "Object-Oriented Programming",
+    "c": 2,
+    "credits": 3,
+    "noFixedSchedule": true,
+    "instructors": [
+      {
+        "name": "Instructor not assigned",
+        "unassigned": true,
+        "lectures": [],
+        "labs": [],
+        "tutorials": [],
+        "note": "Not published in self-service — listed only in the program course map (3 Cr); nothing is invented."
+      }
+    ]
+  },
+  {
+    "id": "it101",
+    "code": "IT 101",
+    "name": "Shell and Script Programming with UNIX",
+    "c": 3,
+    "credits": 2,
+    "noFixedSchedule": true,
+    "instructors": [
+      {
+        "name": "Instructor not assigned",
+        "unassigned": true,
+        "lectures": [],
+        "labs": [],
+        "tutorials": [],
+        "note": "Not published in self-service — listed only in the IT program course map (2 Cr); nothing is invented."
+      }
+    ]
+  },
+  {
+    "id": "it102",
+    "code": "IT 102",
+    "name": "Ethical Hacking and Defense",
+    "c": 5,
+    "credits": 2,
+    "noFixedSchedule": true,
+    "instructors": [
+      {
+        "name": "Instructor not assigned",
+        "unassigned": true,
+        "lectures": [],
+        "labs": [],
+        "tutorials": [],
+        "note": "Not published in self-service — listed only in the IT program course map (2 Cr); nothing is invented."
+      }
+    ]
+  },
+  {
+    "id": "it103",
+    "code": "IT 103",
+    "name": "Fundamentals of Information and Communication Systems",
+    "c": 6,
+    "credits": 2,
+    "noFixedSchedule": true,
+    "instructors": [
+      {
+        "name": "Instructor not assigned",
+        "unassigned": true,
+        "lectures": [],
+        "labs": [],
+        "tutorials": [],
+        "note": "Not published in self-service — listed only in the IT program course map (2 Cr); nothing is invented."
+      }
+    ]
+  },
+  {
+    "id": "dsai103",
+    "code": "DSAI 103",
+    "name": "Data Acquisition in Data Science (ETL)",
+    "c": 2,
+    "credits": 3,
+    "noFixedSchedule": true,
+    "instructors": [
+      {
+        "name": "Instructor not assigned",
+        "unassigned": true,
+        "lectures": [],
+        "labs": [],
+        "tutorials": [],
+        "note": "Not published in self-service — listed only in the program course map (3 Cr); nothing is invented."
+      }
+    ]
+  },
+  {
+    "id": "sw151",
+    "code": "SW 151",
+    "name": "Computer Architecture and Organization",
+    "c": 4,
+    "credits": 3,
+    "noFixedSchedule": true,
+    "instructors": [
+      {
+        "name": "Instructor not assigned",
+        "unassigned": true,
+        "lectures": [],
+        "labs": [],
+        "tutorials": [],
+        "note": "Not published in self-service — listed only in the Software program course map (3 Cr); nothing is invented."
+      }
+    ]
+  },
+  {
+    "id": "phys103",
+    "code": "PHYS 103",
+    "name": "Physics 1",
+    "c": 1,
+    "credits": 3,
+    "noFixedSchedule": true,
+    "instructors": [
+      {
+        "name": "Instructor not assigned",
+        "unassigned": true,
+        "lectures": [],
+        "labs": [],
+        "tutorials": [],
+        "note": "Not published in self-service — listed only in the Software program course map (3 Cr); nothing is invented."
+      }
+    ]
+  },
+  {
+    "id": "csai301",
+    "code": "CSAI 301",
+    "name": "Artificial Intelligence",
+    "c": 1,
+    "credits": 3,
+    "instructors": [
+      {
+        "name": "Sabah Sayed Sayed",
+        "lectures": [
+          {
+            "type": "Lecture",
+            "sec": "01",
+            "day": "Sun",
+            "start": 600,
+            "end": 720,
+            "room": "G011-B"
+          }
+        ],
+        "labs": [
+          {
+            "type": "Lab",
+            "sec": "01",
+            "day": "Mon",
+            "start": 600,
+            "end": 720,
+            "room": "G016-E"
+          },
+          {
+            "type": "Lab",
+            "sec": "02",
+            "day": "Mon",
+            "start": 480,
+            "end": 600,
+            "room": "G016-E"
+          },
+          {
+            "type": "Lab",
+            "sec": "03",
+            "day": "Mon",
+            "start": 600,
+            "end": 720,
+            "room": "G0012D"
+          },
+          {
+            "type": "Lab",
+            "sec": "04",
+            "day": "Mon",
+            "start": 960,
+            "end": 1080,
+            "room": "G0012D"
+          }
+        ],
+        "tutorials": []
+      },
+      {
+        "name": "Instructor Not Assigned",
+        "unassigned": true,
+        "lectures": [],
+        "labs": [
+          {
+            "type": "Lab",
+            "sec": "05",
+            "day": "Sun",
+            "start": 840,
+            "end": 960,
+            "room": ""
+          },
+          {
+            "type": "Lab",
+            "sec": "06",
+            "day": "Mon",
+            "start": 480,
+            "end": 600,
+            "room": "G012-E"
+          }
+        ],
+        "tutorials": []
+      }
+    ]
+  },
+  {
+    "id": "dsai307",
+    "code": "DSAI 307",
+    "name": "Statistical Inference",
+    "c": 2,
+    "credits": 2,
+    "instructors": [
+      {
+        "name": "Rasha Mohamed Mandouh",
+        "lectures": [
+          {
+            "type": "Lecture",
+            "sec": "01",
+            "day": "Sun",
+            "start": 480,
+            "end": 600,
+            "room": "G011-B"
+          }
+        ],
+        "labs": [
+          {
+            "type": "Lab",
+            "sec": "01",
+            "day": "Mon",
+            "start": 480,
+            "end": 600,
+            "room": "S043-E"
+          },
+          {
+            "type": "Lab",
+            "sec": "02",
+            "day": "Tue",
+            "start": 480,
+            "end": 600,
+            "room": "S043-E"
+          },
+          {
+            "type": "Lab",
+            "sec": "03",
+            "day": "Mon",
+            "start": 600,
+            "end": 720,
+            "room": "S001-A"
+          },
+          {
+            "type": "Lab",
+            "sec": "04",
+            "day": "Tue",
+            "start": 840,
+            "end": 960,
+            "room": "S043-E"
+          }
+        ],
+        "tutorials": []
+      }
+    ]
+  },
+  {
+    "id": "dsai308",
+    "code": "DSAI 308",
+    "name": "Deep Learning",
+    "c": 1,
+    "credits": 3,
+    "instructors": [
+      {
+        "name": "Khaled El Sayed El Sayed",
+        "lectures": [
+          {
+            "type": "Lecture",
+            "sec": "01",
+            "day": "Tue",
+            "start": 720,
+            "end": 840,
+            "room": "F30-B4"
+          }
+        ],
+        "labs": [
+          {
+            "type": "Lab",
+            "sec": "01",
+            "day": "Sun",
+            "start": 720,
+            "end": 840,
+            "room": "G016-E"
+          },
+          {
+            "type": "Lab",
+            "sec": "02",
+            "day": "Tue",
+            "start": 960,
+            "end": 1080,
+            "room": "G0010D"
+          },
+          {
+            "type": "Lab",
+            "sec": "03",
+            "day": "Wed",
+            "start": 600,
+            "end": 720,
+            "room": "G006-D"
+          }
+        ],
+        "tutorials": []
+      }
+    ]
+  },
+  {
+    "id": "math303",
+    "code": "MATH 303",
+    "name": "Linear and Non-linear Programming for CS",
+    "c": 4,
+    "credits": 3,
+    "instructors": [
+      {
+        "name": "Ahmed Abdelsamea",
+        "lectures": [
+          {
+            "type": "Lecture",
+            "sec": "01",
+            "day": "Wed",
+            "start": 480,
+            "end": 600,
+            "room": "G006-B"
+          }
+        ],
+        "labs": [],
+        "tutorials": [
+          {
+            "type": "Tutorial",
+            "sec": "01",
+            "day": "Sun",
+            "start": 840,
+            "end": 960,
+            "room": "F012-D"
+          },
+          {
+            "type": "Tutorial",
+            "sec": "02",
+            "day": "Sun",
+            "start": 720,
+            "end": 840,
+            "room": "F013-E"
+          },
+          {
+            "type": "Tutorial",
+            "sec": "03",
+            "day": "Tue",
+            "start": 840,
+            "end": 960,
+            "room": "F031B4"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "dsai403",
+    "code": "DSAI 403",
+    "name": "Nature Inspired Computation",
+    "c": 5,
+    "credits": 3,
+    "instructors": [
+      {
+        "name": "Mohamed Maher Ata",
+        "lectures": [
+          {
+            "type": "Lecture",
+            "sec": "01",
+            "day": "Tue",
+            "start": 480,
+            "end": 600,
+            "room": "G004-C"
+          }
+        ],
+        "labs": [
+          {
+            "type": "Lab",
+            "sec": "01",
+            "day": "Tue",
+            "start": 600,
+            "end": 720,
+            "room": "S043-E"
+          },
+          {
+            "type": "Lab",
+            "sec": "02",
+            "day": "Sun",
+            "start": 960,
+            "end": 1080,
+            "room": "S001-A"
+          },
+          {
+            "type": "Lab",
+            "sec": "03",
+            "day": "Sun",
+            "start": 840,
+            "end": 960,
+            "room": "G009-D"
+          }
+        ],
+        "tutorials": []
+      }
+    ]
+  },
+  {
+    "id": "csai302",
+    "code": "CSAI 302",
+    "name": "Advanced Database Systems",
+    "c": 6,
+    "credits": 3,
+    "instructors": [
+      {
+        "name": "Yousry Abdelazeem Abdelazeem",
+        "lectures": [
+          {
+            "type": "Lecture",
+            "sec": "01",
+            "day": "Tue",
+            "start": 840,
+            "end": 960,
+            "room": "G006-B"
+          }
+        ],
+        "labs": [
+          {
+            "type": "Lab",
+            "sec": "01",
+            "day": "Wed",
+            "start": 840,
+            "end": 960,
+            "room": "G015-E"
+          },
+          {
+            "type": "Lab",
+            "sec": "02",
+            "day": "Wed",
+            "start": 600,
+            "end": 720,
+            "room": "G015-E"
+          },
+          {
+            "type": "Lab",
+            "sec": "03",
+            "day": "Mon",
+            "start": 840,
+            "end": 960,
+            "room": "G013-E"
+          },
+          {
+            "type": "Lab",
+            "sec": "04",
+            "day": "Wed",
+            "start": 600,
+            "end": 720,
+            "room": "G014-E"
+          }
+        ],
+        "tutorials": []
+      }
+    ]
+  },
+  {
+    "id": "dsai402",
+    "code": "DSAI 402",
+    "name": "Reinforcement Learning",
+    "c": 7,
+    "credits": 3,
+    "instructors": [
+      {
+        "name": "Mohamed Ghalwash",
+        "lectures": [
+          {
+            "type": "Lecture",
+            "sec": "01",
+            "day": "Mon",
+            "start": 840,
+            "end": 960,
+            "room": "F25-B4"
+          }
+        ],
+        "labs": [
+          {
+            "type": "Lab",
+            "sec": "01",
+            "day": "Tue",
+            "start": 960,
+            "end": 1080,
+            "room": "S001-A"
+          },
+          {
+            "type": "Lab",
+            "sec": "02",
+            "day": "Wed",
+            "start": 840,
+            "end": 960,
+            "room": "G020-E"
+          },
+          {
+            "type": "Lab",
+            "sec": "03",
+            "day": "Wed",
+            "start": 960,
+            "end": 1080,
+            "room": "G012-E"
+          }
+        ],
+        "tutorials": []
+      }
+    ]
+  },
+  {
+    "id": "dsai456",
+    "code": "DSAI 456",
+    "name": "Speech Recognition",
+    "c": 1,
+    "credits": 3,
+    "instructors": [
+      {
+        "name": "Mohamed Ghalwash",
+        "lectures": [
+          {
+            "type": "Lecture",
+            "sec": "01",
+            "day": "Mon",
+            "start": 480,
+            "end": 600,
+            "room": "G035-B"
+          }
+        ],
+        "labs": [
+          {
+            "type": "Lab",
+            "sec": "01",
+            "day": "Mon",
+            "start": 600,
+            "end": 720,
+            "room": "S043-E"
+          },
+          {
+            "type": "Lab",
+            "sec": "02",
+            "day": "Tue",
+            "start": 720,
+            "end": 840,
+            "room": "S043-E"
+          },
+          {
+            "type": "Lab",
+            "sec": "03",
+            "day": "Tue",
+            "start": 960,
+            "end": 1080,
+            "room": "S043-E"
+          }
+        ],
+        "tutorials": []
+      }
+    ]
+  },
+  {
+    "id": "csai498",
+    "code": "CSAI 498",
+    "name": "Senior Project - Part 1",
+    "c": 2,
+    "credits": 1,
+    "noFixedSchedule": true,
+    "instructors": [
+      {
+        "name": "Instructor not assigned",
+        "unassigned": true,
+        "lectures": [],
+        "labs": [],
+        "tutorials": [],
+        "note": "No fixed schedule published in self-service — the project is arranged individually with a supervisor."
+      }
+    ]
+  },
+  {
+    "id": "math205",
+    "code": "MATH 205",
+    "name": "Discrete Mathematics for Computational Sciences",
+    "c": 1,
+    "credits": 3,
+    "instructors": [
+      {
+        "name": "Ahmed Etman Etman",
+        "lectures": [
+          {
+            "type": "Lecture",
+            "sec": "01",
+            "day": "Wed",
+            "start": 600,
+            "end": 720,
+            "room": "F012-D"
+          }
+        ],
+        "labs": [],
+        "tutorials": []
+      },
+      {
+        "name": "Instructor Not Assigned",
+        "unassigned": true,
+        "lectures": [],
+        "labs": [],
+        "tutorials": [
+          {
+            "type": "Tutorial",
+            "sec": "01",
+            "day": "Thu",
+            "start": 720,
+            "end": 840,
+            "room": "Online"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "it308",
+    "code": "IT 308",
+    "name": "Cloud Computing Architecture",
+    "c": 3,
+    "credits": 2,
+    "instructors": [
+      {
+        "name": "Sahar Abdel Rahman",
+        "lectures": [
+          {
+            "type": "Lecture",
+            "sec": "01",
+            "day": "Tue",
+            "start": 720,
+            "end": 840,
+            "room": "F031B4"
+          }
+        ],
+        "labs": [
+          {
+            "type": "Lab",
+            "sec": "01",
+            "day": "Tue",
+            "start": 840,
+            "end": 960,
+            "room": "S001-A"
+          }
+        ],
+        "tutorials": []
+      }
+    ]
+  },
+  {
+    "id": "itns301",
+    "code": "ITNS 301",
+    "name": "Network Administration",
+    "c": 4,
+    "credits": 2,
+    "instructors": [
+      {
+        "name": "Tarek Mohamed Salem",
+        "lectures": [
+          {
+            "type": "Lecture",
+            "sec": "01",
+            "day": "Thu",
+            "start": 840,
+            "end": 960,
+            "room": "Online"
+          }
+        ],
+        "labs": [
+          {
+            "type": "Lab",
+            "sec": "01",
+            "day": "Mon",
+            "start": 600,
+            "end": 720,
+            "room": "G009-D"
+          }
+        ],
+        "tutorials": []
+      }
+    ]
+  },
+  {
+    "id": "itns403",
+    "code": "ITNS 403",
+    "name": "Storage Area Networks",
+    "c": 6,
+    "credits": 3,
+    "instructors": [
+      {
+        "name": "Tarek Mohamed Salem",
+        "lectures": [
+          {
+            "type": "Lecture",
+            "sec": "01",
+            "day": "Thu",
+            "start": 480,
+            "end": 600,
+            "room": "Online"
+          }
+        ],
+        "labs": [
+          {
+            "type": "Lab",
+            "sec": "01",
+            "day": "Sun",
+            "start": 720,
+            "end": 840,
+            "room": "G009-D"
+          }
+        ],
+        "tutorials": []
+      }
+    ]
+  },
+  {
+    "id": "itns404",
+    "code": "ITNS 404",
+    "name": "Net Performance Monitoring & Trbl-shooting",
+    "c": 1,
+    "credits": 3,
+    "instructors": [
+      {
+        "name": "Mohamed Mahdy",
+        "lectures": [
+          {
+            "type": "Lecture",
+            "sec": "01",
+            "day": "Thu",
+            "start": 960,
+            "end": 1080,
+            "room": "Online"
+          }
+        ],
+        "labs": [
+          {
+            "type": "Lab",
+            "sec": "01",
+            "day": "Mon",
+            "start": 600,
+            "end": 720,
+            "room": "G011-E"
+          }
+        ],
+        "tutorials": []
+      }
+    ]
+  },
+  {
+    "id": "itns406",
+    "code": "ITNS 406",
+    "name": "Network Resilience and Hardening",
+    "c": 1,
+    "credits": 3,
+    "instructors": [
+      {
+        "name": "Mohamed Mahdy",
+        "lectures": [
+          {
+            "type": "Lecture",
+            "sec": "01",
+            "day": "Tue",
+            "start": 840,
+            "end": 960,
+            "room": "G008-B"
+          }
+        ],
+        "labs": [
+          {
+            "type": "Lab",
+            "sec": "01",
+            "day": "Mon",
+            "start": 480,
+            "end": 600,
+            "room": "S001-A"
+          }
+        ],
+        "tutorials": []
+      }
+    ]
+  },
+  {
+    "id": "it402",
+    "code": "IT 402",
+    "name": "Fundamentals of Cybersecurity & Encryption",
+    "c": 2,
+    "credits": 3,
+    "instructors": [
+      {
+        "name": "Sahar Abdel Rahman",
+        "lectures": [
+          {
+            "type": "Lecture",
+            "sec": "01",
+            "day": "Tue",
+            "start": 600,
+            "end": 720,
+            "room": "G018-E"
+          }
+        ],
+        "labs": [
+          {
+            "type": "Lab",
+            "sec": "01",
+            "day": "Wed",
+            "start": 960,
+            "end": 1080,
+            "room": "G015-E"
+          }
+        ],
+        "tutorials": []
+      }
+    ]
+  },
+  {
+    "id": "it411",
+    "code": "IT 411",
+    "name": "Enterprise Resources Planning",
+    "c": 3,
+    "credits": 3,
+    "instructors": [
+      {
+        "name": "Sahar Abdel Rahman",
+        "lectures": [
+          {
+            "type": "Lecture",
+            "sec": "01",
+            "day": "Mon",
+            "start": 840,
+            "end": 960,
+            "room": "G033B"
+          }
+        ],
+        "labs": [
+          {
+            "type": "Lab",
+            "sec": "01",
+            "day": "Mon",
+            "start": 960,
+            "end": 1080,
+            "room": "G009-D"
+          }
+        ],
+        "tutorials": []
+      }
+    ]
+  },
+  {
+    "id": "sw301",
+    "code": "SW 301",
+    "name": "Object-Oriented Analysis and Design",
+    "c": 4,
+    "credits": 3,
+    "instructors": [
+      {
+        "name": "Instructor not assigned",
+        "unassigned": true,
+        "lectures": [
+          {
+            "type": "Lecture",
+            "sec": "01",
+            "day": "Sun",
+            "start": 480,
+            "end": 600,
+            "room": "G007-C"
+          }
+        ],
+        "labs": [
+          {
+            "type": "Lab",
+            "sec": "01",
+            "day": "Sun",
+            "start": 720,
+            "end": 840,
+            "room": "F012-E"
+          },
+          {
+            "type": "Lab",
+            "sec": "02",
+            "day": "Sun",
+            "start": 840,
+            "end": 960,
+            "room": "F011-D"
+          }
+        ],
+        "tutorials": []
+      }
+    ]
+  },
+  {
+    "id": "sw252",
+    "code": "SW 252",
+    "name": "Embedded Systems",
+    "c": 1,
+    "credits": 3,
+    "instructors": [
+      {
+        "name": "Manar Shaker",
+        "lectures": [
+          {
+            "type": "Lecture",
+            "sec": "01",
+            "day": "Wed",
+            "start": 600,
+            "end": 720,
+            "room": "F006-D"
+          }
+        ],
+        "labs": [
+          {
+            "type": "Lab",
+            "sec": "01",
+            "day": "Tue",
+            "start": 600,
+            "end": 720,
+            "room": "G015-E"
+          }
+        ],
+        "tutorials": []
+      },
+      {
+        "name": "Instructor Not Assigned",
+        "unassigned": true,
+        "lectures": [],
+        "labs": [
+          {
+            "type": "Lab",
+            "sec": "02",
+            "day": "Tue",
+            "start": 840,
+            "end": 960,
+            "room": "G015-E"
+          },
+          {
+            "type": "Lab",
+            "sec": "03",
+            "day": "Tue",
+            "start": 480,
+            "end": 600,
+            "room": "G015-E"
+          }
+        ],
+        "tutorials": []
+      }
+    ]
+  },
+  {
+    "id": "sw302",
+    "code": "SW 302",
+    "name": "User Interface Development",
+    "c": 1,
+    "credits": 3,
+    "instructors": [
+      {
+        "name": "Mohamed Sami Rakha",
+        "lectures": [
+          {
+            "type": "Lecture",
+            "sec": "01",
+            "day": "Mon",
+            "start": 600,
+            "end": 720,
+            "room": "F019-E"
+          }
+        ],
+        "labs": [
+          {
+            "type": "Lab",
+            "sec": "01",
+            "day": "Tue",
+            "start": 480,
+            "end": 600,
+            "room": "G015-D"
+          }
+        ],
+        "tutorials": []
+      },
+      {
+        "name": "Instructor Not Assigned",
+        "unassigned": true,
+        "lectures": [],
+        "labs": [
+          {
+            "type": "Lab",
+            "sec": "02",
+            "day": "Wed",
+            "start": 960,
+            "end": 1080,
+            "room": "G018-E"
+          },
+          {
+            "type": "Lab",
+            "sec": "03",
+            "day": "Tue",
+            "start": 960,
+            "end": 1080,
+            "room": "G012-E"
+          }
+        ],
+        "tutorials": []
+      }
+    ]
+  },
+  {
+    "id": "swapd301",
+    "code": "SWAPD 301",
+    "name": "Software Systems Requirements Dev",
+    "c": 1,
+    "credits": 3,
+    "instructors": [
+      {
+        "name": "Dina Ezzat",
+        "lectures": [
+          {
+            "type": "Lecture",
+            "sec": "01",
+            "day": "Wed",
+            "start": 840,
+            "end": 960,
+            "room": "F012-E"
+          }
+        ],
+        "labs": [
+          {
+            "type": "Lab",
+            "sec": "01",
+            "day": "Wed",
+            "start": 480,
+            "end": 600,
+            "room": "G014-E"
+          }
+        ],
+        "tutorials": []
+      },
+      {
+        "name": "Instructor Not Assigned",
+        "unassigned": true,
+        "lectures": [],
+        "labs": [
+          {
+            "type": "Lab",
+            "sec": "02",
+            "day": "Wed",
+            "start": 480,
+            "end": 600,
+            "room": "G018-E"
+          }
+        ],
+        "tutorials": []
+      }
+    ]
+  },
+  {
+    "id": "swgcg301",
+    "code": "SWGCG 301",
+    "name": "Computer Graphics and Multimedia Systems",
+    "c": 1,
+    "credits": 3,
+    "instructors": [
+      {
+        "name": "Yahia Zakaria Abd El-Samee El-Wahed",
+        "lectures": [
+          {
+            "type": "Lecture",
+            "sec": "01",
+            "day": "Mon",
+            "start": 480,
+            "end": 600,
+            "room": "F009-D"
+          }
+        ],
+        "labs": [
+          {
+            "type": "Lab",
+            "sec": "01",
+            "day": "Sun",
+            "start": 960,
+            "end": 1080,
+            "room": "G017-E"
+          }
+        ],
+        "tutorials": []
+      }
+    ]
+  },
+  {
+    "id": "swhci301",
+    "code": "SWHCI 301",
+    "name": "Prototyping Algorithmic Experiences",
+    "c": 2,
+    "credits": 3,
+    "instructors": [
+      {
+        "name": "Hussein Jad",
+        "lectures": [
+          {
+            "type": "Lecture",
+            "sec": "01",
+            "day": "Thu",
+            "start": 720,
+            "end": 840,
+            "room": "Online"
+          }
+        ],
+        "labs": [
+          {
+            "type": "Lab",
+            "sec": "01",
+            "day": "Sun",
+            "start": 840,
+            "end": 960,
+            "room": "G015-D"
+          }
+        ],
+        "tutorials": []
+      }
+    ]
+  },
+  {
+    "id": "sw401",
+    "code": "SW 401",
+    "name": "Parallel and Distributed Computing",
+    "c": 3,
+    "credits": 3,
+    "instructors": [
+      {
+        "name": "Samar Elbedwehy",
+        "lectures": [
+          {
+            "type": "Lecture",
+            "sec": "01",
+            "day": "Sun",
+            "start": 600,
+            "end": 720,
+            "room": "F008-E"
+          }
+        ],
+        "labs": [
+          {
+            "type": "Lab",
+            "sec": "01",
+            "day": "Mon",
+            "start": 840,
+            "end": 960,
+            "room": "G016-E"
+          },
+          {
+            "type": "Lab",
+            "sec": "02",
+            "day": "Mon",
+            "start": 960,
+            "end": 1080,
+            "room": "G015-E"
+          }
+        ],
+        "tutorials": []
+      }
+    ]
+  },
+  {
+    "id": "swapd401",
+    "code": "SWAPD 401",
+    "name": "Software Testing, Validation, and QA",
+    "c": 4,
+    "credits": 3,
+    "instructors": [
+      {
+        "name": "Instructor not assigned",
+        "unassigned": true,
+        "lectures": [
+          {
+            "type": "Lecture",
+            "sec": "01",
+            "day": "Tue",
+            "start": 960,
+            "end": 1080,
+            "room": "F015-D"
+          }
+        ],
+        "labs": [
+          {
+            "type": "Lab",
+            "sec": "01",
+            "day": "Wed",
+            "start": 480,
+            "end": 600,
+            "room": "G016-E"
+          },
+          {
+            "type": "Lab",
+            "sec": "02",
+            "day": "Wed",
+            "start": 600,
+            "end": 720,
+            "room": "G016-E"
+          }
+        ],
+        "tutorials": []
+      }
+    ]
+  },
+  {
+    "id": "swapd402",
+    "code": "SWAPD 402",
+    "name": "Mobile Application Development",
+    "c": 5,
+    "credits": 3,
+    "instructors": [
+      {
+        "name": "Yousry Abdelazeem Abdelazeem",
+        "lectures": [
+          {
+            "type": "Lecture",
+            "sec": "01",
+            "day": "Tue",
+            "start": 600,
+            "end": 720,
+            "room": "F012-D"
+          }
+        ],
+        "labs": [
+          {
+            "type": "Lab",
+            "sec": "01",
+            "day": "Wed",
+            "start": 600,
+            "end": 720,
+            "room": "F013-E"
+          }
+        ],
+        "tutorials": []
+      }
+    ]
+  },
+  {
+    "id": "sw402",
+    "code": "SW 402",
+    "name": "Software Project Management",
+    "c": 1,
+    "credits": 3,
+    "instructors": [
+      {
+        "name": "Instructor Not Assigned",
+        "unassigned": true,
+        "lectures": [
+          {
+            "type": "Lecture",
+            "sec": "01",
+            "day": "Tue",
+            "start": 840,
+            "end": 960,
+            "room": "F006-D"
+          }
+        ],
+        "labs": [
+          {
+            "type": "Lab",
+            "sec": "01",
+            "day": "Sun",
+            "start": 480,
+            "end": 600,
+            "room": "F016-E"
+          },
+          {
+            "type": "Lab",
+            "sec": "02",
+            "day": "Sun",
+            "start": 480,
+            "end": 600,
+            "room": "G009-D"
+          }
+        ],
+        "tutorials": []
+      }
+    ]
+  },
+  {
+    "id": "swgcg401",
+    "code": "SWGCG 401",
+    "name": "Design & Geom Modeling for Vis & Comm",
+    "c": 7,
+    "credits": 3,
+    "instructors": [
+      {
+        "name": "Instructor not assigned",
+        "unassigned": true,
+        "lectures": [
+          {
+            "type": "Lecture",
+            "sec": "01",
+            "day": "Sun",
+            "start": 720,
+            "end": 840,
+            "room": "G018-E"
+          }
+        ],
+        "labs": [
+          {
+            "type": "Lab",
+            "sec": "01",
+            "day": "Tue",
+            "start": 960,
+            "end": 1080,
+            "room": "G015-E"
+          }
+        ],
+        "tutorials": []
+      }
+    ]
+  },
+  {
+    "id": "swgcg402",
+    "code": "SWGCG 402",
+    "name": "Visual Effects Production",
+    "c": 1,
+    "credits": 3,
+    "instructors": [
+      {
+        "name": "Hussein Jad",
+        "lectures": [
+          {
+            "type": "Lecture",
+            "sec": "01",
+            "day": "Thu",
+            "start": 480,
+            "end": 600,
+            "room": "Online"
+          }
+        ],
+        "labs": [
+          {
+            "type": "Lab",
+            "sec": "01",
+            "day": "Mon",
+            "start": 600,
+            "end": 720,
+            "room": "G015-E"
+          }
+        ],
+        "tutorials": []
+      }
+    ]
+  },
+  {
+    "id": "swhci401",
+    "code": "SWHCI 401",
+    "name": "Human Information Processing and AI",
+    "c": 2,
+    "credits": 3,
+    "instructors": [
+      {
+        "name": "Sherif Hamdy ElGohary",
+        "lectures": [
+          {
+            "type": "Lecture",
+            "sec": "01",
+            "day": "Thu",
+            "start": 960,
+            "end": 1080,
+            "room": "University of Science and Technology"
+          }
+        ],
+        "labs": [
+          {
+            "type": "Lab",
+            "sec": "01",
+            "day": "Sun",
+            "start": 960,
+            "end": 1080,
+            "room": "G015-E"
+          }
+        ],
+        "tutorials": []
+      }
+    ]
+  },
+  {
+    "id": "swhci402",
+    "code": "SWHCI 402",
+    "name": "AI Based Products and Services",
+    "c": 3,
+    "credits": 3,
+    "instructors": [
+      {
+        "name": "Hussein Jad",
+        "lectures": [
+          {
+            "type": "Lecture",
+            "sec": "01",
+            "day": "Thu",
+            "start": 840,
+            "end": 960,
+            "room": "Online"
+          }
+        ],
+        "labs": [
+          {
+            "type": "Lab",
+            "sec": "01",
+            "day": "Mon",
+            "start": 480,
+            "end": 600,
+            "room": "G015-E"
+          }
+        ],
+        "tutorials": []
+      }
+    ]
+  }
+]
