@@ -76,6 +76,8 @@ It can:
 
 > **Course data last verified:** **September 24, 2026**
 
+> **Reporting an error:** Select **⚑ Report** beside a course or **Report an issue** in the footer. Choose the incorrect fields (name, instructor, time, room, section, credits, or other), describe the correction, and review the prepared draft in [Planora GitHub Issues](https://github.com/Ahmedamir21/Planora/issues). Submitting requires a GitHub account; **Cancel** closes the form without sending anything. Reports are public issues in this independent project, not emails or official university tickets.
+
 ---
 
 ## Key Features

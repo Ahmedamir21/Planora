@@ -34,7 +34,7 @@ import type { ComboMetrics, Course, MeetingType, Pairing } from './types';
 import { formatRange, formatDuration, to12h } from './lib/time';
 import { readScheduleFromLocation, type ShareExtras } from './lib/share';
 import { downloadCalendarIcs } from './lib/calendar';
-import { copyTextToClipboard, courseIssueText, generalIssueText } from './lib/reportIssue';
+import { ReportIssueDialog } from './components/ReportIssueDialog';
 import { loadPreferences, type SchedulePreferences } from './lib/preferences';
 import { effectiveCreditCap, loadAppState, saveAppState, wouldExceedCap, type CreditCap } from './lib/appState';
 import { computeFreeTime, WINDOW_END, WINDOW_START } from './lib/freeTime';
@@ -223,6 +223,7 @@ export default function App() {
   const [mobileScheduleOpen, setMobileScheduleOpen] = useState(false);
   const [commandOpen, setCommandOpen] = useState(false);
   const [toast, setToast] = useState<ToastState | null>(null);
+  const [reportTarget, setReportTarget] = useState<{ courseId?: string } | null>(null);
   const [hoveredCourseId, setHoveredCourseId] = useState<string | null>(null);
   const toastTimer = useRef<number | null>(null);
 
@@ -284,27 +285,11 @@ export default function App() {
     toastTimer.current = window.setTimeout(() => setToast(null), 4500);
   }, []);
 
-  const reportCourseIssue = useCallback(async (courseId: string) => {
-    const course = COURSE_BY_ID[courseId];
-    if (!course) return;
-    const copied = await copyTextToClipboard(courseIssueText(course, picksRef.current[courseId]));
-    showToast({
-      tone: copied ? 'default' : 'warning',
-      message: copied
-        ? `Report template copied for ${course.code}. Paste it in the group and describe what is wrong.`
-        : 'Could not copy the report automatically. Try again from another browser.',
-    });
-  }, [showToast]);
+  const reportCourseIssue = useCallback((courseId: string) => {
+    if (COURSE_BY_ID[courseId]) setReportTarget({ courseId });
+  }, []);
 
-  const reportGeneralIssue = useCallback(async () => {
-    const copied = await copyTextToClipboard(generalIssueText());
-    showToast({
-      tone: copied ? 'default' : 'warning',
-      message: copied
-        ? 'Data issue template copied. Fill the missing details and send it to us.'
-        : 'Could not copy the report automatically. Try again from another browser.',
-    });
-  }, [showToast]);
+  const reportGeneralIssue = useCallback(() => setReportTarget({}), []);
 
   useEffect(() => {
     const onCommandKey = (e: KeyboardEvent) => {
@@ -2087,6 +2072,13 @@ export default function App() {
         onShare={shareFromCommand}
       />
 
+      {reportTarget && (
+        <ReportIssueDialog
+          course={reportTarget.courseId ? COURSE_BY_ID[reportTarget.courseId] : undefined}
+          pick={reportTarget.courseId ? picks[reportTarget.courseId] : undefined}
+          onClose={() => setReportTarget(null)}
+        />
+      )}
       <Toast toast={toast} onClose={() => setToast(null)} />
 
       {crossYearOpen && major && yearPlan && (

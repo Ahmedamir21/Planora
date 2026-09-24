@@ -425,7 +425,7 @@ function CourseCard({
             type="button"
             className="btn btn-tap px-2.5 py-1.5 text-[11px]"
             onClick={onReportIssue}
-            title="Copy a ready-to-send data issue report for this course"
+            title="Report incorrect course data to Planora via GitHub Issues"
           >
             ⚑ Report
           </button>
