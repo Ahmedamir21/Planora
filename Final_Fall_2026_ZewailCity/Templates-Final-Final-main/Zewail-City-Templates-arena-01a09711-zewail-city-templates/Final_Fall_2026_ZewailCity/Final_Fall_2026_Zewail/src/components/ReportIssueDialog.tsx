@@ -74,7 +74,7 @@ export function ReportIssueDialog({ course, pick, onClose }: {
 
           <div className="grid gap-3 sm:grid-cols-3">
             <label className="text-xs font-semibold">Course code (if relevant)
-              <input className="select mt-1" value={courseCode} onChange={(event) => setCourseCode(event.target.value)} placeholder="e.g. CSAI 101" />
+              <input className="select mt-1" style={{ backgroundImage: 'none', paddingRight: 12 }} value={courseCode} onChange={(event) => setCourseCode(event.target.value)} placeholder="e.g. CSAI 101" />
             </label>
             <label className="text-xs font-semibold">Component
               <select className="select mt-1" value={component} onChange={(event) => setComponent(event.target.value)}>
@@ -83,12 +83,12 @@ export function ReportIssueDialog({ course, pick, onClose }: {
               </select>
             </label>
             <label className="text-xs font-semibold">Section (if relevant)
-              <input className="select mt-1" value={section} onChange={(event) => setSection(event.target.value)} placeholder="e.g. 02" />
+              <input className="select mt-1" style={{ backgroundImage: 'none', paddingRight: 12 }} value={section} onChange={(event) => setSection(event.target.value)} placeholder="e.g. 02" />
             </label>
           </div>
 
           <label className="text-xs font-semibold">What should be corrected? <span aria-hidden="true">*</span>
-            <textarea className="select mt-1 min-h-28 resize-y" required maxLength={1500} value={details} onChange={(event) => setDetails(event.target.value)} placeholder="Tell us what the site shows and what you believe is correct. Add a Self-Service reference if you have one." />
+            <textarea className="select mt-1 min-h-28 resize-y" style={{ backgroundImage: 'none', paddingRight: 12 }} required maxLength={1500} value={details} onChange={(event) => setDetails(event.target.value)} placeholder="Tell us what the site shows and what you believe is correct. Add a Self-Service reference if you have one." />
           </label>
           <p className="text-xs" style={{ color: 'var(--muted)' }}>Please leave out personal information. Nothing is sent until you review and submit the issue on GitHub.</p>
           <div className="flex flex-wrap justify-end gap-2">
