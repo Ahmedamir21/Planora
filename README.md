@@ -684,7 +684,7 @@ Official registration decisions and final section details should always be confi
 ### Ready to build your schedule?
 
 <a href="https://zc-planora.vercel.app/">
-  <img src="https://img.shields.io/badge/Launch_Zewail_City_Schedule_Builder-E8A957?style=for-the-badge&labelColor=161A23" alt="Launch Schedule Builder" />
+  <img src="https://img.shields.io/badge/Open_Planora-E8A957?style=for-the-badge&labelColor=161A23" alt="Open Planora" />
 </a>
 
 <br/><br/>
@@ -695,4 +695,4 @@ Official registration decisions and final section details should always be confi
 
 ## Admin workspace
 
-The private workspace lives at [Planora Admin](https://zc-planora.vercel.app/admin.html). Two independent usernames are editable in `app/admin-accounts.ts`, while their password hashes are stored privately in Vercel Environment Variables; [admin setup and rotation instructions](docs/ADMIN_PANEL.md) list the exact variable names and files. The panel can review coverage, open reports, save private JSON drafts and view a persistent per-admin activity history after the Upstash storage is configured.
+The [admin workspace](https://zc-planora.vercel.app/admin.html) supports separate accounts and an activity history. It saves private data drafts for review; publishing changes to the student planner remains a separate verified step. The workspace requires private server settings and persistent storage before sign-in is available. See [admin setup](docs/ADMIN_PANEL.md); no credentials are stored in this README.

@@ -4,14 +4,11 @@ Open [zc-planora.vercel.app/admin.html](https://zc-planora.vercel.app/admin.html
 
 ## Two independent accounts
 
-| Person | Default username | Vercel Environment Variable for password hash |
-|---|---|---|
-| Ahmed Amir | `ahmed` | `PLANORA_ADMIN_AHMED_PASSWORD_HASH` |
-| Youssef Taha | `youssef` | `PLANORA_ADMIN_YOUSSEF_PASSWORD_HASH` |
+The account names and login identifiers are defined in `app/admin-accounts.ts`. Each account has its own private password hash in Vercel; the corresponding variable names are documented in `app/.env.example`. Do not publish actual passwords, hashes, session secrets or database tokens.
 
-Change the two usernames or displayed names in the plain text file `app/admin-accounts.ts` and deploy that edit. Passwords cannot safely live in a public GitHub source file. Set the password hashes and session secret **privately in the Planora Vercel project**, Production Environment Variables. Do not put actual secrets into GitHub, `.env.example`, a public frontend file or a chat message. The variable list lives in `app/.env.example`.
+Change the two login identifiers or displayed names in `app/admin-accounts.ts` and deploy that edit. Passwords cannot safely live in a public GitHub source file. Set the password hashes and session secret **privately in the Planora Vercel project**, Production Environment Variables. Do not put actual secrets into GitHub, `.env.example`, a public frontend file or a chat message. The variable list lives in `app/.env.example`.
 
-Each person runs `node scripts/hash-admin-password.mjs` from the repository root and privately chooses their own password (12+ characters). The input is hidden. Save the generated `PLANORA_ADMIN_PASSWORD_HASH` value under *that person's* hash variable above. Run the generator separately for the second person. Take one generated `PLANORA_ADMIN_SESSION_SECRET` and put it in Vercel; changing it signs everyone out. No shared/default password is provided.
+Each person runs `node scripts/hash-admin-password.mjs` from the repository root and privately chooses their own password (12+ characters). The input is hidden. Save the generated `PLANORA_ADMIN_PASSWORD_HASH` value under that person's hash variable in `app/.env.example`. Run the generator separately for the second person. Take one generated `PLANORA_ADMIN_SESSION_SECRET` and put it in Vercel; changing it signs everyone out. No shared/default password is provided.
 
 ## Durable history setup
 
