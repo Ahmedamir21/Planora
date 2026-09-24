@@ -1,5 +1,6 @@
 import { createHash, createHmac, randomUUID, scryptSync, timingSafeEqual } from 'node:crypto';
 import { draftKey, HISTORY_KEY, redis, saveWithHistory, storageConfigured } from './admin-store';
+import { ADMIN_ACCOUNTS } from '../admin-accounts';
 
 const COOKIE = 'planora_admin';
 const FILES = ['semester.json', 'courses.json', 'majors.json', 'sch.json'] as const;
@@ -9,13 +10,12 @@ const failures = new Map<string, { count: number; since: number }>();
 type Admin = { id: 'ahmed' | 'youssef'; username: string; name: string; hash: string };
 function configured() {
   const secret = process.env.PLANORA_ADMIN_SESSION_SECRET;
-  const ahmed = process.env.PLANORA_ADMIN_AHMED_PASSWORD_HASH;
-  const youssef = process.env.PLANORA_ADMIN_YOUSSEF_PASSWORD_HASH;
-  if (!secret || secret.length < 32 || !ahmed || !youssef || !storageConfigured()) return null;
-  const admins: Admin[] = [
-    { id: 'ahmed', username: process.env.PLANORA_ADMIN_AHMED_USERNAME || 'ahmed', name: 'Ahmed Amir', hash: ahmed },
-    { id: 'youssef', username: process.env.PLANORA_ADMIN_YOUSSEF_USERNAME || 'youssef', name: 'Youssef Taha', hash: youssef },
-  ];
+  if (!secret || secret.length < 32 || !storageConfigured()) return null;
+  const admins: Admin[] = ADMIN_ACCOUNTS.map(account => ({
+    id: account.id, username: account.username, name: account.name,
+    hash: process.env[account.passwordHashEnv] || '',
+  }));
+  if (admins.some(admin => !admin.username || !admin.hash)) return null;
   if (admins[0].username === admins[1].username) return null;
   return { admins, secret };
 }

@@ -695,4 +695,4 @@ Official registration decisions and final section details should always be confi
 
 ## Admin workspace
 
-The private workspace lives at [Planora Admin](https://zc-planora.vercel.app/admin.html). Two independent usernames and password hashes are configured privately through Vercel Environment Variables; [admin setup and rotation instructions](docs/ADMIN_PANEL.md) list the exact variable names and files. The panel can review coverage, open reports, save private JSON drafts and view a persistent per-admin activity history after the Upstash storage is configured.
+The private workspace lives at [Planora Admin](https://zc-planora.vercel.app/admin.html). Two independent usernames are editable in `app/admin-accounts.ts`, while their password hashes are stored privately in Vercel Environment Variables; [admin setup and rotation instructions](docs/ADMIN_PANEL.md) list the exact variable names and files. The panel can review coverage, open reports, save private JSON drafts and view a persistent per-admin activity history after the Upstash storage is configured.

@@ -1435,6 +1435,10 @@ export default function App() {
               {showAbout ? '‹ Planner' : 'ℹ️ About'}
             </button>
 
+            <a className="btn btn-tap" href="/admin.html" aria-label="Open Planora admin panel">
+              🔒 Admin
+            </a>
+
             {major && !showAbout && (
               <button
                 type="button"
