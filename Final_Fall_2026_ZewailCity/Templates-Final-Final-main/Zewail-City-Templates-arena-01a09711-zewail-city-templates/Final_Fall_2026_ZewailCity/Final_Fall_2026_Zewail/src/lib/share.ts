@@ -185,7 +185,7 @@ export function decodeSchedule(param: string): DecodedSchedule | null {
 /**
  * The absolute base URL of the app as it is running RIGHT NOW: its current origin plus the
  * path the document is served from. Never a hard-coded domain — this resolves to
- * https://fall-2026-zewail-city.vercel.app/ in production, the Arena preview host in the
+ * the current production host, an Arena preview host in the
  * sandbox, http://localhost:5173 in development, and any future deployment origin untouched.
  * Query strings and hashes are excluded on purpose, so sandbox/proxy parameters (and any
  * stale ?schedule= the author themselves arrived with) can never leak into the link.

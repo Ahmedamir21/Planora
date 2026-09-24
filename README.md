@@ -1,17 +1,17 @@
 <p align="center">
-  <img src="assets/readme-banner.svg" width="100%" alt="Zewail City Fall 2026 Schedule Builder" />
+  <img src="assets/readme-banner.svg" width="100%" alt="Planora — Student Schedule Planner" />
 </p>
 
 <div align="center">
 
-# Zewail City Fall 2026 Schedule Builder
+# Planora
 
-**A student-built schedule planning tool for Zewail City — designed to make course selection, conflict checking, schedule optimization, and sharing easier before registration.**
+**An independent, student-built schedule planning tool for Zewail City — designed to make course selection, conflict checking, schedule optimization, and sharing easier before registration.**
 
 <br/>
 
 <a href="https://fall-2026-zewail-city.vercel.app/">
-  <img src="https://img.shields.io/badge/OPEN_LIVE_PLANNER-Fall_2026-E8A957?style=for-the-badge&labelColor=161A23" alt="Open Live Planner" />
+  <img src="https://img.shields.io/badge/OPEN_LIVE_PLANNER-Planora-E8A957?style=for-the-badge&labelColor=161A23" alt="Open Live Planner" />
 </a>
 
 <br/><br/>
@@ -50,7 +50,7 @@
 
 ## Overview
 
-The **Zewail City Fall 2026 Schedule Builder** is a web-based planner built to help students explore their Fall 2026 options before final registration.
+**Planora** is a web-based planner built to help students explore their Fall 2026 options before final registration.
 
 Instead of manually comparing lecture, lab, and tutorial times across multiple courses, the planner keeps everything in one place and continuously evaluates the schedule as the student makes changes.
 
@@ -66,7 +66,13 @@ It can:
 - share a schedule through a link or image;
 - and provide an AI-assisted schedule workflow grounded in the planner's own course data.
 
-> **Live application:** https://fall-2026-zewail-city.vercel.app/
+> **Live application (current address):** https://fall-2026-zewail-city.vercel.app/
+
+> **Independent student project:** Planora is not an official university service. Confirm all registration details in Self-Service.
+
+> **Created by:** Ahmed Amir (IT Representative) and Youssef Taha (AI Representative).
+
+> **Brand assets:** [Planora logo](Final_Fall_2026_ZewailCity/Templates-Final-Final-main/Zewail-City-Templates-arena-01a09711-zewail-city-templates/Final_Fall_2026_ZewailCity/Final_Fall_2026_Zewail/public/planora-logo.svg) · [App icon](Final_Fall_2026_ZewailCity/Templates-Final-Final-main/Zewail-City-Templates-arena-01a09711-zewail-city-templates/Final_Fall_2026_ZewailCity/Final_Fall_2026_Zewail/public/icons/planner-icon.svg)
 
 > **Course data last verified:** **September 24, 2026**
 
@@ -444,7 +450,7 @@ The AI can interpret a student's request, but deterministic planner code remains
 The current production repository keeps the Vercel entry point short while the original planner source remains in its legacy nested project directory.
 
 ```text
-Fall_2026_ZewailCity/
+Planora/
 ├── README.md
 ├── assets/
 │   └── readme-banner.svg
@@ -490,8 +496,8 @@ Node.js ^20.19.0 or >=22.12.0
 ### Clone the repository
 
 ```bash
-git clone https://github.com/Ahmedamir21/Fall_2026_ZewailCity.git
-cd Fall_2026_ZewailCity
+git clone https://github.com/Ahmedamir21/Planora.git
+cd Planora
 ```
 
 ### Open the planner package
