@@ -25,7 +25,7 @@
 
 <br/><br/>
 
-**Information Technology · Data Science & AI · Software Engineering**  
+**Information Technology (Years 2–4) · Cyber Security (Years 1–4, courses pending) · Data Science & AI · Software Engineering**  
 **Years 1–4 · Shared Requirements · Cross-Year Planning**
 
 </div>
@@ -692,3 +692,7 @@ Official registration decisions and final section details should always be confi
 <sub>Fall 2026 · Built for planning, not registration.</sub>
 
 </div>
+
+## Admin workspace
+
+The private workspace lives at [Planora Admin](https://zc-planora.vercel.app/admin.html). Username and password are configured privately through Vercel Environment Variables; [admin setup and rotation instructions](docs/ADMIN_PANEL.md) list the exact variable names and files. The panel can review coverage, open reports, and export checked semester JSON drafts.

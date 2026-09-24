@@ -1,0 +1,20 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "framework": null,
+  "functions": {
+    "api/assistant.ts": {
+      "maxDuration": 30
+    },
+    "api/admin.ts": {
+      "maxDuration": 10
+    }
+  },
+  "git": {
+    "deploymentEnabled": {
+      "internal-*": false,
+      "semester-ready-*": false
+    }
+  }
+}
