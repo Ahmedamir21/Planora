@@ -7,7 +7,7 @@
 import { JSDOM } from 'jsdom';
 
 const dom = new JSDOM('<!doctype html><html><body><div id="root"></div></body></html>', {
-  url: 'https://fall-2026-zewail-city.vercel.app/?sbx_debug=1&schedule=STALE#about',
+  url: 'https://planora-zc.vercel.app/?sbx_debug=1&schedule=STALE#about',
 });
 const g = globalThis as unknown as Record<string, unknown>;
 g.window = dom.window;
@@ -87,7 +87,7 @@ const linkInput = doc.querySelector('input[aria-label="Shareable schedule link"]
 check('share sheet opens with the link input', !!linkInput);
 if (linkInput) {
   const url = linkInput.value;
-  check('URL uses the live deployment origin — NOT a sandbox host', url.startsWith('https://fall-2026-zewail-city.vercel.app/?schedule='));
+  check('URL uses the live deployment origin — NOT a sandbox host', url.startsWith('https://planora-zc.vercel.app/?schedule='));
   check('no arena/sbx debug param or stale ?schedule= leaked', !url.includes('arena') && !url.includes('sbx_debug') && !url.includes('STALE'));
   check('no hash appended', !url.includes('#about'));
   const decoded = decodeSchedule(new URL(url).searchParams.get('schedule')!);

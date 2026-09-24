@@ -308,9 +308,9 @@ check('prefs-only link with no picks still decodes', (() => {
   };
 
   // Vercel production — even with proxy/debug junk and a stale ?schedule= in the address bar.
-  globalThis.location = loc('https://fall-2026-zewail-city.vercel.app/?sbx_debug=1&from=arena&schedule=STALEOLD#about');
+  globalThis.location = loc('https://planora-zc.vercel.app/?sbx_debug=1&from=arena&schedule=STALEOLD#about');
   const prod = buildShareUrl('software', shareCourses, realPicks, extras);
-  check('production URL is exactly app origin + ?schedule= payload', prod.startsWith('https://fall-2026-zewail-city.vercel.app/?schedule='));
+  check('production URL is exactly app origin + ?schedule= payload', prod.startsWith('https://planora-zc.vercel.app/?schedule='));
   check('no Arena/sandbox debug params leak into the link', !prod.includes('arena') && !prod.includes('sbx_debug') && !prod.includes('STALEOLD') && !prod.includes('#about'));
   check('no personal/private fields in the payload', !/[?&](name|email|token|id(?!entity))=/i.test(prod));
 
@@ -351,7 +351,7 @@ check('prefs-only link with no picks still decodes', (() => {
       e.pairing.meetings.forEach((m) => { p[m.type] = uid(m); });
       cardPicks[e.course.id] = p;
     });
-    globalThis.location = loc('https://fall-2026-zewail-city.vercel.app/');
+    globalThis.location = loc('https://planora-zc.vercel.app/');
     const cardUrl = buildShareUrl('software', s0.perCourse.map((e) => e.course), cardPicks, {
       preferences: DEFAULT_PREFERENCES,
       instructorFilter: Object.fromEntries(s0.perCourse.map((e) => [e.course.id, e.instructorIdx])),
@@ -368,7 +368,7 @@ check('prefs-only link with no picks still decodes', (() => {
   }
 
   // Corrupt/invalid links still fall back safely after the origin change (readScheduleFromLocation path).
-  globalThis.location = loc('https://fall-2026-zewail-city.vercel.app/?schedule=%25%25garbage%25%25');
+  globalThis.location = loc('https://planora-zc.vercel.app/?schedule=%25%25garbage%25%25');
   check('garbage schedule param on production host => readScheduleFromLocation null, no throw', readScheduleFromLocation() === null);
 }
 

@@ -7,8 +7,8 @@
   "scope": "/",
   "display": "standalone",
   "orientation": "any",
-  "background_color": "#080B14",
-  "theme_color": "#080B14",
+  "background_color": "#0C1020",
+  "theme_color": "#0C1020",
   "icons": [
     {
       "src": "/icons/planner-icon.svg",
