@@ -62,10 +62,10 @@ export function buildCalendarIcs(meetings: DraftMeeting[]): string {
   const lines = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    'PRODID:-//Zewail City Schedule Builder//EN',
+    'PRODID:-//Planora Schedule Planner//EN',
     'CALSCALE:GREGORIAN',
     'METHOD:PUBLISH',
-    `X-WR-CALNAME:${escapeIcs(`Zewail City ${TERM_LABEL}`)}`,
+    `X-WR-CALNAME:${escapeIcs(`Planora · ${TERM_LABEL}`)}`,
     'X-WR-TIMEZONE:Africa/Cairo',
   ];
 
@@ -87,7 +87,7 @@ export function buildCalendarIcs(meetings: DraftMeeting[]): string {
 
     lines.push(
       'BEGIN:VEVENT',
-      `UID:${escapeIcs(uid)}@zc-schedule-builder`,
+      `UID:${escapeIcs(uid)}@planora`,
       `DTSTAMP:${utcStamp()}`,
       `DTSTART;TZID=Africa/Cairo:${localStamp(first, meeting.start)}`,
       `DTEND;TZID=Africa/Cairo:${localStamp(first, meeting.end)}`,
@@ -109,7 +109,7 @@ export function downloadCalendarIcs(meetings: DraftMeeting[]): void {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `zewail-city-${SEMESTER_CONFIG.term.toLowerCase()}-${SEMESTER_CONFIG.year}-schedule.ics`;
+  a.download = `planora-${SEMESTER_CONFIG.term.toLowerCase()}-${SEMESTER_CONFIG.year}-schedule.ics`;
   document.body.appendChild(a);
   a.click();
   a.remove();
