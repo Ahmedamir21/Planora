@@ -31,6 +31,11 @@ export function AboutPage({ onBack }: { onBack: () => void }) {
           {PRODUCT_TITLE}
         </h1>
 
+        <p className="mt-3 text-[12px] leading-relaxed" style={{ color: 'var(--muted)' }}>
+          Planora is an independent student project for CSAI students. It is not an official Zewail City website
+          or registration service. Confirm course details in Self-Service before registering.
+        </p>
+
         <div className="mt-5 space-y-5">
           <div>
             <h2 className="text-[13.5px] font-bold tracking-tight">What is this?</h2>
