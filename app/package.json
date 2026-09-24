@@ -1,8 +1,0 @@
-{
-  "name": "zewail-schedule-builder-vercel-app",
-  "private": true,
-  "version": "1.0.1",
-  "scripts": {
-    "build": "npm --prefix ../Final_Fall_2026_ZewailCity/Templates-Final-Final-main/Zewail-City-Templates-arena-01a09711-zewail-city-templates/Final_Fall_2026_ZewailCity/Final_Fall_2026_Zewail ci && npm --prefix ../Final_Fall_2026_ZewailCity/Templates-Final-Final-main/Zewail-City-Templates-arena-01a09711-zewail-city-templates/Final_Fall_2026_ZewailCity/Final_Fall_2026_Zewail run build && rm -rf dist && cp -r ../Final_Fall_2026_ZewailCity/Templates-Final-Final-main/Zewail-City-Templates-arena-01a09711-zewail-city-templates/Final_Fall_2026_ZewailCity/Final_Fall_2026_Zewail/dist dist"
-  }
-}

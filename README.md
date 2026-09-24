@@ -10,7 +10,7 @@
 
 <br/>
 
-<a href="https://planora-zc.vercel.app/">
+<a href="https://zc-planora.vercel.app/">
   <img src="https://img.shields.io/badge/OPEN_LIVE_PLANNER-Planora-E8A957?style=for-the-badge&labelColor=161A23" alt="Open Live Planner" />
 </a>
 
@@ -66,7 +66,7 @@ It can:
 - share a schedule through a link or image;
 - and provide an AI-assisted schedule workflow grounded in the planner's own course data.
 
-> **Live application (current address):** https://planora-zc.vercel.app/
+> **Live application (current address):** https://zc-planora.vercel.app/
 
 > **Independent student project:** Planora is not an official university service. Confirm all registration details in Self-Service.
 
@@ -608,7 +608,7 @@ This value belongs in Vercel Environment Variables and must never be committed t
 
 ### Live deployment
 
-**https://planora-zc.vercel.app/**
+**https://zc-planora.vercel.app/**
 
 ---
 
@@ -683,7 +683,7 @@ Official registration decisions and final section details should always be confi
 
 ### Ready to build your schedule?
 
-<a href="https://planora-zc.vercel.app/">
+<a href="https://zc-planora.vercel.app/">
   <img src="https://img.shields.io/badge/Launch_Zewail_City_Schedule_Builder-E8A957?style=for-the-badge&labelColor=161A23" alt="Launch Schedule Builder" />
 </a>
 
