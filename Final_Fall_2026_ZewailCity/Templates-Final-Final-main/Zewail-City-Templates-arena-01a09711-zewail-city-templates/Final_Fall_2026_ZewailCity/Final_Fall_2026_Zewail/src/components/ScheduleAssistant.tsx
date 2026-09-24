@@ -87,8 +87,19 @@ export function ScheduleAssistant({ context, onPreviewProposal, onApplyProposal,
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [proposal, setProposal] = useState<AssistantProposal | null>(null);
+  const [online, setOnline] = useState(() => typeof navigator === 'undefined' ? true : navigator.onLine);
   const listRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    const sync = () => setOnline(navigator.onLine);
+    window.addEventListener('online', sync);
+    window.addEventListener('offline', sync);
+    return () => {
+      window.removeEventListener('online', sync);
+      window.removeEventListener('offline', sync);
+    };
+  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -111,6 +122,10 @@ export function ScheduleAssistant({ context, onPreviewProposal, onApplyProposal,
   const sendMessage = async (message: string) => {
     const clean = message.trim();
     if (!clean || sending) return;
+    if (!online) {
+      setError('You are offline. The planner still works, but the AI Assistant needs an internet connection.');
+      return;
+    }
 
     const previous = messages.slice(-6);
     setMessages((m) => [...m, { role: 'user', text: clean }]);
@@ -203,7 +218,7 @@ export function ScheduleAssistant({ context, onPreviewProposal, onApplyProposal,
         aria-expanded={open}
       >
         <span className="assistant-fab-icon" aria-hidden>✦</span>
-        <span className="assistant-fab-label">Ask Assistant</span>
+        <span className="assistant-fab-label">{online ? 'Ask Assistant' : 'AI Offline'}</span>
       </button>
 
       {open && (
@@ -217,7 +232,7 @@ export function ScheduleAssistant({ context, onPreviewProposal, onApplyProposal,
                   <span className="pill">Beta · v3</span>
                 </div>
                 <p className="mt-0.5 text-[10.5px]" style={{ color: 'var(--muted)' }}>
-                  Arabic · English · Franco — grounded in your current planner
+                  {online ? 'Arabic · English · Franco — grounded in your current planner' : 'Offline · Planner still works · AI unavailable'}
                 </p>
               </div>
               <button type="button" className="btn btn-tap px-3" onClick={() => setOpen(false)} aria-label="Close assistant">✕</button>
@@ -249,7 +264,7 @@ export function ScheduleAssistant({ context, onPreviewProposal, onApplyProposal,
                         type="button"
                         className="btn btn-tap px-2.5 py-1.5 text-[10.5px]"
                         onClick={() => void sendMessage(prompt)}
-                        disabled={sending}
+                        disabled={sending || !online}
                       >
                         {prompt}
                       </button>
@@ -384,7 +399,7 @@ export function ScheduleAssistant({ context, onPreviewProposal, onApplyProposal,
                 aria-label="Message Schedule Assistant"
                 disabled={sending}
               />
-              <button type="submit" className="assistant-send" disabled={!input.trim() || sending} aria-label="Send message">↑</button>
+              <button type="submit" className="assistant-send" disabled={!input.trim() || sending || !online} aria-label="Send message">↑</button>
             </form>
             <p className="assistant-disclaimer">AI suggestions use the planner's current data. Confirm final registration details on Self-Service.</p>
           </section>
