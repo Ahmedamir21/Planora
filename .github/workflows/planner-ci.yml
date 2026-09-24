@@ -1,0 +1,56 @@
+name: Planner CI
+
+on:
+  push:
+    branches: [add-year-1-courses, semester-ready-refactor, 'internal-*']
+  pull_request:
+    branches: [add-year-1-courses]
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Final_Fall_2026_ZewailCity/Templates-Final-Final-main/Zewail-City-Templates-arena-01a09711-zewail-city-templates/Final_Fall_2026_ZewailCity/Final_Fall_2026_Zewail
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: Final_Fall_2026_ZewailCity/Templates-Final-Final-main/Zewail-City-Templates-arena-01a09711-zewail-city-templates/Final_Fall_2026_ZewailCity/Final_Fall_2026_Zewail/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Production dependency audit
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: TypeScript check
+        run: npm run typecheck
+
+      - name: Production build
+        run: npm run build
+
+      - name: Platform feature tests
+        run: npm run test:platform
+
+      - name: Data integrity tests
+        run: npm run test:data
+
+      - name: Assistant feature tests
+        run: npm run test:assistant
+
+      - name: SSR smoke test
+        run: npm run test:ssr
+
+      - name: UI tests
+        run: npm run test:ui
+
+      - name: Core scheduler harness
+        run: npm run test:harness

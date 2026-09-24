@@ -1,0 +1,20 @@
+{
+  "name": "Zewail City Schedule Builder",
+  "short_name": "ZC Schedule",
+  "description": "Build, compare, save and share your Zewail City course schedule.",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0f1218",
+  "theme_color": "#0f1218",
+  "icons": [
+    {
+      "src": "/icons/planner-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
