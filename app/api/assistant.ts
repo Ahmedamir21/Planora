@@ -53,7 +53,8 @@ function rateLimited(key) {
 
 /** Resolve an explicit section swap from the same options shown in the planner. */
 function exactSectionChange(message: string, context: any) {
-  if (!/\b(change|switch|swap|replace|move|ghayyar|8ayyar|baddel|badal)\b|غي[ّرر]|بد[ّلل]|انقل/i.test(message)) return null;
+  if (!/\b(change|switch|swap|replace|move|select|choose|pick|ghayyar|8ayyar|baddel|badal)\b|غي[ّرر]|بد[ّلل]|انقل|اختار|حدد/i.test(message)) return null;
+  const choosing = /\b(select|choose|pick)\b|اختار|حدد/i.test(message);
   const refs = [...message.matchAll(/\b(lec(?:ture)?|lab|tut(?:orial)?)\s*(?:sec(?:tion)?\s*)?#?\s*0*(\d{1,2})\b/gi)];
   if (!refs.length) return null;
   const kindOf = (value: string) => /^lec/i.test(value) ? 'Lecture' : /^lab/i.test(value) ? 'Lab' : 'Tutorial';
@@ -80,24 +81,26 @@ function exactSectionChange(message: string, context: any) {
   const mentioned = exactMatches.length ? exactMatches : subjectMatches;
   if (mentioned.length !== 1) return null;
   const options = mentioned[0];
-  const course = selected.find((item: any) => item?.courseId === options.courseId);
+  let course = selected.find((item: any) => item?.courseId === options.courseId);
   const arabic = /[\u0600-\u06ff]/.test(message);
   const franco = !arabic && /\b(?:leh|3ayez|3ayz|momken|e2|bta3|msh|mesh|ma3|ghayyar|8ayyar)\b|[237589](?=[a-z])/i.test(message);
   const say = (english: string, arabicText: string, francoText: string) => arabic ? arabicText : franco ? francoText : english;
   if (!options || !Array.isArray(options.sections)) return null;
   if (!course) {
     if (context.selectedCourseIds?.includes(options.courseId)) {
-      return { text: say(`${options.code} is selected, but no ${kind} section is selected yet. Choose section ${sourceSection || targetSection} first, or ask me to select section ${targetSection} directly.`, `${options.code} مضافة لكن مفيش سكشن ${kind} مختار. اختار سكشن ${sourceSection || targetSection} الأول، أو اطلب اختيار سكشن ${targetSection} مباشرة.`, `${options.code} selected bas mafesh ${kind} sec metekhtar. Ekhtar sec ${sourceSection || targetSection} aw etlob select sec ${targetSection} mobashara.`), proposal: null, constraintsAdd: [], lockActions: [] };
+      if (choosing) course = { courseId: options.courseId, code: options.code, meetings: [] };
+      else return { text: say(`${options.code} is selected, but no ${kind} section is selected yet. Choose section ${sourceSection || targetSection} first, or ask me to select section ${targetSection} directly.`, `${options.code} مضافة لكن مفيش سكشن ${kind} مختار. اختار سكشن ${sourceSection || targetSection} الأول، أو اطلب اختيار سكشن ${targetSection} مباشرة.`, `${options.code} selected bas mafesh ${kind} sec metekhtar. Ekhtar sec ${sourceSection || targetSection} aw etlob select sec ${targetSection} mobashara.`), proposal: null, constraintsAdd: [], lockActions: [] };
+    } else {
+      return { text: say(`${options.code} is not selected in your current schedule. Add the course and choose its current ${kind} before asking to switch it.`, `${options.code} مش مضافة لجدولك حاليًا. ضيف المادة واختار ${kind} الأول قبل ما تبدّل السكشن.`, `${options.code} msh selected fel schedule. Deef el course w ekhtar ${kind} el 7alya abl ma t8ayyar el sec.`), proposal: null, constraintsAdd: [], lockActions: [] };
     }
-    return { text: say(`${options.code} is not selected in your current schedule. Add the course and choose its current ${kind} before asking to switch it.`, `${options.code} مش مضافة لجدولك حاليًا. ضيف المادة واختار ${kind} الأول قبل ما تبدّل السكشن.`, `${options.code} msh selected fel schedule. Deef el course w ekhtar ${kind} el 7alya abl ma t8ayyar el sec.`), proposal: null, constraintsAdd: [], lockActions: [] };
   }
   const current = Array.isArray(course.meetings)
     ? course.meetings.find((meeting: any) => meeting?.type === kind) : null;
-  if (!current) {
+  if (!current && !choosing) {
     return { text: say(`${course.code} is selected, but no ${kind} section is selected yet. Choose your current section first, or ask me to select section ${targetSection} directly.`, `${course.code} مضافة لكن مفيش سكشن ${kind} مختار. اختار السكشن الحالي الأول، أو اطلب مني اختيار سكشن ${targetSection} مباشرة.`, `${course.code} selected bas mafesh ${kind} sec metekhtar. Ekhtar el sec el 7alya aw etlob select sec ${targetSection} mobashara.`), proposal: null, constraintsAdd: [], lockActions: [] };
   }
-  if (sourceSection && number(current.section) !== sourceSection) {
-    return { text: say(`${course.code} ${kind} section ${sourceSection.padStart(2, '0')} is not currently selected. Your selected section is ${String(current.section)}.`, `${course.code} ${kind} سكشن ${sourceSection.padStart(2, '0')} مش مختار حاليًا؛ المختار هو سكشن ${current.section}.`, `${course.code} ${kind} sec ${sourceSection.padStart(2, '0')} msh selected delwa2ty; el selected sec ${current.section}.`), proposal: null, constraintsAdd: [], lockActions: [] };
+  if (sourceSection && (!current || number(current.section) !== sourceSection)) {
+    return { text: say(`${course.code} ${kind} section ${sourceSection.padStart(2, '0')} is not currently selected. Your selected section is ${String(current?.section || 'none')}.`, `${course.code} ${kind} سكشن ${sourceSection.padStart(2, '0')} مش مختار حاليًا؛ المختار هو ${current?.section || 'مفيش'}.`, `${course.code} ${kind} sec ${sourceSection.padStart(2, '0')} msh selected delwa2ty; el selected sec ${current?.section || 'none'}.`), proposal: null, constraintsAdd: [], lockActions: [] };
   }
   const matches = options.sections.filter((section: any) => section?.type === kind && number(section.section) === targetSection && typeof section.meetingId === 'string');
   if (matches.length === 0) {
@@ -105,15 +108,15 @@ function exactSectionChange(message: string, context: any) {
   }
   if (matches.length !== 1) return null;
   const target = matches[0];
-  if (target.meetingId === current.meetingId) {
+  if (target.meetingId === current?.meetingId) {
     return { text: say(`${course.code} ${kind} section ${target.section} is already selected.`, `${course.code} ${kind} سكشن ${target.section} مختار بالفعل.`, `${course.code} ${kind} sec ${target.section} already selected.`), proposal: null, constraintsAdd: [], lockActions: [] };
   }
   if (context.locks?.courseIds?.includes(course.courseId) || context.locks?.components?.[course.courseId]?.[kind]) {
     return { text: say(`${course.code} ${kind} is locked. Unlock it before switching sections.`, `${course.code} ${kind} مقفول. افتح القفل قبل تبديل السكشن.`, `${course.code} ${kind} locked. Efta7 el lock abl ma t8ayyar el sec.`), proposal: null, constraintsAdd: [], lockActions: [] };
   }
-  const label = `${course.code} ${kind} · Sec ${current.section} → Sec ${target.section}`;
+  const label = current ? `${course.code} ${kind} · Sec ${current.section} → Sec ${target.section}` : `${course.code} ${kind} · Select Sec ${target.section}`;
   return {
-    text: say(`Section ${target.section} exists for ${course.code}. Here is the requested change to preview. Nothing has been applied yet; confirm it after the planner checks your other meetings and locks.`, `سكشن ${target.section} موجود لـ${course.code}. جهزت التبديل للمراجعة، ولسه متطبقش. اتأكد من التعارضات والأقفال واضغط تطبيق لو مناسب.`, `Sec ${target.section} mawgood le ${course.code}. 7attit el taghyeer fel preview, lesa matetba2sh. Et2akked men el conflicts wel locks w edghat Apply law monaseb.`),
+    text: say(`Section ${target.section} exists for ${course.code}. Here is the requested ${current ? 'change' : 'selection'} to preview. Nothing has been applied yet; confirm it after the planner checks your other meetings and locks.`, `سكشن ${target.section} موجود لـ${course.code}. جهزت ${current ? 'التبديل' : 'الاختيار'} للمراجعة، ولسه متطبقش. اتأكد من التعارضات والأقفال واضغط تطبيق لو مناسب.`, `Sec ${target.section} mawgood le ${course.code}. 7attit el ${current ? 'taghyeer' : 'ekhtyar'} fel preview, lesa matetba2sh. Et2akked men el conflicts wel locks w edghat Apply law monaseb.`),
     proposal: {
       title: label,
       summary: `${target.day} ${target.time} · ${target.room || 'Room not published'} · ${target.instructor || 'Instructor not assigned'}`,

@@ -16,6 +16,7 @@ async function run(name,message,context,expect,{modelResponse}={}){
 }
 await run('exact CSAI course wins over subject ambiguity','Change CSAI 201 change lec 1 to lec 4',base,(b,calls)=>{assert.equal(calls,0);assert.equal(b.proposal.changes[0].meetingId,'csai-04')});
 await run('course ticked without any section','Change CSAI 201 change lec 1 to lec 4',{...base,selectedCourses:[]},(b,calls)=>{assert.equal(calls,0);assert.equal(b.proposal,null);assert.match(b.text,/no Lecture section/) });
+await run('select exact lecture when none was picked','Select CSAI 201 lec 4',{...base,selectedCourses:[]},(b,calls)=>{assert.equal(calls,0);assert.equal(b.proposal.changes[0].meetingId,'csai-04');assert.match(b.text,/selection to preview/) });
 await run('course not selected','Change CSAI 201 change lec 1 to lec 4',{...base,selectedCourses:[],selectedCourseIds:[]},(b,calls)=>{assert.equal(calls,0);assert.match(b.text,/not selected/)});
 await run('different current section','Change CSAI 201 change lec 2 to lec 4',base,(b,calls)=>{assert.equal(calls,0);assert.equal(b.proposal,null);assert.match(b.text,/not currently selected/)});
 await run('model claims a missing preview','Can you change this section?',{},(b,calls)=>{assert.equal(calls,1);assert.equal(b.proposal,null);assert.match(b.text,/could not create a valid preview/)},{modelResponse:{text:'Here is the preview to change CSAI 201 Lecture from Section 01 to Section 04.',proposal:null,constraintsAdd:[],lockActions:[]}});
