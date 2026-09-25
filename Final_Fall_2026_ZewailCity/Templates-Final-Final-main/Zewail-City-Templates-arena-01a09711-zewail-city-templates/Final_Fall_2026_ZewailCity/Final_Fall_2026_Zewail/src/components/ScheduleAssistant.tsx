@@ -155,7 +155,8 @@ export function ScheduleAssistant({ context, onPreviewProposal, onApplyProposal,
 
       const validation = data.proposal?.changes?.length ? onPreviewProposal?.(data.proposal) : null;
       if (validation?.ok === false) {
-        setMessages((m) => [...m, { role: 'assistant', text: `I couldn't find a conflict-free change for that request. ${validation.message ?? 'Try another constraint.'}` }]);
+        setMessages((m) => [...m, { role: 'assistant', text: `I found the requested section, but the planner blocked this preview: ${validation.message ?? 'The change cannot be applied safely.'}` }]);
+        if (data.proposal) setProposal(data.proposal);
         return;
       }
       setMessages((m) => [...m, { role: 'assistant', text: data.text! }]);
@@ -174,8 +175,9 @@ export function ScheduleAssistant({ context, onPreviewProposal, onApplyProposal,
         setProposal(data.proposal);
       }
     } catch (err) {
-      setMessages((current) => current.slice(0, -1));
-      setInput(clean);
+      setMessages((current) => current.at(-1)?.role === 'user' && current.at(-1)?.text === clean
+        ? current.slice(0, -1) : current);
+      setInput((current) => current || clean);
       setError(err instanceof TypeError
         ? 'Could not connect to the assistant. Check your connection and try again.'
         : err instanceof Error ? err.message : 'The assistant could not answer right now.');
