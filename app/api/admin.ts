@@ -1,6 +1,6 @@
 import { createHash, createHmac, randomUUID, scryptSync, timingSafeEqual } from 'node:crypto';
 import { draftKey, HISTORY_KEY, redis, saveWithHistory, undoWithHistory, storageConfigured } from './admin-store';
-import { validateDataset } from '../dataset-validation.mjs';
+import { validateDataset } from '../dataset-validation.cjs';
 import publishedSemester from '../../Final_Fall_2026_ZewailCity/Templates-Final-Final-main/Zewail-City-Templates-arena-01a09711-zewail-city-templates/Final_Fall_2026_ZewailCity/Final_Fall_2026_Zewail/src/semester/semester.json';
 import publishedCourses from '../../Final_Fall_2026_ZewailCity/Templates-Final-Final-main/Zewail-City-Templates-arena-01a09711-zewail-city-templates/Final_Fall_2026_ZewailCity/Final_Fall_2026_Zewail/src/semester/courses.json';
 import publishedMajors from '../../Final_Fall_2026_ZewailCity/Templates-Final-Final-main/Zewail-City-Templates-arena-01a09711-zewail-city-templates/Final_Fall_2026_ZewailCity/Final_Fall_2026_Zewail/src/semester/majors.json';

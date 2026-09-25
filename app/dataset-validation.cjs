@@ -1,5 +1,5 @@
 /** Shared checks for the admin review and the CLI release gate. No academic facts live here. */
-export function validateDataset({ semester, courses, sch, majors }) {
+function validateDataset({ semester, courses, sch, majors }) {
   const errors = [], warnings = [];
   const check = (condition, message) => { if (!condition) errors.push(message); };
   const validDate = value => typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(`${value}T00:00:00Z`)) && new Date(`${value}T00:00:00Z`).toISOString().slice(0, 10) === value;
@@ -71,3 +71,5 @@ export function validateDataset({ semester, courses, sch, majors }) {
   }
   return { errors, warnings, summary: { courses: all.length, meetings, sch: Array.isArray(sch) ? sch.length : 0, missingRooms, unassigned } };
 }
+
+module.exports = { validateDataset };

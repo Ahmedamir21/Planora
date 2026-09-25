@@ -14,7 +14,7 @@ Planora is an independent student planner. Its Vercel project root is `app/`; it
 | `app/api/reports.ts`, `app/api/report-email.ts` | Private course data reports and optional email alert delivery. |
 | `app/api/feedback.ts` | Student rating and optional written feedback inbox. |
 | `app/api/assistant.ts` | AI assistant server endpoint. |
-| `app/dataset-validation.mjs` | Server-side checks for draft semester files. |
+| `app/dataset-validation.cjs` | Server-side checks for draft semester files. |
 | `app/.env.example` | Names and example values for private environment settings. Never store real values here. |
 | `docs/ADMIN_PANEL.md` | Admin setup and use. |
 | `docs/REPORT_EMAIL.md`, `scripts/planora-report-mailer.gs` | Optional Google Apps Script email alert setup and source. |
