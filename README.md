@@ -80,7 +80,7 @@ It can:
 
 > **Reporting an error:** Select **⚑ Report** beside a course or **Report an issue** in the footer. Choose the incorrect fields (name, instructor, time, room, section, credits, or other) and explain the problem. Reports go to the private admin inbox without a GitHub account; **Cancel** closes the form without sending anything. Admins review Self-Service separately and record whether a correction is needed. Reports are not official university tickets. Optional no-domain email alerts can be configured through Google Apps Script (see `docs/REPORT_EMAIL.md`); automatic Self-Service checks are not connected.
 
-> **General feedback:** Use **Feedback** at the bottom of the planner to select a topic and rate the experience from 1–10. A written comment is optional, so a rating alone can be sent privately to the admins. The admin panel groups entries by topic and status, calculates counts and the average rating, and lets admins record reviews. This is separate from reporting incorrect course data.
+> **General feedback:** Use the visible **Feedback** button near the top of the planner. Enter a name or nickname if you want, rate the overall experience from 1–10, then optionally write your opinion or an improvement and choose a topic. A rating alone can be sent privately to the admins. The admin panel shows the name (or Anonymous), rating, comment, topic and status, and lets admins review entries. This is separate from reporting incorrect course data.
 
 > **Release status:** These features describe this repository revision. A live deployment may still serve an older revision while Vercel builds; check the site itself for current availability.
 

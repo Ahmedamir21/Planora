@@ -121,6 +121,8 @@ export default async function handler(req: any, res: any) {
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        // Leave time for the function to return JSON before Vercel's 30s limit.
+        signal: AbortSignal.timeout(24_000),
         body: JSON.stringify({
           systemInstruction: { parts: [{ text: system }] },
           contents: [...safeHistory, { role: 'user', parts: [{ text: message }] }],
@@ -244,6 +246,9 @@ export default async function handler(req: any, res: any) {
     return res.status(200).json({ text: replyText, proposal, constraintsAdd, lockActions });
   } catch (error) {
     console.error('Schedule Assistant request failed', error);
+    if (error instanceof Error && (error.name === 'TimeoutError' || error.name === 'AbortError')) {
+      return res.status(504).json({ error: 'The assistant took too long to answer. Please try again.' });
+    }
     return res.status(502).json({ error: 'The assistant is temporarily unavailable.' });
   }
 };

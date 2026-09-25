@@ -120,11 +120,22 @@ export function ScheduleAssistant({ context, onPreviewProposal, onApplyProposal,
     setSending(true);
 
     try {
-      const response = await fetch('/api/assistant', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: clean, history: previous, context }),
-      });
+      const requestBody = JSON.stringify({ message: clean, history: previous, context });
+      let response: Response | undefined;
+      for (let attempt = 0; attempt < 2; attempt++) {
+        try {
+          response = await fetch('/api/assistant', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: requestBody,
+          });
+          if (response.status !== 504 || attempt === 1) break;
+        } catch (requestError) {
+          if (attempt === 1 || !navigator.onLine) throw requestError;
+        }
+        await new Promise((resolve) => window.setTimeout(resolve, 700));
+      }
+      if (!response) throw new Error('Could not connect to the assistant. Check your connection and try again.');
 
       const raw = await response.text();
       let data: { text?: string; error?: string; proposal?: AssistantProposal | null; constraintsAdd?: string[]; lockActions?: AssistantLockAction[] } = {};
@@ -163,7 +174,11 @@ export function ScheduleAssistant({ context, onPreviewProposal, onApplyProposal,
         setProposal(data.proposal);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'The assistant could not answer right now.');
+      setMessages((current) => current.slice(0, -1));
+      setInput(clean);
+      setError(err instanceof TypeError
+        ? 'Could not connect to the assistant. Check your connection and try again.'
+        : err instanceof Error ? err.message : 'The assistant could not answer right now.');
     } finally {
       setSending(false);
     }
