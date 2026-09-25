@@ -15,6 +15,78 @@ const missing = applyAdminImport(published as Course[], [{ ...result.rows[0], co
 assert(missing.applied === 0 && missing.warnings.length === 1, 'Unknown course was silently invented');
 const copied = parseAdminImport('CSAI 205: Fundamentals of Circuits and Electronics\nSubtype: Lecture | Section: 03\n10:00 AM - 11:59 AM\nTuesday\nZewail City, Room G006-B\nMohamed Maher Ata');
 assert(copied.rows.length === 1 && copied.rows[0].end === 720 && copied.rows[0].instructor === 'Mohamed Maher Ata', 'Self-Service text was not parsed correctly');
+// Self-Service's Copy action can omit the course heading entirely. The admin must
+// select a course, and every complete result block must still import correctly.
+const copiedWithoutHeading = parseAdminImport(`16 Results
+
+Year: 2026 | Term: Fall | Session: Main
+
+Subtype: Lecture | Section: 01
+
+Type: Course | Credit type: Credit
+
+Duration: 9/12/2026 - 1/24/2027
+
+8:00 AM - 9:59 AM
+
+Tuesday
+
+Zewail City New Campus, Academic Building , Room G025B
+
+Walaa El-Sharkawy El-Sharkawy
+
+3.00
+Credits
+
+0
+Seats Left
+
+Year: 2026 | Term: Fall | Session: Main
+
+Subtype: Lecture | Section: 02
+
+Type: Course | Credit type: Credit
+
+Duration: 9/12/2026 - 1/24/2027
+
+2:00 PM - 3:59 PM
+
+Wednesday
+
+Zewail City New Campus, Academic Building , Room G019-B
+
+Mohamed Fawzy Fawzy
+
+3.00
+Credits
+
+0
+Seats Left
+
+Year: 2026 | Term: Fall | Session: Main
+
+Subtype: Tutorial | Section: 01
+
+Type: Course | Credit type: Credit
+
+Duration: 9/12/2026 - 1/24/2027
+
+12:00 PM - 1:59 PM
+
+Tuesday
+
+Zewail City New Campus, Academic Building , Room G009-B
+
+Walaa El-Sharkawy El-Sharkawy
+
+0.00
+Credits
+
+0
+Seats Left`, 'MATH 105');
+assert(copiedWithoutHeading.rows.length === 3 && copiedWithoutHeading.warnings.length === 0, 'Actual copied Self-Service blocks were not imported');
+assert(copiedWithoutHeading.rows[0].room === 'G025B' && copiedWithoutHeading.rows[0].end === 600 && copiedWithoutHeading.rows[1].instructor === 'Mohamed Fawzy Fawzy' && copiedWithoutHeading.rows[2].subtype === 'Tutorial', 'Actual Self-Service room, time or instructor was misread');
+assert(parseAdminImport('Subtype: Lecture | Section: 01\n8:00 AM - 9:59 AM\nTuesday\nRoom G025B\nWalaa El-Sharkawy El-Sharkawy').rows.length === 0, 'Missing course heading was silently guessed');
 assert(parseAdminImport('Subtype: Lecture | Section: 03\n10:00 AM - 11:59 AM\nTuesday').rows.length === 0, 'Incomplete copied result was guessed');
 const excel = parseAdminImport('\uFEFF"Course code",subtype,section,day,start,end,room,instructor\r\nCSAI 205,Lecture,03,Tue,10:00,12:00,G006-B,Mohamed Maher Ata', '', 'csv');
 assert(excel.rows.length === 1 && excel.rows[0].section === '03', 'UTF-8 BOM and quoted Excel CSV header were not accepted');

@@ -83,7 +83,7 @@ function MajorCard({
       {!compact && (
         <>
           <p className="mt-2 text-[12px] leading-relaxed" style={{ color: 'var(--muted)' }}>
-            {major.blurb}
+            {yearId === 'y1' && major.id === 'software' ? 'Explore the published first-year courses for this major.' : major.blurb}
           </p>
           <div className="mt-3 flex flex-wrap gap-1.5">
             {/* Preview courses from the chosen year, never a different year's data. */}
