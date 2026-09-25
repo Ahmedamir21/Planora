@@ -1237,6 +1237,7 @@ export default function App() {
       generalMaximumCredits: 21,
       overLoadSelected: creditCap === 21,
       totalSelectedCredits: totalCredits,
+      selectedCourseIds: Object.keys(picks),
       scheduleStats: {
         sessions: metrics.sessions,
         campusDays: metrics.days,
@@ -1325,6 +1326,7 @@ export default function App() {
       overlapsFound,
       detailEntries,
       courses,
+      picks,
     ],
   );
 

@@ -112,11 +112,23 @@ export function ScheduleAssistant({ context, onPreviewProposal, onApplyProposal,
     const clean = message.trim();
     if (!clean || sending) return;
 
+    if (/^(?:where(?: is (?:it|the preview))?|feen|fen|فين)[?.!؟]*$/i.test(clean)) {
+      setMessages((current) => [...current,
+        { role: 'user', text: clean },
+        { role: 'assistant', text: proposal
+          ? `The preview for ${proposal.title || 'your change'} is directly below this message. Check it and press “Apply changes” if it is valid; nothing changes before you confirm.`
+          : 'There is no pending preview in this chat. Select the course and its current section, then ask for the change again.' },
+      ]);
+      setInput('');
+      setError(null);
+      window.setTimeout(() => document.querySelector('.assistant-proposal')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
+      return;
+    }
+
     const previous = messages.slice(-6);
     setMessages((m) => [...m, { role: 'user', text: clean }]);
     setInput('');
     setError(null);
-    setProposal(null);
     setSending(true);
 
     try {
@@ -173,6 +185,8 @@ export function ScheduleAssistant({ context, onPreviewProposal, onApplyProposal,
         data.proposal.changes.length > 0
       ) {
         setProposal(data.proposal);
+      } else if (/\b(?:change|switch|swap|replace|move)\b|غي[ّرر]|بد[ّلل]/i.test(clean)) {
+        setProposal(null);
       }
     } catch (err) {
       setMessages((current) => current.at(-1)?.role === 'user' && current.at(-1)?.text === clean

@@ -65,24 +65,37 @@ function exactSectionChange(message: string, context: any) {
   const selected = Array.isArray(context.selectedCourses) ? context.selectedCourses : [];
   const available = Array.isArray(context.availableCourses) ? context.availableCourses : [];
   const escapeRegex = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const mentioned = selected.filter((course: any) => {
+  const mentionsFullCode = (course: any) => {
     if (typeof course?.code !== 'string') return false;
     const code = course.code.toLowerCase();
     const fullCode = code.split(/\s+/).map(escapeRegex).join('\\s*');
-    const subject = escapeRegex(code.split(/\s+/)[0]);
-    return new RegExp(`\\b${fullCode}\\b`, 'i').test(message)
-      || new RegExp(`\\b${subject}\\b`, 'i').test(message);
-  });
+    return new RegExp('\\b' + fullCode + '\\b', 'i').test(message);
+  };
+  const allCourses = available
+    .map((item: any) => ({ ...item, code: item?.code ?? selected.find((course: any) => course?.courseId === item?.courseId)?.code }))
+    .filter((course: any) => typeof course?.code === 'string');
+  const exactMatches = allCourses.filter(mentionsFullCode);
+  const subjectMatches = allCourses.filter((course: any) =>
+    new RegExp('\\b' + escapeRegex(course.code.split(/\s+/)[0]) + '\\b', 'i').test(message));
+  const mentioned = exactMatches.length ? exactMatches : subjectMatches;
   if (mentioned.length !== 1) return null;
-  const course = mentioned[0];
+  const options = mentioned[0];
+  const course = selected.find((item: any) => item?.courseId === options.courseId);
   const arabic = /[\u0600-\u06ff]/.test(message);
   const franco = !arabic && /\b(?:leh|3ayez|3ayz|momken|e2|bta3|msh|mesh|ma3|ghayyar|8ayyar)\b|[237589](?=[a-z])/i.test(message);
   const say = (english: string, arabicText: string, francoText: string) => arabic ? arabicText : franco ? francoText : english;
-  const options = available.find((item: any) => item?.courseId === course.courseId);
   if (!options || !Array.isArray(options.sections)) return null;
+  if (!course) {
+    if (context.selectedCourseIds?.includes(options.courseId)) {
+      return { text: say(`${options.code} is selected, but no ${kind} section is selected yet. Choose section ${sourceSection || targetSection} first, or ask me to select section ${targetSection} directly.`, `${options.code} مضافة لكن مفيش سكشن ${kind} مختار. اختار سكشن ${sourceSection || targetSection} الأول، أو اطلب اختيار سكشن ${targetSection} مباشرة.`, `${options.code} selected bas mafesh ${kind} sec metekhtar. Ekhtar sec ${sourceSection || targetSection} aw etlob select sec ${targetSection} mobashara.`), proposal: null, constraintsAdd: [], lockActions: [] };
+    }
+    return { text: say(`${options.code} is not selected in your current schedule. Add the course and choose its current ${kind} before asking to switch it.`, `${options.code} مش مضافة لجدولك حاليًا. ضيف المادة واختار ${kind} الأول قبل ما تبدّل السكشن.`, `${options.code} msh selected fel schedule. Deef el course w ekhtar ${kind} el 7alya abl ma t8ayyar el sec.`), proposal: null, constraintsAdd: [], lockActions: [] };
+  }
   const current = Array.isArray(course.meetings)
     ? course.meetings.find((meeting: any) => meeting?.type === kind) : null;
-  if (!current) return null;
+  if (!current) {
+    return { text: say(`${course.code} is selected, but no ${kind} section is selected yet. Choose your current section first, or ask me to select section ${targetSection} directly.`, `${course.code} مضافة لكن مفيش سكشن ${kind} مختار. اختار السكشن الحالي الأول، أو اطلب مني اختيار سكشن ${targetSection} مباشرة.`, `${course.code} selected bas mafesh ${kind} sec metekhtar. Ekhtar el sec el 7alya aw etlob select sec ${targetSection} mobashara.`), proposal: null, constraintsAdd: [], lockActions: [] };
+  }
   if (sourceSection && number(current.section) !== sourceSection) {
     return { text: say(`${course.code} ${kind} section ${sourceSection.padStart(2, '0')} is not currently selected. Your selected section is ${String(current.section)}.`, `${course.code} ${kind} سكشن ${sourceSection.padStart(2, '0')} مش مختار حاليًا؛ المختار هو سكشن ${current.section}.`, `${course.code} ${kind} sec ${sourceSection.padStart(2, '0')} msh selected delwa2ty; el selected sec ${current.section}.`), proposal: null, constraintsAdd: [], lockActions: [] };
   }
@@ -289,7 +302,7 @@ export default async function handler(req: any, res: any) {
       if (attempt === 1) return res.status(502).json({ error: 'The assistant returned an invalid response. Please try again.' });
     }
 
-    const replyText = typeof parsed?.text === 'string' && parsed.text.trim()
+    let replyText = typeof parsed?.text === 'string' && parsed.text.trim()
       ? parsed.text.trim().slice(0, 2400)
       : 'I found a possible schedule change.';
 
@@ -330,6 +343,16 @@ export default async function handler(req: any, res: any) {
           changes,
         };
       }
+    }
+
+    // A model can describe a preview without returning an actionable proposal.
+    // Keep the visible reply consistent with what the UI can actually show.
+    if (!proposal && /\b(?:here(?:'s| is) (?:the|a) preview|preview to (?:change|switch)|(?:have|has) (?:changed|switched)|(?:changed|switched) (?:the|your))\b/i.test(replyText)) {
+      replyText = /[\u0600-\u06ff]/.test(message)
+        ? 'مقدرتش أجهّز معاينة صالحة للتغيير ده. اتأكد إن المادة والسكشن الحالي مختارين، واكتب السكشن المطلوب تاني.'
+        : /\b(?:leh|feen|fen|msh|mesh|3ayez|8ayyar)\b|[237589](?=[a-z])/i.test(message)
+          ? 'Ma2dertsh a3mel preview sa7 lel taghyeer da. Et2akked en el course wel sec el 7alya selected, w ektb el sec el matlooba tany.'
+          : 'I could not create a valid preview for that change. Check that the course and current section are selected, then specify the target section again.';
     }
 
     const constraintsAdd = Array.isArray(parsed?.constraintsAdd)
