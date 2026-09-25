@@ -1450,6 +1450,10 @@ export default function App() {
               🔒 Admin
             </a>
 
+            <button type="button" className="btn btn-accent btn-tap" onClick={() => setFeedbackOpen(true)}>
+              💬 Feedback
+            </button>
+
             {major && !showAbout && (
               <button
                 type="button"
