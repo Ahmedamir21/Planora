@@ -1,7 +1,5 @@
 /**
- * Change this file when preparing a new semester.
- *
- * Course/section/instructor data lives in src/data/.
+ * Semester facts live in src/semester/*.json. This adapter should stay stable.
  * Product logic should never hard-code a semester name.
  */
 /**

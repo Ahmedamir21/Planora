@@ -8,7 +8,7 @@ The account names and login identifiers are defined in `app/admin-accounts.ts`. 
 
 Change the two login identifiers or displayed names in `app/admin-accounts.ts` and deploy that edit. Passwords cannot safely live in a public GitHub source file. Set the password hashes and session secret **privately in the Planora Vercel project**, Production Environment Variables. Do not put actual secrets into GitHub, `.env.example`, a public frontend file or a chat message. The variable list lives in `app/.env.example`.
 
-Each person runs `node scripts/hash-admin-password.mjs` from the repository root and privately chooses their own password (12+ characters). The input is hidden. Save the generated `PLANORA_ADMIN_PASSWORD_HASH` value under that person's hash variable in `app/.env.example`. Run the generator separately for the second person. Take one generated `PLANORA_ADMIN_SESSION_SECRET` and put it in Vercel; changing it signs everyone out. No shared/default password is provided.
+Each person runs `node scripts/hash-admin-password.mjs` from the repository root and privately chooses their own password (12+ characters). The input is hidden. Save the generated `PLANORA_ADMIN_PASSWORD_HASH` value under that person's hash variable in the **Planora Vercel Production Environment Variables**, not in `app/.env.example`. Run the generator separately for the second person. Take one generated `PLANORA_ADMIN_SESSION_SECRET` and put it in Vercel; changing it signs everyone out. No shared/default password is provided.
 
 ## Durable history setup
 

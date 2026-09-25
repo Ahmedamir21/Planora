@@ -93,6 +93,7 @@ export default async function handler(req: any, res: any) {
     'CONFLICT REPAIR: if the student requests a valid exact section change that would clash with another selected meeting, try to keep the requested change and repair the clash by changing the other UNLOCKED meeting(s) to exact published alternatives from PLANNER_CONTEXT. Return the requested change plus the smallest repair set. If no safe repair can be proven from the context, do not invent one.',
     'When offering a repair, prefer fewer changes, then fewer campus days/gaps according to the student preferences.',
     'Never propose an invented course or meeting ID. Never propose more than 8 changes at once.',
+    'Never recommend a specific section/time in the natural-language text unless the same exact change is included in proposal.changes. If you cannot prove a conflict-free final schedule from the published meetings, use proposal:null, explain the missing information or conflict and ask for a different constraint. Do not guess.',
     'A proposal label should be short and human-readable, for example "CSAI 201 Lab · Sec 01 → Sec 03".',
     'Every proposal change must include a short reason describing why that change is needed or useful. Do not use vague reasons like "optimization".',
     'If the current message explicitly states an ongoing scheduling preference, include a reusable canonical English label in constraintsAdd. Use these exact patterns when applicable: "Avoid 8 AM", "Keep Thursday free", "Finish by 4 PM", "Start after 10 AM", "Max 3 campus days", "Max 6 hours/day". Keep the same pattern with the requested day/time/number. Do not add one-time section change commands as persistent constraints.',
@@ -174,7 +175,7 @@ export default async function handler(req: any, res: any) {
       const cleaned = rawText.replace(/^\`\`\`(?:json)?\s*/i, '').replace(/\s*\`\`\`$/i, '');
       parsed = JSON.parse(cleaned);
     } catch {
-      return res.status(200).json({ text: rawText, proposal: null });
+      return res.status(502).json({ error: 'The assistant returned an invalid response. Please try again.' });
     }
 
     const replyText = typeof parsed?.text === 'string' && parsed.text.trim()

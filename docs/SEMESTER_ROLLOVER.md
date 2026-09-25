@@ -4,19 +4,16 @@ This project is designed so a new semester should require **data updates, not fe
 
 ## Safe workflow
 
-1. Create a new branch from the latest stable production branch.
-2. Update the semester metadata in:
-   `src/config/semester.ts`
-3. Replace/update course data in:
-   - `src/data/courses.ts`
-   - `src/data/schElectives.ts`
-4. Update which courses belong to each major/year in:
-   - `src/data/majors.ts`
-5. Update `dataLastVerified` in the semester config after checking the final dataset against Self-Service.
-6. Run the full CI suite. Do not merge if any required check fails.
-7. Open the preview deployment and spot-check representative majors/years before promoting it to production.
+1. Create a branch from the current `main` branch and copy `semester-template/` as a starting point.
+2. Fill in these four files in `src/semester/`, using only verified Self-Service data or facts supplied by the creators:
+   - `semester.json`: term, year, session, start/end dates, verification date.
+   - `courses.json`: course and published meeting data.
+   - `majors.json`: available majors and course IDs by year.
+   - `sch.json`: published SCH electives.
+3. Run `npm run test:data`, `npm run typecheck`, `npm run build`, then the remaining `test:*` scripts from the Vite app directory.
+4. Check the preview deployment for all four years, both themes, PWA update, sharing and calendar export before promoting it to production.
 
-## What to change in semester.ts
+## What to change in semester.json
 
 Change only the current-semester fields:
 
@@ -25,10 +22,11 @@ Change only the current-semester fields:
 - `year`
 - `session`
 - `dataLastVerified`
-- `publicHostLabel` if the public domain changes
-- `version` only when you intentionally change the product version
+- `calendarStartDate` and `calendarEndDate` for calendar export
+- `publicHostLabel` only if the public domain changes
+- `version` if you intentionally change the displayed version
 
-**Do not change `LEGACY_UNTAGGED_SEMESTER_KEY`.** It permanently identifies old pre-semester-key Fall 2026 links/state so future terms can reject them safely.
+The JSON files feed the existing adapters in `src/data/` and `src/config/semester.ts`; do not duplicate term facts in those adapters. **Do not change `LEGACY_UNTAGGED_SEMESTER_KEY`.** It permanently identifies old untagged links and saved state so future terms can reject them.
 
 ## Data rules enforced automatically
 

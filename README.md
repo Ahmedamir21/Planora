@@ -11,7 +11,7 @@
 <br/>
 
 <a href="https://zc-planora.vercel.app/">
-  <img src="https://img.shields.io/badge/OPEN_LIVE_PLANNER-Planora-E8A957?style=for-the-badge&labelColor=161A23" alt="Open Live Planner" />
+  <img src="https://img.shields.io/badge/OPEN_LIVE_PLANNER-Planora-668BCC?style=for-the-badge&labelColor=161A23" alt="Open Live Planner" />
 </a>
 
 <br/><br/>
@@ -695,4 +695,6 @@ Official registration decisions and final section details should always be confi
 
 ## Admin workspace
 
-The [admin workspace](https://zc-planora.vercel.app/admin.html) supports separate accounts and an activity history. It saves private data drafts for review; publishing changes to the student planner remains a separate verified step. The workspace requires private server settings and persistent storage before sign-in is available. See [admin setup](docs/ADMIN_PANEL.md); no credentials are stored in this README.
+The [admin workspace](https://zc-planora.vercel.app/admin.html) supports two separate accounts and an attributed activity history in Upstash Redis. It saves private data drafts for review; publishing changes to the student planner remains a separate verified step. Sign-in requires private password hashes and a session secret in Vercel as well as a Production-linked database. The Upstash integration may supply either `KV_REST_API_*` or `UPSTASH_REDIS_REST_*` credentials. See [admin setup](docs/ADMIN_PANEL.md); no credentials are stored in this README.
+
+New semester content lives in four JSON files under `src/semester/` (`semester.json`, `courses.json`, `majors.json` and `sch.json`). Follow the [semester rollover guide](docs/SEMESTER_ROLLOVER.md) and run the data validator and full test suite before publishing. The AI assistant previews schedule changes against the actual selected meetings and rejects a proposed final schedule with conflicts or locked-section changes.
