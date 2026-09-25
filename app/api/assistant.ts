@@ -51,6 +51,63 @@ function rateLimited(key) {
   return current.count > MAX_REQUESTS_PER_WINDOW;
 }
 
+/** Resolve an explicit section swap from the same options shown in the planner. */
+function exactSectionChange(message: string, context: any) {
+  if (!/\b(change|switch|swap|replace|move)\b|غي[ّرر]|بد[ّلل]|انقل/i.test(message)) return null;
+  const refs = [...message.matchAll(/\b(lec(?:ture)?|lab|tut(?:orial)?)\s*(?:sec(?:tion)?\s*)?#?\s*0*(\d{1,2})\b/gi)];
+  if (!refs.length) return null;
+  const kindOf = (value: string) => /^lec/i.test(value) ? 'Lecture' : /^lab/i.test(value) ? 'Lab' : 'Tutorial';
+  const kind = kindOf(refs[refs.length - 1][1]);
+  if (refs.some((ref) => kindOf(ref[1]) !== kind)) return null;
+  const number = (value: unknown) => String(value ?? '').replace(/^0+/, '') || '0';
+  const targetSection = number(refs[refs.length - 1][2]);
+  const sourceSection = refs.length > 1 ? number(refs[0][2]) : null;
+  const selected = Array.isArray(context.selectedCourses) ? context.selectedCourses : [];
+  const available = Array.isArray(context.availableCourses) ? context.availableCourses : [];
+  const escapeRegex = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const mentioned = selected.filter((course: any) => {
+    if (typeof course?.code !== 'string') return false;
+    const code = course.code.toLowerCase();
+    const fullCode = code.split(/\s+/).map(escapeRegex).join('\\s*');
+    const subject = escapeRegex(code.split(/\s+/)[0]);
+    return new RegExp(`\\b${fullCode}\\b`, 'i').test(message)
+      || new RegExp(`\\b${subject}\\b`, 'i').test(message);
+  });
+  if (mentioned.length !== 1) return null;
+  const course = mentioned[0];
+  const options = available.find((item: any) => item?.courseId === course.courseId);
+  if (!options || !Array.isArray(options.sections)) return null;
+  const current = Array.isArray(course.meetings)
+    ? course.meetings.find((meeting: any) => meeting?.type === kind) : null;
+  if (!current) return null;
+  if (sourceSection && number(current.section) !== sourceSection) {
+    return { text: `${course.code} ${kind} section ${sourceSection.padStart(2, '0')} is not currently selected. Your selected section is ${String(current.section)}.`, proposal: null, constraintsAdd: [], lockActions: [] };
+  }
+  const matches = options.sections.filter((section: any) => section?.type === kind && number(section.section) === targetSection && typeof section.meetingId === 'string');
+  if (matches.length === 0) {
+    return { text: `${course.code} ${kind} section ${targetSection.padStart(2, '0')} is not listed in the current planner data.`, proposal: null, constraintsAdd: [], lockActions: [] };
+  }
+  if (matches.length !== 1) return null;
+  const target = matches[0];
+  if (target.meetingId === current.meetingId) {
+    return { text: `${course.code} ${kind} section ${target.section} is already selected.`, proposal: null, constraintsAdd: [], lockActions: [] };
+  }
+  if (context.locks?.courseIds?.includes(course.courseId) || context.locks?.components?.[course.courseId]?.[kind]) {
+    return { text: `${course.code} ${kind} is locked. Unlock it before switching sections.`, proposal: null, constraintsAdd: [], lockActions: [] };
+  }
+  const label = `${course.code} ${kind} · Sec ${current.section} → Sec ${target.section}`;
+  return {
+    text: `Section ${target.section} exists for ${course.code}. Here is the requested change to preview. Nothing has been applied yet; confirm it after the planner checks your other meetings and locks.`,
+    proposal: {
+      title: label,
+      summary: `${target.day} ${target.time} · ${target.room || 'Room not published'} · ${target.instructor || 'Instructor not assigned'}`,
+      changes: [{ type: 'set_meeting', courseId: course.courseId, meetingType: kind,
+        meetingId: target.meetingId, label, reason: `You requested ${kind} section ${target.section}.` }],
+    },
+    constraintsAdd: [], lockActions: [],
+  };
+}
+
 export default async function handler(req: any, res: any) {
   res.setHeader('Cache-Control', 'no-store');
 
@@ -91,6 +148,9 @@ export default async function handler(req: any, res: any) {
     return res.status(413).json({ error: 'Planner context is too large. Refresh the page and try again.' });
   }
 
+  const directChange = exactSectionChange(message, context);
+  if (directChange) return res.status(200).json(directChange);
+
   const system = [
     'You are Schedule Assistant inside Planora, an independent student schedule planner for Zewail City CSAI.',
     'LANGUAGE MIRRORING IS REQUIRED. Base the reply primarily on the student\'s CURRENT message, not older history.',
@@ -112,6 +172,7 @@ export default async function handler(req: any, res: any) {
     'When an exact safe change is possible, return a proposal using ONLY exact courseId, meetingType and meetingId values present in PLANNER_CONTEXT.',
     'Allowed proposal change types are: set_meeting, add_course, remove_course.',
     'For set_meeting, meetingType must be Lecture, Lab, or Tutorial and meetingId must exactly match a published option in PLANNER_CONTEXT.',
+    'If a student names a section number, check availableCourses.sections for that exact courseId, type, and section BEFORE saying it does not exist. A section with "Instructor Not Assigned" is still published and selectable. If it exists, propose its exact meetingId; let the planner validator decide conflicts and locks instead of inventing an availability reason.',
     'IMPORTANT: set_meeting REPLACES the currently selected meeting for that same courseId + meetingType; it is never an additional simultaneous meeting.',
     'When reasoning about conflicts for set_meeting, remove the old selected meeting of that same course/component first, then evaluate the final schedule.',
     'Never call a replacement conflicting merely because the new meeting overlaps the old meeting it replaces. The planner final-state validator is authoritative.',
