@@ -45,6 +45,8 @@
 | [Sharing & Persistence](#sharing--persistence) | [Data Accuracy](#data-accuracy--limitations) |
 | [Testing](#testing) | [Contributing](#contributing) |
 | [Privacy](#privacy) | [Disclaimer](#disclaimer) |
+| [Admin Workspace](#admin-workspace) | [Presentation](#presentation) |
+| [Project Map](docs/PROJECT_MAP.md) | |
 
 ---
 
@@ -76,7 +78,11 @@ It can:
 
 > **Course data last verified:** **September 24, 2026**
 
-> **Reporting an error:** Select **⚑ Report** beside a course or **Report an issue** in the footer. Choose the incorrect fields (name, instructor, time, room, section, credits, or other), describe the correction, and review the prepared draft in [Planora GitHub Issues](https://github.com/Ahmedamir21/Planora/issues). Submitting requires a GitHub account; **Cancel** closes the form without sending anything. Reports are public issues in this independent project, not emails or official university tickets.
+> **Reporting an error:** Select **⚑ Report** beside a course or **Report an issue** in the footer. Choose the incorrect fields (name, instructor, time, room, section, credits, or other) and explain the problem. Reports go to the private admin inbox without a GitHub account; **Cancel** closes the form without sending anything. Admins review Self-Service separately and record whether a correction is needed. Reports are not official university tickets. Optional no-domain email alerts can be configured through Google Apps Script (see `docs/REPORT_EMAIL.md`); automatic Self-Service checks are not connected.
+
+> **General feedback:** Use **Feedback** at the bottom of the planner to select a topic and rate the experience from 1–10. A written comment is optional, so a rating alone can be sent privately to the admins. The admin panel groups entries by topic and status, calculates counts and the average rating, and lets admins record reviews. This is separate from reporting incorrect course data.
+
+> **Release status:** These features describe this repository revision. A live deployment may still serve an older revision while Vercel builds; check the site itself for current availability.
 
 ---
 
@@ -449,20 +455,32 @@ The AI can interpret a student's request, but deterministic planner code remains
 
 ## Project Structure
 
-The current production repository keeps the Vercel entry point short while the original planner source remains in its legacy nested project directory.
+The Vercel project uses `app/` as its root. The planner package remains in its original nested directory so its build paths and deployment settings continue to work.
 
 ```text
 Planora/
+├── .github/workflows/planner-ci.yml
 ├── README.md
 ├── assets/
-│   └── readme-banner.svg
-│
+│   ├── readme-banner.svg
+│   └── Planora_Overview_2026.pptx
 ├── app/
 │   ├── api/
-│   │   └── assistant.ts
+│   │   ├── admin.ts
+│   │   ├── assistant.ts
+│   │   ├── feedback.ts
+│   │   └── reports.ts
+│   ├── admin-accounts.ts
+│   ├── dataset-validation.mjs
 │   ├── package.json
 │   └── vercel.json
-│
+├── docs/
+│   ├── ADMIN_PANEL.md
+│   ├── REPORT_EMAIL.md
+│   └── SEMESTER_ROLLOVER.md
+├── scripts/
+│   ├── hash-admin-password.mjs
+│   └── planora-report-mailer.gs
 └── Final_Fall_2026_ZewailCity/
     └── Templates-Final-Final-main/
         └── Zewail-City-Templates-arena-01a09711-zewail-city-templates/
@@ -472,16 +490,21 @@ Planora/
                     │   ├── components/
                     │   ├── data/
                     │   ├── lib/
+                    │   ├── semester/       # Four current JSON datasets
                     │   ├── utils/
                     │   ├── App.tsx
                     │   ├── index.css
                     │   └── types.ts
+                    ├── semester-template/  # Blank dataset template
+                    ├── scripts/            # Data and PWA build checks
                     ├── tests/
                     ├── package.json
                     └── vite.config.ts
 ```
 
 > The nested source layout is a legacy repository structure. The production Vercel wrapper under `app/` exists to keep the deployed serverless API path short and reliable.
+
+For each remaining directory and file group, see the [project map](docs/PROJECT_MAP.md).
 
 ---
 
@@ -669,6 +692,17 @@ For course-data corrections, include the source used to verify the updated secti
 
 ---
 
+
+## Admin workspace
+
+The [admin workspace](https://zc-planora.vercel.app/admin.html) has two separate accounts and an attributed activity history in Upstash Redis. Admins can inspect reports and feedback, edit one course's verified fields or import sections into a private draft, compare changes, validate the semester and undo the last saved draft. A draft never publishes itself. The login has a Show / Hide password button. Sign-in reads one private password hash for each account from Vercel Production environment variables. Replacing the hash replaces that account's working password; the code has no fallback or default password. See [admin setup](docs/ADMIN_PANEL.md). No passwords or hashes belong in this repository.
+
+New semester content lives in four JSON files under `src/semester/` (`semester.json`, `courses.json`, `majors.json` and `sch.json`). Follow the [semester rollover guide](docs/SEMESTER_ROLLOVER.md) and run the data validator and full test suite before publishing. The AI assistant previews schedule changes against the actual selected meetings and rejects a proposed final schedule with conflicts or locked-section changes.
+
+## Presentation
+
+[Download the Planora overview](assets/Planora_Overview_2026.pptx). The deck uses the same dark blue brand style and covers the planner, semester data, reports, feedback and the private admin review workflow. It contains no login credentials.
+
 ## Disclaimer
 
 This is an **independent student-built project** created to help Zewail City students plan their Fall 2026 schedules.
@@ -692,9 +726,3 @@ Official registration decisions and final section details should always be confi
 <sub>Fall 2026 · Built for planning, not registration.</sub>
 
 </div>
-
-## Admin workspace
-
-The [admin workspace](https://zc-planora.vercel.app/admin.html) supports two separate accounts and an attributed activity history in Upstash Redis. It saves private data drafts for review; publishing changes to the student planner remains a separate verified step. Sign-in requires private password hashes and a session secret in Vercel as well as a Production-linked database. The Upstash integration may supply either `KV_REST_API_*` or `UPSTASH_REDIS_REST_*` credentials. See [admin setup](docs/ADMIN_PANEL.md); no credentials are stored in this README.
-
-New semester content lives in four JSON files under `src/semester/` (`semester.json`, `courses.json`, `majors.json` and `sch.json`). Follow the [semester rollover guide](docs/SEMESTER_ROLLOVER.md) and run the data validator and full test suite before publishing. The AI assistant previews schedule changes against the actual selected meetings and rejects a proposed final schedule with conflicts or locked-section changes.

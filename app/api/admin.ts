@@ -1,11 +1,24 @@
 import { createHash, createHmac, randomUUID, scryptSync, timingSafeEqual } from 'node:crypto';
-import { draftKey, HISTORY_KEY, redis, saveWithHistory, storageConfigured } from './admin-store';
+import { draftKey, HISTORY_KEY, redis, saveWithHistory, undoWithHistory, storageConfigured } from './admin-store';
+import { validateDataset } from '../dataset-validation.mjs';
+import publishedSemester from '../../Final_Fall_2026_ZewailCity/Templates-Final-Final-main/Zewail-City-Templates-arena-01a09711-zewail-city-templates/Final_Fall_2026_ZewailCity/Final_Fall_2026_Zewail/src/semester/semester.json';
+import publishedCourses from '../../Final_Fall_2026_ZewailCity/Templates-Final-Final-main/Zewail-City-Templates-arena-01a09711-zewail-city-templates/Final_Fall_2026_ZewailCity/Final_Fall_2026_Zewail/src/semester/courses.json';
+import publishedMajors from '../../Final_Fall_2026_ZewailCity/Templates-Final-Final-main/Zewail-City-Templates-arena-01a09711-zewail-city-templates/Final_Fall_2026_ZewailCity/Final_Fall_2026_Zewail/src/semester/majors.json';
+import publishedSch from '../../Final_Fall_2026_ZewailCity/Templates-Final-Final-main/Zewail-City-Templates-arena-01a09711-zewail-city-templates/Final_Fall_2026_ZewailCity/Final_Fall_2026_Zewail/src/semester/sch.json';
 import { ADMIN_ACCOUNTS } from '../admin-accounts';
+import { REPORTS_DATA, REPORTS_KEY } from './reports';
+import { REPORT_EMAIL_STATUS } from './report-email';
+import { FEEDBACK_DATA, FEEDBACK_IDS, feedbackSummary, type Feedback } from './feedback';
 
 const COOKIE = 'planora_admin';
 const FILES = ['semester.json', 'courses.json', 'majors.json', 'sch.json'] as const;
 const WINDOW_MS = 15 * 60_000;
 const failures = new Map<string, { count: number; since: number }>();
+const UPDATE_REPORT = `local old = redis.call('HGET', KEYS[1], ARGV[1])
+if not old or old ~= ARGV[2] then return 0 end
+redis.call('HSET', KEYS[1], ARGV[1], ARGV[3])
+redis.call('LPUSH', KEYS[2], ARGV[4])
+return 1`;
 
 type Admin = { id: 'ahmed' | 'youssef'; username: string; name: string; hash: string };
 function configured() {
@@ -42,6 +55,15 @@ function session(req: any, config: NonNullable<ReturnType<typeof configured>>) {
   } catch { return null; }
 }
 const allowedFile = (name: unknown): name is typeof FILES[number] => typeof name === 'string' && FILES.some(file => file === name);
+const published = { 'semester.json': publishedSemester, 'courses.json': publishedCourses, 'majors.json': publishedMajors, 'sch.json': publishedSch };
+async function combinedDataset(file?: typeof FILES[number], proposed?: string) {
+  const values: Record<string, any> = {};
+  for (const name of FILES) {
+    const content = file === name && proposed !== undefined ? proposed : await redis(['GET', draftKey(name)]);
+    values[name.replace('.json', '')] = content == null ? published[name] : JSON.parse(content);
+  }
+  return validateDataset(values);
+}
 function validData(file: typeof FILES[number], content: string) {
   if (content.length > 250_000) return 'Dataset is too large.';
   let value: any;
@@ -99,6 +121,19 @@ export default async function handler(req: any, res: any) {
   try {
     if (req.method === 'GET') {
       const action = req.query?.action;
+      if (action === 'reports') {
+        const rawIds = await redis(['LRANGE', REPORTS_KEY, 0, 499]);
+        const rows = rawIds?.length ? await redis(['HMGET', REPORTS_DATA, ...rawIds]) : [];
+        const emailStatuses = rawIds?.length ? await redis(['HMGET', REPORT_EMAIL_STATUS, ...rawIds]) : [];
+        const reports = (rows || []).map((row: string | null, index: number) => row ? { ...JSON.parse(row), emailStatus: emailStatuses?.[index] || 'not configured' } : null).filter(Boolean);
+        return res.status(200).json({ reports, newCount: reports.filter((item: any) => item.status === 'new').length });
+      }
+      if (action === 'feedback') {
+        const ids = await redis(['LRANGE', FEEDBACK_IDS, 0, 499]);
+        const raw = ids?.length ? await redis(['HMGET', FEEDBACK_DATA, ...ids]) : [];
+        const items: Feedback[] = (raw || []).filter(Boolean).map((row: string) => JSON.parse(row));
+        return res.status(200).json({ items, summary: feedbackSummary(items) });
+      }
       if (action === 'history') {
         const page = Math.min(100, Math.max(0, Number(req.query?.page) || 0));
         const raw = await redis(['LRANGE', HISTORY_KEY, page * 20, page * 20 + 19]);
@@ -136,7 +171,47 @@ export default async function handler(req: any, res: any) {
       return res.status(200).json({ authenticated: true, user: { id: candidate.id, name: candidate.name } });
     }
     if (!admin) return res.status(401).json({ error: 'Sign in again.' });
+    if (body.action === 'review_feedback') {
+      if (typeof body.id !== 'string' || !/^[\da-f-]{36}$/i.test(body.id) || !['reviewed', 'archived', 'new'].includes(body.status) || typeof body.note !== 'string' || !body.note.trim() || body.note.length > 500) return res.status(400).json({ error: 'Choose a status and add a review note.' });
+      const previous = await redis(['HGET', FEEDBACK_DATA, body.id]);
+      if (!previous) return res.status(404).json({ error: 'Feedback not found.' });
+      const item = JSON.parse(previous);
+      const updated = { ...item, status: body.status, note: body.note.trim(), reviewedAt: new Date().toISOString(), reviewedBy: admin.name };
+      const record = event(admin, 'review_feedback', { feedbackId: body.id, category: item.category, status: body.status, note: body.note.trim() });
+      const result = await redis(['EVAL', UPDATE_REPORT, 2, FEEDBACK_DATA, HISTORY_KEY, body.id, previous, JSON.stringify(updated), record]);
+      if (result !== 1) return res.status(409).json({ error: 'Someone else updated this feedback. Refresh the inbox.' });
+      return res.status(200).json({ item: updated });
+    }
+    if (body.action === 'review_report') {
+      if (typeof body.id !== 'string' || !/^[\da-f-]{36}$/i.test(body.id) || !['checking', 'dismissed', 'correction_needed', 'resolved'].includes(body.status) || typeof body.note !== 'string' || !body.note.trim() || body.note.length > 500) return res.status(400).json({ error: 'Choose a status and add a review note.' });
+      const previous = await redis(['HGET', REPORTS_DATA, body.id]);
+      if (!previous) return res.status(404).json({ error: 'Report not found.' });
+      const report = JSON.parse(previous);
+      const updated = { ...report, status: body.status, note: body.note.trim(), reviewedAt: new Date().toISOString(), reviewedBy: admin.name };
+      const log = event(admin, 'review_report', { reportId: body.id, status: body.status, note: body.note.trim() });
+      const result = await redis(['EVAL', UPDATE_REPORT, 2, REPORTS_DATA, HISTORY_KEY, body.id, previous, JSON.stringify(updated), log]);
+      if (result !== 1) return res.status(409).json({ error: 'Someone else updated this report. Refresh the inbox.' });
+      return res.status(200).json({ report: updated });
+    }
     if (!allowedFile(body.file)) return res.status(400).json({ error: 'Invalid filename.' });
+    if (body.action === 'validate') {
+      if (typeof body.content !== 'string' || body.content.length > 250_000) return res.status(400).json({ error: 'Dataset is missing or too large.' });
+      try { return res.status(200).json(await combinedDataset(body.file, body.content)); }
+      catch { return res.status(400).json({ error: 'Invalid JSON in a semester draft.' }); }
+    }
+    if (body.action === 'undo') {
+      const source = typeof body.source === 'string' ? body.source.trim().slice(0, 240) : '';
+      if (!source || typeof body.expectedRevision !== 'string') return res.status(400).json({ error: 'A reason and current revision are required.' });
+      const before = await redis(['GET', draftKey(body.file)]) || '';
+      if (!before) return res.status(400).json({ error: 'There is no saved draft to undo.' });
+      if (sha(before) !== body.expectedRevision) return res.status(409).json({ error: 'Another admin updated this draft. Reload before undoing.' });
+      const recent = await redis(['LRANGE', HISTORY_KEY, 0, 999]);
+      const last = (recent || []).map((row: string) => JSON.parse(row)).find((entry: any) => entry.file === body.file && ['save_draft', 'undo_draft'].includes(entry.action));
+      if (!last || last.after !== before || typeof last.before !== 'string') return res.status(409).json({ error: 'A matching history revision was not found. Review the draft manually.' });
+      const entry = event(admin, 'undo_draft', { file: body.file, source, changed: changes(before, last.before), before, after: last.before, method: 'Undo last saved draft' });
+      if (await undoWithHistory(body.file, before, last.before, entry) !== 1) return res.status(409).json({ error: 'Another admin updated this draft. Reload before undoing.' });
+      return res.status(200).json({ revision: last.before ? sha(last.before) : '', entry: JSON.parse(entry) });
+    }
     if (body.action === 'save') {
       const content = typeof body.content === 'string' ? body.content : '';
       const expected = typeof body.expectedRevision === 'string' ? body.expectedRevision : '';
@@ -155,6 +230,8 @@ export default async function handler(req: any, res: any) {
     if (body.action === 'export') {
       const content = await redis(['GET', draftKey(body.file)]);
       if (!content) return res.status(400).json({ error: 'Save a draft before exporting it.' });
+      const check = await combinedDataset();
+      if (check.errors.length) return res.status(400).json({ error: `Semester draft has ${check.errors.length} validation errors. Run Check whole semester first.`, errors: check.errors.slice(0, 20) });
       await redis(['LPUSH', HISTORY_KEY, event(admin, 'export_draft', { file: body.file, revision: sha(content), method: 'JSON download' })]);
       return res.status(200).json({ content });
     }

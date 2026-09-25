@@ -40,3 +40,13 @@ return 1`;
 export async function saveWithHistory(file: string, expected: string, content: string, record: string) {
   return redis(['EVAL', SAVE_WITH_HISTORY, 2, draftKey(file), HISTORY_KEY, expected, content, record]);
 }
+
+// Restoring the previous revision also writes the history entry in the same transaction.
+const UNDO_WITH_HISTORY = `local previous = redis.call('GET', KEYS[1]) or ''
+if previous ~= ARGV[1] then return 0 end
+if ARGV[2] == '' then redis.call('DEL', KEYS[1]) else redis.call('SET', KEYS[1], ARGV[2]) end
+redis.call('LPUSH', KEYS[2], ARGV[3])
+return 1`;
+export async function undoWithHistory(file: string, expected: string, restored: string, record: string) {
+  return redis(['EVAL', UNDO_WITH_HISTORY, 2, draftKey(file), HISTORY_KEY, expected, restored, record]);
+}

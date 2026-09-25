@@ -31,30 +31,6 @@ export function generalIssueText(): string {
   ].join('\n');
 }
 
-export function issueDraftUrl(report: {
-  types: string[];
-  courseCode: string;
-  component: string;
-  section: string;
-  details: string;
-  publishedData: string;
-}): string {
-  const title = `[Data report] ${report.courseCode || 'General'} — ${report.types.join(', ')}`;
-  const body = [
-    'Planora student report · Fall 2026',
-    `Problem with: ${report.types.join(', ')}`,
-    `Course code: ${report.courseCode || 'Not specified'}`,
-    `Component: ${report.component || 'Not specified'}`,
-    `Section: ${report.section || 'Not specified'}`,
-    '',
-    'What needs correcting:',
-    report.details,
-    ...(report.publishedData ? ['', 'Current planner data for this course:', report.publishedData] : []),
-  ].join('\n');
-  return `https://github.com/Ahmedamir21/Planora/issues/new?title=${encodeURIComponent(title)}&body=${encodeURIComponent(body)}`;
-}
-
-
 export async function copyTextToClipboard(text: string): Promise<boolean> {
   if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
     try {

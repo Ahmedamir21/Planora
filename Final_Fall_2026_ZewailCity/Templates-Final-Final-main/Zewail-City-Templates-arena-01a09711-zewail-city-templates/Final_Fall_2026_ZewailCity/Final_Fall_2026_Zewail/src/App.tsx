@@ -35,6 +35,7 @@ import { formatRange, formatDuration, to12h } from './lib/time';
 import { readScheduleFromLocation, type ShareExtras } from './lib/share';
 import { downloadCalendarIcs } from './lib/calendar';
 import { ReportIssueDialog } from './components/ReportIssueDialog';
+import { FeedbackDialog } from './components/FeedbackDialog';
 import { loadPreferences, type SchedulePreferences } from './lib/preferences';
 import { effectiveCreditCap, loadAppState, saveAppState, wouldExceedCap, type CreditCap } from './lib/appState';
 import { computeFreeTime, WINDOW_END, WINDOW_START } from './lib/freeTime';
@@ -224,6 +225,7 @@ export default function App() {
   const [commandOpen, setCommandOpen] = useState(false);
   const [toast, setToast] = useState<ToastState | null>(null);
   const [reportTarget, setReportTarget] = useState<{ courseId?: string } | null>(null);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [hoveredCourseId, setHoveredCourseId] = useState<string | null>(null);
   const toastTimer = useRef<number | null>(null);
 
@@ -1965,6 +1967,8 @@ export default function App() {
           >
             Report an issue
           </button>
+          <span aria-hidden>·</span>
+          <button type="button" className="underline decoration-dotted underline-offset-2" onClick={() => setFeedbackOpen(true)}>Feedback</button>
         </footer>
 
         <p
@@ -2083,6 +2087,7 @@ export default function App() {
           onClose={() => setReportTarget(null)}
         />
       )}
+      {feedbackOpen && <FeedbackDialog onClose={() => setFeedbackOpen(false)} />}
       <Toast toast={toast} onClose={() => setToast(null)} />
 
       {crossYearOpen && major && yearPlan && (

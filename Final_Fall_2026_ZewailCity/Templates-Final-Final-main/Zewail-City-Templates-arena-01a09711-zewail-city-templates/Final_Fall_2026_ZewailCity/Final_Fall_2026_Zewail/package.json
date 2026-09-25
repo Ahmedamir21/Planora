@@ -9,6 +9,7 @@
     "typecheck": "tsc --noEmit",
     "preview": "vite preview",
     "test:admin": "esbuild tests/admin-auth.ts --bundle --platform=node --format=esm --outfile=node_modules/.tmp/admin-auth.mjs --log-level=error && node node_modules/.tmp/admin-auth.mjs",
+    "test:import": "esbuild tests/admin-import.ts --bundle --platform=node --format=esm --outfile=node_modules/.tmp/admin-import.mjs --log-level=error && node node_modules/.tmp/admin-import.mjs",
     "test:harness": "esbuild tests/harness.ts --bundle --platform=node --format=esm --outfile=node_modules/.tmp/harness.mjs --log-level=error && node node_modules/.tmp/harness.mjs",
     "test:platform": "esbuild tests/platform-features.ts --bundle --platform=node --format=esm --outfile=node_modules/.tmp/platform-features.mjs --log-level=error && node node_modules/.tmp/platform-features.mjs",
     "test:data": "node scripts/validate-semester.mjs && esbuild tests/data-integrity.ts --bundle --platform=node --format=esm --outfile=node_modules/.tmp/data-integrity.mjs --log-level=error && node node_modules/.tmp/data-integrity.mjs",

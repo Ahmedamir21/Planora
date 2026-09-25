@@ -4,13 +4,14 @@ This project is designed so a new semester should require **data updates, not fe
 
 ## Safe workflow
 
-1. Create a branch from the current `main` branch and copy `semester-template/` as a starting point.
+1. Check the actual production branch/ref, then create a new branch from it and copy `semester-template/` as a starting point. Keep each published semester as its own git ref/deployment and distinct public address, then update `publicHostLabel` when that address is provisioned. The old semester address must keep serving its old dataset.
 2. Fill in these four files in `src/semester/`, using only verified Self-Service data or facts supplied by the creators:
    - `semester.json`: term, year, session, start/end dates, verification date.
    - `courses.json`: course and published meeting data.
    - `majors.json`: available majors and course IDs by year.
    - `sch.json`: published SCH electives.
 3. Run `npm run test:data`, `npm run typecheck`, `npm run build`, then the remaining `test:*` scripts from the Vite app directory.
+   Admin workflow: use `/admin.html` to import copied Self-Service results or CSV into a private draft, review the field-by-field comparison, check the whole semester and export. All academic facts still need human verification; no automated university login or auto-publish is involved.
 4. Check the preview deployment for all four years, both themes, PWA update, sharing and calendar export before promoting it to production.
 
 ## What to change in semester.json
@@ -53,6 +54,8 @@ Missing rooms are allowed because Self-Service can legitimately omit them. CI pr
 Keep a course `id` stable when it still represents the same course. The visible course code/name can change independently if the official data changes.
 
 Share links are semester-tagged. A link from one semester is intentionally rejected by another semester instead of being mapped onto different section data.
+
+Give each semester a **different public address** (for example a separate `.vercel.app` project hostname) and keep the previous address working. The semester key in each share URL and saved state supplies an additional safeguard: changing the key cannot reinterpret old section selections on the new semester. Creating a new address is a deployment task when the next verified dataset exists; simply changing `key` does not reserve or publish a new address.
 
 Local saved planner state is also semester-tagged. Old state cannot silently populate a future semester.
 

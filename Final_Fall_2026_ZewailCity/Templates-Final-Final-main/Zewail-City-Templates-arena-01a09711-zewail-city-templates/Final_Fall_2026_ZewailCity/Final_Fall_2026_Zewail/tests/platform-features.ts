@@ -1,6 +1,6 @@
 import { COURSE_BY_ID } from '../src/data/courses';
 import { buildCalendarIcs } from '../src/lib/calendar';
-import { courseIssueText, generalIssueText, issueDraftUrl } from '../src/lib/reportIssue';
+import { courseIssueText, generalIssueText } from '../src/lib/reportIssue';
 import { clearPlannerState } from '../src/lib/recovery';
 import { optionsFor, type DraftMeeting } from '../src/lib/picks';
 
@@ -45,19 +45,6 @@ if (option) {
 }
 
 check('general report contains required fields', ['Course code:', 'Section:', 'Issue found:'].every((x) => generalIssueText().includes(x)));
-
-const draftUrl = issueDraftUrl({
-  types: ['Instructor name', 'Room'],
-  courseCode: 'CSAI 101',
-  component: 'Lecture',
-  section: '02',
-  details: 'The published instructor and room are different.',
-  publishedData: 'Lecture Sec 02 · current planner data',
-});
-const draft = new URL(draftUrl);
-check('reports open in the Planora GitHub Issues draft', draft.origin === 'https://github.com' && draft.pathname === '/Ahmedamir21/Planora/issues/new');
-check('report draft preserves multiple categories and exact section', draft.searchParams.get('body')?.includes('Instructor name, Room') === true && draft.searchParams.get('body')?.includes('Section: 02') === true);
-check('report draft includes the student explanation and published data', draft.searchParams.get('body')?.includes('The published instructor and room are different.') === true && draft.searchParams.get('body')?.includes('Lecture Sec 02') === true);
 
 const store = new Map<string, string>([
   ['zw-app-state-v2', 'x'],
