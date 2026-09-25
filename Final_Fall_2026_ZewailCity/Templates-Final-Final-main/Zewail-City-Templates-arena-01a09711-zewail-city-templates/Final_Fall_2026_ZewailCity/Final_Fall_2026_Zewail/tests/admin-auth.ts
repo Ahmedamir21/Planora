@@ -125,11 +125,12 @@ async function main() {
   const report = { types: ['Day or time', 'Room'], courseCode: 'CSAI 205', component: 'Lecture', section: '03', details: 'Please check this meeting.', publishedData: 'Current meeting' };
   assert((await reportCall(report, 'https://evil.test')).code === 403, 'Cross-origin report accepted');
   assert((await reportCall({ ...report, types: ['Invalid'] })).code === 400, 'Invalid report type accepted');
-  const submitted = await reportCall(report);
+  assert((await reportCall({ ...report, reporterName: 'x'.repeat(61) })).code === 400, 'Overlong optional reporter name accepted');
+  const submitted = await reportCall({ ...report, reporterName: 'Tester' });
   assert(submitted.code === 201 && !!submitted.body.id, 'Student report was not delivered');
   assert(!(await call('GET', {}, '', { action: 'reports' })).body.reports, 'Guest accessed reports');
   const inbox = (await call('GET', {}, ahmed, { action: 'reports' })).body;
-  assert(inbox.newCount === 1 && inbox.reports[0].details === report.details, 'Private inbox missed report');
+  assert(inbox.newCount === 1 && inbox.reports[0].details === report.details && inbox.reports[0].reporterName === 'Tester', 'Private inbox missed the optional reporter name');
   assert((await call('POST', { action: 'review_report', id: submitted.body.id, status: 'dismissed', note: '' }, ahmed)).code === 400, 'Review without reason accepted');
   assert((await call('POST', { action: 'review_report', id: submitted.body.id, status: 'dismissed', note: 'Verified no change on Self-Service' }, youssef)).code === 200, 'Report review failed');
   assert((await call('GET', {}, ahmed, { action: 'reports' })).body.newCount === 0, 'Reviewed report still marked new');

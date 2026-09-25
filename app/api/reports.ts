@@ -26,12 +26,14 @@ export default async function handler(req: any, res: any) {
   if (!storageConfigured()) return res.status(503).json({ error: 'Reports are temporarily unavailable. Please try again later.' });
   const body = req.body && typeof req.body === 'object' ? req.body : {};
   const fields = ['courseCode', 'component', 'section', 'details', 'publishedData'];
+  if (body.reporterName !== undefined && (typeof body.reporterName !== 'string' || body.reporterName.length > 60)) return res.status(400).json({ error: 'Reporter name is too long.' });
   if (fields.some(field => typeof body[field] !== 'string') || !Array.isArray(body.types) || body.types.length < 1 || body.types.length > TYPES.length || body.types.some((type: unknown) => !TYPES.includes(type as string))) return res.status(400).json({ error: 'Please select the problem and describe it.' });
   const report = {
     id: randomUUID(), at: new Date().toISOString(), status: 'new', types: [...new Set(body.types)],
     courseCode: body.courseCode.trim().slice(0, 80), component: body.component.trim().slice(0, 30),
     section: body.section.trim().slice(0, 40), details: body.details.trim().slice(0, 1500),
     publishedData: body.publishedData.trim().slice(0, 3000),
+    reporterName: (body.reporterName || '').trim(),
   };
   if (!report.details || body.details.length > 1500 || body.publishedData.length > 3000 || body.courseCode.length > 80 || body.section.length > 40 || !['', 'Lecture', 'Lab', 'Tutorial'].includes(report.component)) return res.status(400).json({ error: 'Report details are missing or too long.' });
   try {

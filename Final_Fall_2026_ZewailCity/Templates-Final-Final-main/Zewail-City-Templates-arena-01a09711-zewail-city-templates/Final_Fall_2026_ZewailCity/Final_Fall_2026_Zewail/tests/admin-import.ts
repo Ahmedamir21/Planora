@@ -16,4 +16,10 @@ assert(missing.applied === 0 && missing.warnings.length === 1, 'Unknown course w
 const copied = parseAdminImport('CSAI 205: Fundamentals of Circuits and Electronics\nSubtype: Lecture | Section: 03\n10:00 AM - 11:59 AM\nTuesday\nZewail City, Room G006-B\nMohamed Maher Ata');
 assert(copied.rows.length === 1 && copied.rows[0].end === 720 && copied.rows[0].instructor === 'Mohamed Maher Ata', 'Self-Service text was not parsed correctly');
 assert(parseAdminImport('Subtype: Lecture | Section: 03\n10:00 AM - 11:59 AM\nTuesday').rows.length === 0, 'Incomplete copied result was guessed');
+const excel = parseAdminImport('\uFEFF"Course code",subtype,section,day,start,end,room,instructor\r\nCSAI 205,Lecture,03,Tue,10:00,12:00,G006-B,Mohamed Maher Ata', '', 'csv');
+assert(excel.rows.length === 1 && excel.rows[0].section === '03', 'UTF-8 BOM and quoted Excel CSV header were not accepted');
+assert(parseAdminImport('wrong,header\nCSAI 205,Lecture', '', 'csv').warnings.some(w => w.includes('header')), 'Malformed CSV header was not explained');
+assert(parseAdminImport('courseCode,subtype,section,day,start,end,room,instructor\nCSAI 205,Lecture,03,Tue,10:00,12:00,G006-B,Mohamed Maher Ata,extra', '', 'csv').rows.length === 0, 'Extra columns were silently shifted');
+const duplicates = parseAdminImport('courseCode,subtype,section,day,start,end,room,instructor\nCSAI 205,Lecture,03,Tue,10:00,12:00,G006-B,Mohamed Maher Ata\nCSAI 205,Lecture,03,Wed,10:00,12:00,G019-B,Mohamed Maher Ata', '', 'csv');
+assert(duplicates.rows.length === 0 && duplicates.warnings.length === 2, 'Conflicting duplicate sections must not be staged');
 console.log('Admin importer: CSV, pasted result, incomplete rows, staging and comparison passed');

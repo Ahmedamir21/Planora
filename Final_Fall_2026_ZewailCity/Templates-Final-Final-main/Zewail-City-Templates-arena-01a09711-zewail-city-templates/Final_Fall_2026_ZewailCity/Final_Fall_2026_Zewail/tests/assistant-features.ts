@@ -6,6 +6,7 @@ import { uid, type PickState } from '../src/lib/picks';
 import {
   isComponentLocked,
   isCourseLocked,
+  isFullyLocked,
   lockedPickForCourse,
   normalizeLocks,
   pairingMatchesLockedPick,
@@ -41,6 +42,12 @@ if (sec3Pairing?.lecture) {
 
   check('component lock is detected', isComponentLocked(componentLocks, 'math105', 'Lecture'));
   check('unlocked tutorial stays unlocked', !isComponentLocked(componentLocks, 'math105', 'Tutorial'));
+  check('locking only the lecture does not show the whole course locked', !isFullyLocked(math, picks.math105, componentLocks));
+  const withTutorial = mathPairings.find(p => p.lecture?.sec === '03' && p.tutorials[0]);
+  if (withTutorial?.tutorials[0]) {
+    const completePick = { Lecture: sec3Key, Lab: null, Tutorial: uid(withTutorial.tutorials[0]) };
+    check('both chosen components locked reflect a fully locked course', isFullyLocked(math, completePick, { courseIds: [], components: { math105: { Lecture: true, Tutorial: true } } }));
+  }
 
   const locked = lockedPickForCourse(picks, componentLocks, 'math105');
   check('locked pick stores current exact lecture', locked.Lecture === sec3Key);

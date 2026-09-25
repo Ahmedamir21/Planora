@@ -67,6 +67,7 @@ import { CREATOR_CREDIT, DOCUMENT_DESCRIPTION, DOCUMENT_TITLE, LEGACY_UNTAGGED_S
 import {
   isComponentLocked,
   isCourseLocked,
+  isFullyLocked,
   loadPlannerLocks,
   normalizeLocks,
   savePlannerLocks,
@@ -522,7 +523,6 @@ export default function App() {
     setComboIndex(0);
     setBest(null);
     setShowMajorPicker(false);
-    setYearId(null);
     setShowYearPicker(false);
     setCreditCap(null);
     setCapNoteDismissed(true);
@@ -534,6 +534,7 @@ export default function App() {
   }, []);
 
   const selectYear = useCallback((id: string) => {
+    if (majorId && !MAJOR_BY_ID[majorId]?.years.some(year => year.id === id)) setMajorId(null);
     setYearId((prev) => {
       if (prev === id) return prev;
 
@@ -555,7 +556,7 @@ export default function App() {
     setCrossYearOpen(false);
     setPlannerLocks({ courseIds: [], components: {} });
     setAssistantConstraints([]);
-  }, []);
+  }, [majorId]);
 
   const chooseCreditCap = useCallback((cap: CreditCap) => {
     setCreditCap(cap);
@@ -570,12 +571,20 @@ export default function App() {
   const reopenCapNote = useCallback(() => setCapNoteDismissed(false), []);
 
   const toggleCourseLock = useCallback((courseId: string) => {
-    setPlannerLocks((prev) => ({
-      ...prev,
-      courseIds: prev.courseIds.includes(courseId)
-        ? prev.courseIds.filter((id) => id !== courseId)
-        : [...prev.courseIds, courseId],
-    }));
+    setPlannerLocks((prev) => {
+      const course = COURSE_BY_ID[courseId];
+      if (course && !isCourseLocked(prev, courseId) && isFullyLocked(course, picksRef.current[courseId], prev)) {
+        const components = { ...prev.components };
+        delete components[courseId];
+        return { ...prev, components };
+      }
+      return {
+        ...prev,
+        courseIds: prev.courseIds.includes(courseId)
+          ? prev.courseIds.filter((id) => id !== courseId)
+          : [...prev.courseIds, courseId],
+      };
+    });
   }, []);
 
   const toggleComponentLock = useCallback((courseId: string, kind: MeetingType) => {
@@ -1402,7 +1411,7 @@ export default function App() {
             </p>
 
             <div className="mt-1 flex items-center gap-2.5">
-              <img src="/icons/planner-icon.svg" alt="" className="h-10 w-10 rounded-[12px]" />
+              <img src={theme === 'dark' ? '/icons/planner-icon.svg' : '/icons/planner-icon-light.svg'} alt="" className="h-10 w-10 rounded-[12px]" />
               <div>
                 <h1 className="text-[23px] font-extrabold tracking-[-0.03em] sm:text-[27px]">Planora</h1>
                 <p className="text-[10px] font-bold uppercase tracking-[0.18em]" style={{ color: 'var(--brand-soft)' }}>
@@ -1459,27 +1468,33 @@ export default function App() {
 
         {showAbout ? (
           <AboutPage onBack={closeAbout} />
-        ) : !major ? (
+        ) : !yearId ? (
           <div className="space-y-3">
             <EmptyState
               icon="🎓"
-              title="Choose a major to begin planning your semester."
-              message="Your major decides which courses appear below. Information Technology and Data Science & AI share CSAI 205 plus one elective slot, while Software replaces those with CSAI 203 and PHYS 104."
+              title="Choose your year to begin planning your semester."
+              message="Pick your academic year first; the next step shows the majors available for that year."
             />
 
             <section className="panel p-4 sm:p-5">
-              <h2 className="text-[13px] font-bold tracking-tight">Choose Your Major</h2>
+              <h2 className="text-[13px] font-bold tracking-tight">Choose Your Year</h2>
 
               <p
                 className="mb-4 mt-1 text-[12px] leading-relaxed"
                 style={{ color: 'var(--muted)' }}
               >
-                Three configurations, five courses each.
+                You'll choose your major next. You can change either selection later.
               </p>
 
-              <MajorPicker selectedId={null} onSelect={selectMajor} />
+              <YearPicker selectedYearId={yearId} onSelect={selectYear} />
             </section>
           </div>
+        ) : !major ? (
+          <section className="panel p-4 sm:p-5">
+            <h2 className="text-[13px] font-bold tracking-tight">Choose Your Major</h2>
+            <p className="mb-4 mt-1 text-[12px]" style={{ color: 'var(--muted)' }}>For Year {yearId.slice(1)} · <button type="button" className="underline" onClick={() => setYearId(null)}>Change year</button></p>
+            <MajorPicker selectedId={null} onSelect={selectMajor} yearId={yearId} />
+          </section>
         ) : !yearPlan ? (
           <div className="space-y-3">
             <section className="panel p-3.5 sm:p-4">
@@ -1517,6 +1532,7 @@ export default function App() {
                     selectedId={majorId}
                     onSelect={selectMajor}
                     compact
+                    yearId={yearId}
                   />
                 </div>
               )}
@@ -1630,6 +1646,7 @@ export default function App() {
                     selectedId={majorId}
                     onSelect={selectMajor}
                     compact
+                    yearId={yearId}
                   />
                 </div>
               )}

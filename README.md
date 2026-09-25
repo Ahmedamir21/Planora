@@ -93,7 +93,7 @@ It can:
 <td width="33%" valign="top">
 
 ### 🎓 Major & Year Planning
-Browse the Fall 2026 plan by major and academic year, with support for Years 1–4.
+Choose your academic year first, then one of its available majors. Browse the Fall 2026 plan with support for Years 1–4.
 
 </td>
 <td width="33%" valign="top">
@@ -180,7 +180,7 @@ Designed for both desktop and mobile use with large touch targets and responsive
 
 ```mermaid
 flowchart LR
-    A["Choose Major"] --> B["Choose Year"]
+    A["Choose Year"] --> B["Choose Major"]
     B --> C["Select Courses"]
     C --> D["Pick Lecture / Lab / Tutorial"]
     D --> E["Live Conflict + Credit Validation"]
@@ -695,7 +695,7 @@ For course-data corrections, include the source used to verify the updated secti
 
 ## Admin workspace
 
-The [admin workspace](https://zc-planora.vercel.app/admin.html) has two separate accounts and an attributed activity history in Upstash Redis. Admins can inspect reports and feedback, edit one course's verified fields or import sections into a private draft, compare changes, validate the semester and undo the last saved draft. A draft never publishes itself. The login has a Show / Hide password button. Sign-in reads one private password hash for each account from Vercel Production environment variables. Replacing the hash replaces that account's working password; the code has no fallback or default password. See [admin setup](docs/ADMIN_PANEL.md). No passwords or hashes belong in this repository.
+The [admin workspace](https://zc-planora.vercel.app/admin.html) has two separate accounts and an attributed activity history in Upstash Redis. Admins can inspect reports and feedback, edit one course's verified fields or import sections into a private draft, compare changes, validate the semester and undo the last saved draft. A draft never publishes itself. The CSV importer includes a downloadable blank template and checks repeated sections. The login uses an eye button to show or hide the password. Sign-in reads one private password hash for each account from Vercel Production environment variables. Replacing the hash replaces that account's working password; the code has no fallback or default password. See [admin setup](docs/ADMIN_PANEL.md). No passwords or hashes belong in this repository.
 
 New semester content lives in four JSON files under `src/semester/` (`semester.json`, `courses.json`, `majors.json` and `sch.json`). Follow the [semester rollover guide](docs/SEMESTER_ROLLOVER.md) and run the data validator and full test suite before publishing. The AI assistant previews schedule changes against the actual selected meetings and rejects a proposed final schedule with conflicts or locked-section changes.
 

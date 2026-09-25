@@ -6,9 +6,10 @@ interface Props {
   selectedId: string | null;
   onSelect: (id: string) => void;
   compact?: boolean;
+  yearId?: string | null;
 }
 
-export function MajorPicker({ selectedId, onSelect, compact = false }: Props) {
+export function MajorPicker({ selectedId, onSelect, compact = false, yearId }: Props) {
   return (
     <div
       className={
@@ -17,8 +18,8 @@ export function MajorPicker({ selectedId, onSelect, compact = false }: Props) {
           : 'grid gap-3 sm:grid-cols-2 lg:grid-cols-4'
       }
     >
-      {MAJORS.map((major) => (
-        <MajorCard key={major.id} major={major} selected={selectedId === major.id} onSelect={() => onSelect(major.id)} compact={compact} />
+      {MAJORS.filter(major => !yearId || major.years.some(year => year.id === yearId)).map((major) => (
+        <MajorCard key={major.id} major={major} selected={selectedId === major.id} onSelect={() => onSelect(major.id)} compact={compact} yearId={yearId} />
       ))}
     </div>
   );
@@ -29,11 +30,13 @@ function MajorCard({
   selected,
   onSelect,
   compact,
+  yearId,
 }: {
   major: Major;
   selected: boolean;
   onSelect: () => void;
   compact: boolean;
+  yearId?: string | null;
 }) {
   return (
     <button
@@ -83,8 +86,8 @@ function MajorCard({
             {major.blurb}
           </p>
           <div className="mt-3 flex flex-wrap gap-1.5">
-            {/* Preview the first published year's courses. */}
-            {(major.years.find(year => year.courseIds.length > 0)?.courseIds ?? []).map((id) => {
+            {/* Preview courses from the chosen year, never a different year's data. */}
+            {(major.years.find(year => year.id === yearId)?.courseIds ?? []).map((id) => {
               const course = COURSE_BY_ID[id];
               return (
                 <span

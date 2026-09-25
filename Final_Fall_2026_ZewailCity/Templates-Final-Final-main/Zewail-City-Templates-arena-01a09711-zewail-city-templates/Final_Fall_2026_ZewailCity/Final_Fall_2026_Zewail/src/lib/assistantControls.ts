@@ -1,4 +1,4 @@
-import type { MeetingType, Pairing } from '../types';
+import type { Course, MeetingType, Pairing } from '../types';
 import type { Pick, PickState } from './picks';
 import { uid } from './picks';
 import { LEGACY_UNTAGGED_SEMESTER_KEY, SEMESTER_CONFIG } from '../config/semester';
@@ -20,6 +20,17 @@ export function isComponentLocked(
   kind: MeetingType,
 ): boolean {
   return isCourseLocked(locks, courseId) || locks.components[courseId]?.[kind] === true;
+}
+
+/** The header lock also reflects individually locked, selected sections for every published component. */
+export function isFullyLocked(course: Course, pick: Pick | undefined, locks: PlannerLocks): boolean {
+  if (!pick) return false;
+  if (isCourseLocked(locks, course.id)) return true;
+  const kinds: MeetingType[] = ['Lecture', 'Lab', 'Tutorial'];
+  const available = kinds.filter(kind => course.instructors.some(instructor =>
+    (kind === 'Lecture' ? instructor.lectures : kind === 'Lab' ? instructor.labs : instructor.tutorials).length > 0,
+  ));
+  return available.length > 0 && available.every(kind => Boolean(pick[kind]) && locks.components[course.id]?.[kind] === true);
 }
 
 /**

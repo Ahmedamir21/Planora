@@ -1,9 +1,10 @@
 
-import type { Major } from '../types';
+import type { Major, YearPlan } from '../types';
 import { COURSE_BY_ID } from '../data/courses';
+import { MAJORS, YEAR_IDS } from '../data/majors';
 
 interface Props {
-  major: Major;
+  major?: Major;
   selectedYearId: string | null;
   onSelect: (yearId: string) => void;
   compact?: boolean;
@@ -15,9 +16,14 @@ interface Props {
  * (Year 1 / Year 2 / Year 3 / Year 4).
  */
 export function YearPicker({ major, selectedYearId, onSelect, compact = false }: Props) {
+  const years: YearPlan[] = major?.years ?? YEAR_IDS.map((id, index) => ({
+    id,
+    label: `Year ${index + 1} (${['Freshman', 'Sophomore', 'Junior', 'Senior'][index]})`,
+    courseIds: [],
+  })).filter(year => MAJORS.some(item => item.years.some(plan => plan.id === year.id)));
   return (
     <div className={compact ? 'grid gap-2 sm:grid-cols-2 lg:grid-cols-4' : 'grid gap-3 sm:grid-cols-2 lg:grid-cols-4'}>
-      {major.years.map((year) => {
+      {years.map((year) => {
         const selected = selectedYearId === year.id;
         return (
           <button
@@ -40,7 +46,7 @@ export function YearPicker({ major, selectedYearId, onSelect, compact = false }:
                   className="truncate text-[10px] font-bold uppercase tracking-[0.09em]"
                   style={{ color: selected ? 'var(--accent)' : 'var(--muted-2)' }}
                 >
-                  {year.courseIds.length ? `${year.courseIds.length} course${year.courseIds.length === 1 ? '' : 's'}` : 'Courses coming next term'}
+                  {major ? (year.courseIds.length ? `${year.courseIds.length} course${year.courseIds.length === 1 ? '' : 's'}` : 'Courses coming next term') : 'Choose your year'}
                 </p>
                 <h3 className={`mt-1 truncate font-bold tracking-tight ${compact ? 'text-[13.5px]' : 'text-[15px]'}`}>
                   {year.label}

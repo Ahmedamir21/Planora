@@ -45,18 +45,20 @@ function csvRows(input: string): string[][] {
 }
 
 /** Only explicit, complete Self-Service fields are imported. Unknown fragments are never guessed. */
-export function parseAdminImport(input: string, selectedCourseCode = ''): ImportResult {
+export function parseAdminImport(input: string, selectedCourseCode = '', format: 'auto' | 'csv' | 'paste' = 'auto'): ImportResult {
   const warnings: string[] = [], rows: ImportRow[] = [];
   if (input.length > 250_000) return { rows, warnings: ['Input exceeds 250 KB. Split it into smaller imports.'] };
-  const trimmed = input.trim();
+  const trimmed = input.replace(/^\uFEFF/, '').trim();
   if (!trimmed) return { rows, warnings: ['Paste Self-Service results or choose a CSV file first.'] };
-  if (/^(courseCode|course code),/i.test(trimmed)) {
+  const looksLikeCsv = /^"?course\s*code"?\s*,/i.test(trimmed);
+  if (format === 'csv' || (format === 'auto' && looksLikeCsv)) {
     let table: string[][];
     try { table = csvRows(trimmed); } catch (error) { return { rows, warnings: [(error as Error).message] }; }
     const header = table.shift()!.map(cell => cell.trim().replace(/\s+/g, '').toLowerCase());
     const names = ['coursecode', 'subtype', 'section', 'day', 'start', 'end', 'room', 'instructor'];
     if (names.some(name => !header.includes(name)) || new Set(header).size !== header.length) return { rows, warnings: ['CSV needs one header for each field: courseCode,subtype,section,day,start,end,room,instructor.'] };
     table.forEach((cells, index) => {
+      if (cells.length !== header.length) { warnings.push(`CSV row ${index + 2}: expected ${header.length} columns, found ${cells.length}; skipped.`); return; }
       const result = makeRow(names.map(name => cells[header.indexOf(name)] ?? ''), `CSV row ${index + 2}`);
       if (typeof result === 'string') warnings.push(result); else rows.push(result);
     });
@@ -81,7 +83,16 @@ export function parseAdminImport(input: string, selectedCourseCode = ''): Import
     });
     if (!sections.length) warnings.push('No Self-Service Subtype/Section results found. Check the copied text or use CSV.');
   }
-  return { rows, warnings };
+  // A duplicate may disagree about the actual time or room. Never select one silently.
+  const key = (row: ImportRow) => `${normalized(row.courseCode)}|${row.subtype}|${row.section.trim().toUpperCase()}`;
+  const counts = new Map<string, number>();
+  for (const row of rows) counts.set(key(row), (counts.get(key(row)) || 0) + 1);
+  const unique = rows.filter(row => {
+    if (counts.get(key(row)) === 1) return true;
+    warnings.push(`${row.courseCode} ${row.subtype} ${row.section}: duplicate in this import; all copies skipped. Check Self-Service before editing.`);
+    return false;
+  });
+  return { rows: unique, warnings };
 }
 
 export function applyAdminImport(courses: Course[], rows: ImportRow[]): { courses: Course[]; warnings: string[]; applied: number } {

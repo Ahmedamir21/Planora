@@ -13,7 +13,7 @@ import {
   type PickState,
 } from '../lib/picks';
 import type { SchedulePreferences } from '../lib/preferences';
-import { isComponentLocked, isCourseLocked, type PlannerLocks } from '../lib/assistantControls';
+import { isComponentLocked, isFullyLocked, type PlannerLocks } from '../lib/assistantControls';
 
 interface Props {
   courses: Course[];
@@ -302,7 +302,7 @@ function CourseCard({
   onReportIssue: () => void;
 }) {
   const taking = !!pick;
-  const courseLocked = isCourseLocked(locks, course.id);
+  const fullyLocked = isFullyLocked(course, pick, locks);
   // No published schedule at all (e.g. Senior Project): tickable and credit-counting, but
   // there is nothing to pick — no option groups, no "still to decide", no timetable entry.
   const noSchedule = course.noFixedSchedule === true;
@@ -425,7 +425,7 @@ function CourseCard({
             type="button"
             className="btn btn-tap px-2.5 py-1.5 text-[11px]"
             onClick={onReportIssue}
-            title="Report incorrect course data to Planora via GitHub Issues"
+            title="Report incorrect course data to Planora's private admin inbox"
           >
             ⚑ Report
           </button>
@@ -435,11 +435,11 @@ function CourseCard({
                 type="button"
                 className="btn btn-tap px-2.5 py-1.5 text-[11px]"
                 onClick={onToggleCourseLock}
-                aria-pressed={courseLocked}
-                title={courseLocked ? 'Unlock this course for AI and Best Schedule' : 'Keep this course unchanged by AI and Best Schedule'}
-                style={courseLocked ? { color: 'var(--accent)', borderColor: 'var(--accent)' } : undefined}
+                aria-pressed={fullyLocked}
+                title={fullyLocked ? 'Unlock this course for AI and Best Schedule' : 'Keep this course unchanged by AI and Best Schedule'}
+                style={fullyLocked ? { color: 'var(--accent)', borderColor: 'var(--accent)' } : undefined}
               >
-                {courseLocked ? '🔒 Locked' : '🔓 Lock'}
+                {fullyLocked ? '🔒 Locked' : '🔓 Lock'}
               </button>
               <button
                 type="button"

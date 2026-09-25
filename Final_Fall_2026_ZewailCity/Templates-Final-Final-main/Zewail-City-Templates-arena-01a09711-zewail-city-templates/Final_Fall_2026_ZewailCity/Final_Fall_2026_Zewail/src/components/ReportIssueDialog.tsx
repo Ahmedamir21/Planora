@@ -15,6 +15,7 @@ export function ReportIssueDialog({ course, pick, onClose }: {
   const [component, setComponent] = useState('');
   const [section, setSection] = useState('');
   const [details, setDetails] = useState('');
+  const [reporterName, setReporterName] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [sent, setSent] = useState(false);
@@ -38,6 +39,7 @@ export function ReportIssueDialog({ course, pick, onClose }: {
       component,
       section: section.trim(),
       details: details.trim(),
+      reporterName: reporterName.trim(),
       publishedData: course ? courseIssueText(course, pick).split('\nIssue found:')[0] : '',
     }) });
     const result = await response.json();
@@ -93,7 +95,10 @@ export function ReportIssueDialog({ course, pick, onClose }: {
           <label className="text-xs font-semibold">What should be corrected? <span aria-hidden="true">*</span>
             <textarea className="select mt-1 min-h-28 resize-y" style={{ backgroundImage: 'none', paddingRight: 12 }} required maxLength={1500} value={details} onChange={(event) => setDetails(event.target.value)} placeholder="Tell us what the site shows and what you believe is correct. Add a Self-Service reference if you have one." />
           </label>
-          <p className="text-xs" style={{ color: 'var(--muted)' }}>Please leave out names, student IDs and other personal information. Only the Planora admins can view the report.</p>
+          <label className="text-xs font-semibold">Name or nickname (optional)
+            <input className="select mt-1" maxLength={60} value={reporterName} onChange={event => setReporterName(event.target.value)} placeholder="Leave blank to report anonymously" autoComplete="off" />
+          </label>
+          <p className="text-xs" style={{ color: 'var(--muted)' }}>You can report anonymously. Please leave student IDs, contact details and other personal information out of the report. Only Planora admins can view it.</p>
           {error && <p role="alert" className="text-sm" style={{ color: 'var(--warn)' }}>{error}</p>}
           <div className="flex flex-wrap justify-end gap-2">
             <button type="button" className="btn" onClick={onClose}>Cancel</button>

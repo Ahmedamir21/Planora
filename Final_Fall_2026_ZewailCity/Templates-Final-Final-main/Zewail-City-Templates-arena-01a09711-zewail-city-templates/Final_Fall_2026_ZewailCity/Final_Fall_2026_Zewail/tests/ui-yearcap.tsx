@@ -1,5 +1,5 @@
 /**
- * Interaction test (real DOM, real clicks) for the NEW major → year flow, the credit-limit
+ * Interaction test (real DOM, real clicks) for the year → major flow, the credit-limit
  * note + enforcement, and the cross-year course browser.
  * Run via: npm run test:ui
  */
@@ -52,14 +52,16 @@ act(() => {
   root.render(React.createElement(App));
 });
 
-/* ================= 1. major → year picker step ================= */
-check('major picker shows first', doc.body.textContent!.includes('Choose Your Major'));
-click(buttonByText('Data Science & AI')!);
-check('year picker appears after picking a major', doc.body.textContent!.includes('Choose Your Year'));
+/* ================= 1. year → major picker step ================= */
+check('year picker shows first', doc.body.textContent!.includes('Choose Your Year') && !doc.body.textContent!.includes('Choose Your Major'));
 check('all four year labels are shown', ['Year 1 (Freshman)', 'Year 2 (Sophomore)', 'Year 3 (Junior)', 'Year 4 (Senior)'].every((l) => doc.body.textContent!.includes(l)));
-check('course picker NOT shown before a year is chosen', !doc.body.textContent!.includes('Courses this term'));
-
+click(buttonByText('Year 1 (Freshman)')!);
+check('Year 1 offers Cyber Security but not Information Technology', doc.body.textContent!.includes('Cyber Security') && !doc.body.textContent!.includes('Information Technology'));
+click(buttonByText('Change year')!);
 click(buttonByText('Year 3 (Junior)')!);
+check('major picker appears after picking a year', doc.body.textContent!.includes('Choose Your Major'));
+check('course picker NOT shown before a major is chosen', !doc.body.textContent!.includes('Courses this term'));
+click(buttonByText('Data Science & AI')!);
 check('course picker appears scoped to Year 3 (DSAI 307 present, IT 205 absent)', doc.body.textContent!.includes('Courses this term') && doc.body.textContent!.includes('DSAI 307') && !doc.body.textContent!.includes('IT 205'));
 check('shared CSAI 203 + CSAI 301 referenced in DSAI Year 3', doc.body.textContent!.includes('CSAI 203') && doc.body.textContent!.includes('CSAI 301'));
 
