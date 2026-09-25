@@ -53,7 +53,7 @@ function rateLimited(key) {
 
 /** Resolve an explicit section swap from the same options shown in the planner. */
 function exactSectionChange(message: string, context: any) {
-  if (!/\b(change|switch|swap|replace|move)\b|غي[ّرر]|بد[ّلل]|انقل/i.test(message)) return null;
+  if (!/\b(change|switch|swap|replace|move|ghayyar|8ayyar|baddel|badal)\b|غي[ّرر]|بد[ّلل]|انقل/i.test(message)) return null;
   const refs = [...message.matchAll(/\b(lec(?:ture)?|lab|tut(?:orial)?)\s*(?:sec(?:tion)?\s*)?#?\s*0*(\d{1,2})\b/gi)];
   if (!refs.length) return null;
   const kindOf = (value: string) => /^lec/i.test(value) ? 'Lecture' : /^lab/i.test(value) ? 'Lab' : 'Tutorial';
@@ -75,29 +75,32 @@ function exactSectionChange(message: string, context: any) {
   });
   if (mentioned.length !== 1) return null;
   const course = mentioned[0];
+  const arabic = /[\u0600-\u06ff]/.test(message);
+  const franco = !arabic && /\b(?:leh|3ayez|3ayz|momken|e2|bta3|msh|mesh|ma3|ghayyar|8ayyar)\b|[237589](?=[a-z])/i.test(message);
+  const say = (english: string, arabicText: string, francoText: string) => arabic ? arabicText : franco ? francoText : english;
   const options = available.find((item: any) => item?.courseId === course.courseId);
   if (!options || !Array.isArray(options.sections)) return null;
   const current = Array.isArray(course.meetings)
     ? course.meetings.find((meeting: any) => meeting?.type === kind) : null;
   if (!current) return null;
   if (sourceSection && number(current.section) !== sourceSection) {
-    return { text: `${course.code} ${kind} section ${sourceSection.padStart(2, '0')} is not currently selected. Your selected section is ${String(current.section)}.`, proposal: null, constraintsAdd: [], lockActions: [] };
+    return { text: say(`${course.code} ${kind} section ${sourceSection.padStart(2, '0')} is not currently selected. Your selected section is ${String(current.section)}.`, `${course.code} ${kind} سكشن ${sourceSection.padStart(2, '0')} مش مختار حاليًا؛ المختار هو سكشن ${current.section}.`, `${course.code} ${kind} sec ${sourceSection.padStart(2, '0')} msh selected delwa2ty; el selected sec ${current.section}.`), proposal: null, constraintsAdd: [], lockActions: [] };
   }
   const matches = options.sections.filter((section: any) => section?.type === kind && number(section.section) === targetSection && typeof section.meetingId === 'string');
   if (matches.length === 0) {
-    return { text: `${course.code} ${kind} section ${targetSection.padStart(2, '0')} is not listed in the current planner data.`, proposal: null, constraintsAdd: [], lockActions: [] };
+    return { text: say(`${course.code} ${kind} section ${targetSection.padStart(2, '0')} is not listed in the current planner data.`, `${course.code} ${kind} سكشن ${targetSection.padStart(2, '0')} مش موجود في بيانات الجدول الحالية.`, `${course.code} ${kind} sec ${targetSection.padStart(2, '0')} msh mawgood fy data el schedule el 7alya.`), proposal: null, constraintsAdd: [], lockActions: [] };
   }
   if (matches.length !== 1) return null;
   const target = matches[0];
   if (target.meetingId === current.meetingId) {
-    return { text: `${course.code} ${kind} section ${target.section} is already selected.`, proposal: null, constraintsAdd: [], lockActions: [] };
+    return { text: say(`${course.code} ${kind} section ${target.section} is already selected.`, `${course.code} ${kind} سكشن ${target.section} مختار بالفعل.`, `${course.code} ${kind} sec ${target.section} already selected.`), proposal: null, constraintsAdd: [], lockActions: [] };
   }
   if (context.locks?.courseIds?.includes(course.courseId) || context.locks?.components?.[course.courseId]?.[kind]) {
-    return { text: `${course.code} ${kind} is locked. Unlock it before switching sections.`, proposal: null, constraintsAdd: [], lockActions: [] };
+    return { text: say(`${course.code} ${kind} is locked. Unlock it before switching sections.`, `${course.code} ${kind} مقفول. افتح القفل قبل تبديل السكشن.`, `${course.code} ${kind} locked. Efta7 el lock abl ma t8ayyar el sec.`), proposal: null, constraintsAdd: [], lockActions: [] };
   }
   const label = `${course.code} ${kind} · Sec ${current.section} → Sec ${target.section}`;
   return {
-    text: `Section ${target.section} exists for ${course.code}. Here is the requested change to preview. Nothing has been applied yet; confirm it after the planner checks your other meetings and locks.`,
+    text: say(`Section ${target.section} exists for ${course.code}. Here is the requested change to preview. Nothing has been applied yet; confirm it after the planner checks your other meetings and locks.`, `سكشن ${target.section} موجود لـ${course.code}. جهزت التبديل للمراجعة، ولسه متطبقش. اتأكد من التعارضات والأقفال واضغط تطبيق لو مناسب.`, `Sec ${target.section} mawgood le ${course.code}. 7attit el taghyeer fel preview, lesa matetba2sh. Et2akked men el conflicts wel locks w edghat Apply law monaseb.`),
     proposal: {
       title: label,
       summary: `${target.day} ${target.time} · ${target.room || 'Room not published'} · ${target.instructor || 'Instructor not assigned'}`,
@@ -185,6 +188,7 @@ export default async function handler(req: any, res: any) {
     'If the current message explicitly states an ongoing scheduling preference, include a reusable canonical English label in constraintsAdd. Use these exact patterns when applicable: "Avoid 8 AM", "Keep Thursday free", "Finish by 4 PM", "Start after 10 AM", "Max 3 campus days", "Max 6 hours/day". Keep the same pattern with the requested day/time/number. Do not add one-time section change commands as persistent constraints.',
     'If the user only asks a factual question and no change is needed, proposal must be null.',
     'A score out of 10 is only a subjective opinion, not a computed or official grade. Explain the specific schedule facts supporting any score and what prevents a higher one, using only PLANNER_CONTEXT. If asked why a score you gave earlier, acknowledge it was approximate, cite the previous reply and available schedule facts, and do not invent a precise formula or missing facts.',
+    'scheduleStats.gapMinutes is the TOTAL idle time summed across all campus days in the week. Do not present it as one continuous gap, or say it occurs on a particular day unless individual meeting times prove that.',
     'Never say a section or course was changed, switched, added, or removed unless a proposal with the corresponding exact change is included. Proposals are previews only; they are NOT applied until the student confirms. A lockAction only locks or unlocks; it never changes a section.',
     'If the question is unrelated to this schedule planner or the current term in PLANNER_CONTEXT, briefly say you are focused on helping with the planner.',
     'Your ENTIRE response must be valid JSON with this shape: {"text":"natural reply","constraintsAdd":[],"lockActions":[],"proposal":null} OR {"text":"natural reply","constraintsAdd":["short reusable constraint"],"lockActions":[{"action":"lock_course","courseId":"math105"}],"proposal":{"title":"short title","summary":"short preview summary","changes":[{"type":"set_meeting","courseId":"...","meetingType":"Lecture","meetingId":"...","label":"...","reason":"..."}]}}. Allowed lock actions: lock_course, unlock_course, lock_component, unlock_component. Component actions require meetingType Lecture/Lab/Tutorial.',
