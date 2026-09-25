@@ -17,6 +17,8 @@ Connect an Upstash Redis database to the **Planora** project through [Vercel Mar
 - `UPSTASH_REDIS_REST_URL`
 - `UPSTASH_REDIS_REST_TOKEN`
 
+If Vercel adds `KV_REST_API_URL` and `KV_REST_API_TOKEN` automatically instead, the admin API also reads that pair; no manual copying of the integration token is necessary. Make sure the database is linked to **Production**.
+
 Redeploy once after all variables are set. Until **both hashes, session secret and Redis credentials** are configured, the panel displays a setup message and will not accept logins or pretend edits were saved. Redis must retain data; do not delete its database or its audit keys. The user must provision a durable database in their own account: a temporary test database is insufficient for history.
 
 ## What gets recorded

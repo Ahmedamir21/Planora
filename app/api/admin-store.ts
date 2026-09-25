@@ -1,15 +1,23 @@
 /** Private REST adapter. No browser code receives the Redis token. */
+function connection() {
+  const upstashUrl = process.env.UPSTASH_REDIS_REST_URL;
+  const upstashToken = process.env.UPSTASH_REDIS_REST_TOKEN;
+  if (upstashUrl && upstashToken) return { url: upstashUrl, token: upstashToken };
+  const kvUrl = process.env.KV_REST_API_URL;
+  const kvToken = process.env.KV_REST_API_TOKEN;
+  return kvUrl && kvToken ? { url: kvUrl, token: kvToken } : null;
+}
 export function storageConfigured() {
-  const url = process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
-  return !!url && !!token && /^https:\/\//.test(url);
+  const config = connection();
+  return !!config && /^https:\/\//.test(config.url);
 }
 
 export async function redis(command: Array<string | number>): Promise<any> {
-  if (!storageConfigured()) throw new Error('Admin history storage is not configured.');
-  const response = await fetch(process.env.UPSTASH_REDIS_REST_URL!, {
+  const config = connection();
+  if (!config || !/^https:\/\//.test(config.url)) throw new Error('Admin history storage is not configured.');
+  const response = await fetch(config.url, {
     method: 'POST',
-    headers: { Authorization: `Bearer ${process.env.UPSTASH_REDIS_REST_TOKEN}`, 'Content-Type': 'application/json' },
+    headers: { Authorization: `Bearer ${config.token}`, 'Content-Type': 'application/json' },
     body: JSON.stringify(command),
     signal: AbortSignal.timeout(9000),
   });

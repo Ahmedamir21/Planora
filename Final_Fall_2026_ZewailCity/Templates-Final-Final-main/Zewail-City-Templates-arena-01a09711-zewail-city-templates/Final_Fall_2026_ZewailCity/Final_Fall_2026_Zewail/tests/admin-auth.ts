@@ -1,5 +1,6 @@
 import { createHash, randomBytes, scryptSync } from 'node:crypto';
 import handler from '../../../../../../app/api/admin';
+import { redis, storageConfigured } from '../../../../../../app/api/admin-store';
 
 const passwordHash = (value: string) => {
   const salt = randomBytes(16);
@@ -68,6 +69,14 @@ async function main() {
   storageDown = true;
   const failed = await call('POST', { action: 'login', username: 'ahmed', password: 'ahmed-long-test-password' });
   assert(failed.code === 503 && !failed.cookie, 'Login succeeded without audit storage');
+  storageDown = false;
+  delete process.env.UPSTASH_REDIS_REST_URL;
+  delete process.env.UPSTASH_REDIS_REST_TOKEN;
+  process.env.KV_REST_API_URL = 'https://kv.example.test';
+  process.env.KV_REST_API_TOKEN = 'test-kv-token';
+  assert(storageConfigured(), 'Vercel Upstash KV integration was not detected');
+  assert((await redis(['GET', 'test:key'])) === null, 'Vercel Upstash KV REST access failed');
+  assert((await call('GET')).code === 200, 'Admin unavailable with Vercel Upstash KV integration');
   console.log('Admin: two accounts, session security, durable attribution, history, stale-save protection and storage failure OK');
 }
 void main().catch(error => { console.error(error); process.exitCode = 1; });

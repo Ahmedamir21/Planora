@@ -91,7 +91,7 @@ function sameOrigin(req: any) {
 export default async function handler(req: any, res: any) {
   res.setHeader('Cache-Control', 'no-store, private'); res.setHeader('X-Content-Type-Options', 'nosniff');
   const config = configured();
-  if (!config) return res.status(503).json({ error: 'Set both admin password hashes, the session secret and Upstash Redis environment variables in Vercel.' });
+  if (!config) return res.status(503).json({ error: 'Set both admin password hashes and the session secret, and connect Upstash Redis to Production in Vercel.' });
   if (!['GET', 'POST', 'DELETE'].includes(req.method)) return res.status(405).json({ error: 'Method not allowed' });
   if (req.method !== 'GET' && !sameOrigin(req)) return res.status(403).json({ error: 'Invalid origin' });
   const admin = session(req, config);
