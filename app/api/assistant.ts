@@ -159,7 +159,7 @@ export default async function handler(req: any, res: any) {
               temperature: 0.25,
               maxOutputTokens: 4096,
               thinkingConfig: { thinkingLevel: 'minimal' },
-              responseFormat: { text: { mimeType: 'application/json', schema: ASSISTANT_RESPONSE_SCHEMA } },
+              responseFormat: { text: { mimeType: 'APPLICATION_JSON', schema: ASSISTANT_RESPONSE_SCHEMA } },
             },
           }),
         },
