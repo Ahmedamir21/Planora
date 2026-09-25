@@ -128,7 +128,11 @@ export default async function handler(req: any, res: any) {
           contents: [...safeHistory, { role: 'user', parts: [{ text: message }] }],
           generationConfig: {
             temperature: 0.25,
-            maxOutputTokens: 800,
+            // Thinking tokens also count towards this limit. 800 could cut off
+            // a schedule proposal midway through its JSON response.
+            maxOutputTokens: 4096,
+            thinkingConfig: { thinkingLevel: 'minimal' },
+            responseMimeType: 'application/json',
           },
         }),
       },
@@ -170,13 +174,23 @@ export default async function handler(req: any, res: any) {
       ? data.candidates[0].content.parts.map((p) => p?.text || '').join('').trim()
       : '';
 
-    if (!rawText) return res.status(502).json({ error: 'The assistant returned an empty response.' });
+    const finishReason = data?.candidates?.[0]?.finishReason;
+    if (!rawText) {
+      console.error('Gemini returned no text', { finishReason, outputTokens: data?.usageMetadata?.candidatesTokenCount });
+      return res.status(502).json({ error: 'The assistant returned an empty response.' });
+    }
 
     let parsed: any = null;
     try {
       const cleaned = rawText.replace(/^\`\`\`(?:json)?\s*/i, '').replace(/\s*\`\`\`$/i, '');
       parsed = JSON.parse(cleaned);
     } catch {
+      // Keep student messages and model output out of server logs.
+      console.error('Gemini returned invalid JSON', {
+        finishReason,
+        outputTokens: data?.usageMetadata?.candidatesTokenCount,
+        textLength: rawText.length,
+      });
       return res.status(502).json({ error: 'The assistant returned an invalid response. Please try again.' });
     }
 
