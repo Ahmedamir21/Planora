@@ -18,7 +18,7 @@ export function MajorPicker({ selectedId, onSelect, compact = false, yearId }: P
           : 'grid gap-3 sm:grid-cols-2 lg:grid-cols-4'
       }
     >
-      {MAJORS.filter(major => !yearId || major.years.some(year => year.id === yearId)).map((major) => (
+      {MAJORS.filter(major => (!yearId || major.years.some(year => year.id === yearId)) && !(yearId === 'y1' && major.id === 'it')).map((major) => (
         <MajorCard key={major.id} major={major} selected={selectedId === major.id} onSelect={() => onSelect(major.id)} compact={compact} yearId={yearId} />
       ))}
     </div>

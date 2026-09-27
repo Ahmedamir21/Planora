@@ -1,5 +1,6 @@
 import type { TimetableEvent } from './Timetable';
 import { DAY_LABEL, DAYS, formatRange } from '../lib/time';
+import { meetingOption } from '../lib/picks';
 import { CREATOR_CREDIT, SEMESTER_CONFIG, TERM_SESSION_LABEL, TERM_LABEL } from '../config/semester';
 
 function cssVar(name: string, fallback: string): string {
@@ -19,7 +20,8 @@ export function ShareScheduleImage({
     if (events.length === 0) return;
 
     const width = 1600;
-    const height = 1040;
+    // Give even one-hour meetings room for the instructor, time and location.
+    const height = 1600;
     const margin = 70;
     const headerH = 150;
     const footerH = 70;
@@ -28,6 +30,8 @@ export function ShareScheduleImage({
     const gridLeft = margin + gutterW;
     const gridWidth = width - margin * 2 - gutterW;
     const gridHeight = height - gridTop - footerH - margin;
+    const dayHeaderHeight = 52;
+    const meetingHeight = gridHeight - dayHeaderHeight;
     const dayW = gridWidth / DAYS.length;
 
     const starts = events.map((e) => e.meeting.start);
@@ -78,7 +82,7 @@ export function ShareScheduleImage({
     }
 
     for (let i = 0; i <= lastHour - firstHour; i++) {
-      const y = gridTop + (i / (lastHour - firstHour)) * gridHeight;
+      const y = gridTop + dayHeaderHeight + (i / (lastHour - firstHour)) * meetingHeight;
       ctx.strokeStyle = line;
       ctx.beginPath();
       ctx.moveTo(margin, y);
@@ -110,8 +114,8 @@ export function ShareScheduleImage({
       const x = gridLeft + dayIndex * dayW + 9;
       const topRatio = (event.meeting.start - firstHour * 60) / totalMinutes;
       const durationRatio = (event.meeting.end - event.meeting.start) / totalMinutes;
-      const y = gridTop + topRatio * gridHeight + 52;
-      const h = Math.max(40, durationRatio * gridHeight - 5);
+      const y = gridTop + dayHeaderHeight + topRatio * meetingHeight + 3;
+      const h = Math.max(1, durationRatio * meetingHeight - 6);
       const w = dayW - 18;
 
       const courseColor = cssVar(`--c${event.course.c}`, accent);
@@ -127,17 +131,26 @@ export function ShareScheduleImage({
 
       ctx.fillStyle = courseColor;
       ctx.font = '700 20px ui-monospace, monospace';
-      ctx.fillText(event.course.code, x + 12, y + 26);
+      const label = (value: string) => {
+        if (ctx.measureText(value).width <= w - 24) return value;
+        let end = value.length;
+        while (end > 0 && ctx.measureText(value.slice(0, end) + '…').width > w - 24) end--;
+        return value.slice(0, end) + '…';
+      };
+      ctx.fillText(label(event.course.code), x + 12, y + 26);
 
       ctx.fillStyle = ink;
       ctx.font = '600 16px Inter, system-ui, sans-serif';
-      ctx.fillText(`${event.meeting.type} · Sec ${event.meeting.sec}`, x + 12, y + 50);
+      if (h >= 55) ctx.fillText(label(`${event.meeting.type} · Sec ${event.meeting.sec}`), x + 12, y + 49);
 
-      if (h >= 82) {
+      if (h >= 78) {
+        const instructor = meetingOption(event.course, event.meeting)?.instructor;
+        const name = instructor?.unassigned ? 'Instructor not assigned' : instructor?.name ?? 'Instructor not published';
         ctx.fillStyle = muted;
         ctx.font = '500 15px Inter, system-ui, sans-serif';
-        ctx.fillText(formatRange(event.meeting.start, event.meeting.end), x + 12, y + 72);
-        ctx.fillText(event.meeting.room || 'Room not published', x + 12, y + 92);
+        ctx.fillText(label(name), x + 12, y + 71);
+        if (h >= 99) ctx.fillText(label(formatRange(event.meeting.start, event.meeting.end)), x + 12, y + 92);
+        if (h >= 120) ctx.fillText(label(event.meeting.room || 'Room not published'), x + 12, y + 113);
       }
     });
 

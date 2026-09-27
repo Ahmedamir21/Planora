@@ -36,9 +36,12 @@ MAJORS.forEach((major) => {
   });
 });
 
-check('Year 1 IT is not selectable', !MAJORS.find(major => major.id === 'it')?.years.some(year => year.id === 'y1'));
-check('Cyber Security offers Years 1–4 with unpublished courses',
-  ['y1', 'y2', 'y3', 'y4'].every(id => MAJORS.find(major => major.id === 'cyber')?.years.find(year => year.id === id)?.courseIds.length === 0));
+check('Year 1 IT includes its original ten courses', MAJORS.find(major => major.id === 'it')?.years.find(year => year.id === 'y1')?.courseIds.length === 10);
+check('Cyber Security Year 1 uses IT first-year courses',
+  JSON.stringify(MAJORS.find(major => major.id === 'cyber')?.years.find(year => year.id === 'y1')?.courseIds) ===
+  JSON.stringify(MAJORS.find(major => major.id === 'it')?.years.find(year => year.id === 'y1')?.courseIds));
+check('Cyber Security Years 2–4 remain empty',
+  ['y2', 'y3', 'y4'].every(id => MAJORS.find(major => major.id === 'cyber')?.years.find(year => year.id === id)?.courseIds.length === 0));
 
 COMMON_COURSE_IDS.forEach((id) => check(`common course ${id} exists`, Boolean(COURSE_BY_ID[id])));
 

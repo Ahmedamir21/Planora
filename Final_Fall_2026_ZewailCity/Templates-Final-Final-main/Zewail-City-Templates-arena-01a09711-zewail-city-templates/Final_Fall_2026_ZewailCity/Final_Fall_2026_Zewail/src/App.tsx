@@ -534,7 +534,7 @@ export default function App() {
   }, []);
 
   const selectYear = useCallback((id: string) => {
-    if (majorId && !MAJOR_BY_ID[majorId]?.years.some(year => year.id === id)) setMajorId(null);
+    if (majorId && (!MAJOR_BY_ID[majorId]?.years.some(year => year.id === id) || (majorId === 'it' && id === 'y1'))) setMajorId(null);
     setYearId((prev) => {
       if (prev === id) return prev;
 
@@ -1355,16 +1355,18 @@ export default function App() {
     ];
 
     detailEntries.forEach((e) => {
-      lines.push(`${e.course.code} — ${e.course.name}  (${e.instructor.name})`);
+      lines.push(`${e.course.code} — ${e.course.name} · ${e.course.credits == null ? 'Credits not published' : `${e.course.credits} credits`}`);
+      if (!e.pairing.meetings.length) lines.push('   No fixed schedule published');
 
       e.pairing.meetings.forEach((m) => {
         lines.push(
-          `   ${m.type} Sec ${m.sec} · ${m.day} ${formatRange(m.start, m.end)} · ${m.room}`,
+          `   ${m.type} Sec ${m.sec} · ${m.day} ${formatRange(m.start, m.end)} · ${m.room || 'Room not published'} · ${meetingOption(e.course, m)?.instructor.name ?? e.instructor.name}`,
         );
       });
     });
 
     lines.push('--------------------------------');
+    lines.push(`Total credits: ${totalCredits}`);
     lines.push(
       `Sessions: ${metrics.sessions} · Campus days: ${metrics.days} · ${formatDuration(
         metrics.gapMinutes,
@@ -1395,7 +1397,7 @@ export default function App() {
 
       document.body.removeChild(ta);
     }
-  }, [detailEntries, metrics]);
+  }, [detailEntries, metrics, totalCredits]);
 
   /* ---------------- render ---------------- */
 

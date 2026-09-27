@@ -24,6 +24,7 @@ import React from 'react';
 import { act } from 'react';
 import { createRoot } from 'react-dom/client';
 import { ShareSchedule } from '../src/components/ShareSchedule';
+import { ShareScheduleImage } from '../src/components/ShareScheduleImage';
 import { COURSE_BY_ID } from '../src/data/courses';
 import { emptyPick, optionStates, uid, type PickState } from '../src/lib/picks';
 import { decodeSchedule } from '../src/lib/share';
@@ -105,6 +106,31 @@ await act(async () => {
   copyBtn.click();
 });
 check('copied status shows "Schedule link copied!"', doc.body.textContent?.includes('Schedule link copied!') === true);
+
+const drawn: string[] = [];
+const context = {
+  fillRect: () => {}, beginPath: () => {}, moveTo: () => {}, lineTo: () => {},
+  stroke: () => {}, roundRect: () => {}, fill: () => {},
+  fillText: (value: string) => { drawn.push(value); },
+  measureText: (value: string) => ({ width: value.length * 8 }),
+};
+Object.defineProperty(dom.window.HTMLCanvasElement.prototype, 'getContext', { value: () => context, configurable: true });
+Object.defineProperty(dom.window.HTMLCanvasElement.prototype, 'toBlob', { value: (callback: (blob: Blob) => void) => callback(new Blob(['png'], { type: 'image/png' })), configurable: true });
+g.getComputedStyle = dom.window.getComputedStyle.bind(dom.window);
+Object.defineProperty(dom.window.navigator, 'canShare', { value: () => true, configurable: true });
+Object.defineProperty(dom.window.navigator, 'share', { value: async () => {}, configurable: true });
+const teacher = courses[0].instructors.find(item => item.lectures.length > 0)!;
+await act(async () => {
+  root.render(React.createElement(ShareScheduleImage, {
+    title: 'Software · Year 2',
+    events: [{ course: courses[0], meeting: teacher.lectures[0] }],
+  }));
+});
+await act(async () => {
+  (doc.querySelector('button') as HTMLButtonElement).click();
+});
+check('exported image prints the actual section instructor', drawn.includes(teacher.name));
+check('exported image includes the course and section', drawn.includes(courses[0].code) && drawn.some(value => value.includes(teacher.lectures[0].sec)));
 
 act(() => root.unmount());
 console.log(`\n${pass} passed, ${fail} failed (share sheet)`);

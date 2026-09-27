@@ -6,6 +6,22 @@
     "blurb": "Enterprise systems, infrastructure and governance track.",
     "years": [
       {
+        "id": "y1",
+        "label": "Year 1 (Freshman)",
+        "courseIds": [
+          "csai100",
+          "csai101",
+          "csai102",
+          "csai252",
+          "csai151",
+          "math103",
+          "math104",
+          "it101",
+          "it102",
+          "it103"
+        ]
+      },
+      {
         "id": "y2",
         "label": "Year 2 (Sophomore)",
         "courseIds": [
@@ -45,12 +61,23 @@
     "id": "cyber",
     "title": "Cyber Security",
     "subtitle": "Cyber Security",
-    "blurb": "Course data for this major will be added when it is published.",
+    "blurb": "Year 1 includes the available IT first-year courses; upper-year course data will be added when published.",
     "years": [
       {
         "id": "y1",
         "label": "Year 1 (Freshman)",
-        "courseIds": []
+        "courseIds": [
+          "csai100",
+          "csai101",
+          "csai102",
+          "csai252",
+          "csai151",
+          "math103",
+          "math104",
+          "it101",
+          "it102",
+          "it103"
+        ]
       },
       {
         "id": "y2",
