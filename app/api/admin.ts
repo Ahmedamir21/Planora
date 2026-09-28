@@ -1,5 +1,6 @@
 import { createHash, createHmac, randomUUID, scryptSync, timingSafeEqual } from 'node:crypto';
-import { draftKey, HISTORY_KEY, rateLimited, redis, saveWithHistory, undoWithHistory, storageConfigured } from './admin-store';
+import { draftKey, liveKey, HISTORY_KEY, rateLimited, redis, saveWithHistory, saveLive, undoLive, undoWithHistory, storageConfigured } from './admin-store';
+import { isCatalogFile } from './catalog';
 import { jsonRequest, sameOrigin } from './security';
 import { validateDataset } from '../dataset-validation.cjs';
 import publishedSemester from '../../Final_Fall_2026_ZewailCity/Templates-Final-Final-main/Zewail-City-Templates-arena-01a09711-zewail-city-templates/Final_Fall_2026_ZewailCity/Final_Fall_2026_Zewail/src/semester/semester.json';
@@ -145,6 +146,12 @@ export default async function handler(req: any, res: any) {
         const content = await redis(['GET', draftKey(req.query.file)]);
         return res.status(200).json({ content, revision: content == null ? '' : sha(content) });
       }
+      if (action === 'live') {
+        if (!allowedFile(req.query?.file)) return res.status(400).json({ error: 'Invalid filename.' });
+        const content = isCatalogFile(req.query.file) ? await redis(['GET', liveKey(req.query.file)]) : null;
+        const current = content ?? JSON.stringify(published[req.query.file as typeof FILES[number]]);
+        return res.status(200).json({ content: current, revision: sha(current) });
+      }
       return res.status(200).json({ authenticated: true, user: { id: admin!.id, name: admin!.name } });
     }
     if (req.method === 'DELETE') {
@@ -217,7 +224,24 @@ export default async function handler(req: any, res: any) {
       if (await undoWithHistory(body.file, before, last.before, entry) !== 1) return res.status(409).json({ error: 'Another admin updated this draft. Reload before undoing.' });
       return res.status(200).json({ revision: last.before ? sha(last.before) : '', entry: JSON.parse(entry) });
     }
-    if (body.action === 'save') {
+    if (body.action === 'undo_live') {
+      if (!isCatalogFile(body.file) || typeof body.expectedLiveRevision !== 'string') return res.status(400).json({ error: 'Choose a course file and its latest live revision.' });
+      const currentOverride = await redis(['GET', liveKey(body.file)]) || '';
+      const current = currentOverride || JSON.stringify(published[body.file]);
+      if (sha(current) !== body.expectedLiveRevision) return res.status(409).json({ error: 'Live data changed. Reload before undoing.' });
+      const recent = await redis(['LRANGE', HISTORY_KEY, 0, 999]);
+      const last = (recent || []).map((row: string) => JSON.parse(row)).find((row: any) => row.file === body.file && ['save_live', 'undo_live'].includes(row.action));
+      if (!last || last.after !== currentOverride || typeof last.before !== 'string') return res.status(409).json({ error: 'No matching published revision in history.' });
+      const restored = last.before || JSON.stringify(published[body.file]);
+      const other = body.file === 'courses.json' ? 'sch.json' : 'courses.json';
+      const otherContent = await redis(['GET', liveKey(other)]);
+      const check = validateDataset({ semester: publishedSemester, majors: publishedMajors, [body.file.slice(0, -5)]: JSON.parse(restored), [other.slice(0, -5)]: otherContent ? JSON.parse(otherContent) : published[other] });
+      if (check.errors.length) return res.status(400).json({ error: 'The previous revision is incompatible with the current catalog.', errors: check.errors.slice(0, 20) });
+      const entry = event(admin, 'undo_live', { file: body.file, changed: changes(current, restored), before: currentOverride, after: last.before, method: 'Restore previous public catalog revision' });
+      if (await undoLive(body.file, currentOverride, last.before, entry) !== 1) return res.status(409).json({ error: 'Live data changed. Reload before undoing.' });
+      return res.status(200).json({ revision: sha(restored), entry: JSON.parse(entry) });
+    }
+    if (body.action === 'save' || body.action === 'save_draft') {
       const content = typeof body.content === 'string' ? body.content : '';
       const expected = typeof body.expectedRevision === 'string' ? body.expectedRevision : '';
       const source = typeof body.source === 'string' ? body.source.trim().slice(0, 240) : '';
@@ -226,6 +250,21 @@ export default async function handler(req: any, res: any) {
       if (!source) return res.status(400).json({ error: 'Add a source or reason for this change.' });
       const before = await redis(['GET', draftKey(body.file)]) || '';
       if (sha(before) !== expected && !(before === '' && expected === '')) return res.status(409).json({ error: 'Another admin updated this draft. Reload it before saving.' });
+      if (body.action === 'save' && isCatalogFile(body.file)) {
+        const liveOverride = await redis(['GET', liveKey(body.file)]) || '';
+        const live = liveOverride || JSON.stringify(published[body.file]);
+        if (typeof body.expectedLiveRevision !== 'string' || sha(live) !== body.expectedLiveRevision) return res.status(409).json({ error: 'The live catalog changed. Reload this file and review the latest version before saving.' });
+        if (JSON.stringify(JSON.parse(live)) === JSON.stringify(JSON.parse(content))) return res.status(400).json({ error: 'There are no changes to publish.' });
+        const other = body.file === 'courses.json' ? 'sch.json' : 'courses.json';
+        const otherContent = await redis(['GET', liveKey(other)]);
+        const check = validateDataset({ semester: publishedSemester, majors: publishedMajors, [body.file.slice(0, -5)]: JSON.parse(content), [other.slice(0, -5)]: otherContent ? JSON.parse(otherContent) : published[other] });
+        if (check.errors.length) return res.status(400).json({ error: `Fix ${check.errors.length} catalog errors before saving.`, errors: check.errors.slice(0, 20) });
+        const ids = (value: string) => (JSON.parse(value) as Array<{ id: string }>).map(course => course.id).sort().join('\n');
+        if (ids(content) !== ids(live)) return res.status(400).json({ error: 'Adding or removing courses requires a reviewed deployment; this save can update existing courses only.' });
+        const entry = event(admin, 'save_live', { file: body.file, source, changed: changes(live, content), before: liveOverride, after: content, method: 'Save and publish catalog' });
+        if (await saveLive(body.file, before, liveOverride, content, entry) !== 1) return res.status(409).json({ error: 'Another admin updated this draft or live catalog. Reload and review again.' });
+        return res.status(200).json({ revision: sha(content), liveRevision: sha(content), entry: JSON.parse(entry), published: true });
+      }
       if (before === content) return res.status(400).json({ error: 'There are no changes to save.' });
       const entry = event(admin, 'save_draft', { file: body.file, source, changed: changes(before, content), before, after: content, method: 'Planora admin JSON editor' });
       const result = await saveWithHistory(body.file, before, content, entry);

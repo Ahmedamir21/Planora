@@ -31,6 +31,28 @@ export async function redis(command: Array<string | number>): Promise<any> {
 
 export const HISTORY_KEY = 'planora:admin:history:v1';
 export function draftKey(file: string) { return `planora:admin:draft:v1:${file}`; }
+export function liveKey(file: string) { return `planora:admin:live:v1:${file}`; }
+
+// The draft, public catalog and audit event must change together.
+const SAVE_LIVE = `local draft = redis.call('GET', KEYS[1]) or ''
+local live = redis.call('GET', KEYS[2]) or ''
+if draft ~= ARGV[1] or live ~= ARGV[2] then return 0 end
+redis.call('SET', KEYS[1], ARGV[3])
+redis.call('SET', KEYS[2], ARGV[3])
+redis.call('LPUSH', KEYS[3], ARGV[4])
+return 1`;
+export async function saveLive(file: string, draft: string, live: string, content: string, record: string) {
+  return redis(['EVAL', SAVE_LIVE, 3, draftKey(file), liveKey(file), HISTORY_KEY, draft, live, content, record]);
+}
+
+const UNDO_LIVE = `local live = redis.call('GET', KEYS[1]) or ''
+if live ~= ARGV[1] then return 0 end
+if ARGV[2] == '' then redis.call('DEL', KEYS[1]) else redis.call('SET', KEYS[1], ARGV[2]) end
+redis.call('LPUSH', KEYS[2], ARGV[3])
+return 1`;
+export async function undoLive(file: string, expected: string, restored: string, record: string) {
+  return redis(['EVAL', UNDO_LIVE, 2, liveKey(file), HISTORY_KEY, expected, restored, record]);
+}
 
 // Atomic and shared across all serverless instances. A secret-derived key keeps IPs
 // and account names out of the Redis keyspace.

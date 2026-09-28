@@ -1,9 +1,13 @@
 import { createHash, randomBytes, scryptSync } from 'node:crypto';
 import handler from '../../../../../../app/api/admin';
+import catalogHandler from '../../../../../../app/api/catalog';
 import reportHandler from '../../../../../../app/api/reports';
 import feedbackHandler from '../../../../../../app/api/feedback';
 import { redis, storageConfigured } from '../../../../../../app/api/admin-store';
 import semester from '../src/semester/semester.json';
+import courses from '../src/semester/courses.json';
+import sch from '../src/semester/sch.json';
+import { COURSE_BY_ID, hydrateCatalog } from '../src/data/courses';
 
 const passwordHash = (value: string) => {
   const salt = randomBytes(16);
@@ -68,6 +72,10 @@ let storageDown = false;
       const rows = args[2].includes(':feedback:') ? feedbackRows : reportRows;
       result = rows.get(id) === before ? 1 : 0;
       if (result === 1) { rows.set(id, after); history.unshift(record); }
+    } else if (args[0].includes("local draft = redis.call('GET'")) {
+      const [, , draftKey, liveKey, , expectedDraft, expectedLive, content, record] = args;
+      result = (memory.get(draftKey) ?? '') === expectedDraft && (memory.get(liveKey) ?? '') === expectedLive ? 1 : 0;
+      if (result === 1) { memory.set(draftKey, content); memory.set(liveKey, content); history.unshift(record); }
     } else {
       const [, , draftKey, , expected, content, record] = args;
       if ((memory.get(draftKey) ?? '') !== expected) result = 0;
@@ -87,6 +95,12 @@ async function reportCall(body: unknown, origin = 'https://example.test') {
   const result: { code: number; body: any } = { code: 0, body: null };
   const response = { setHeader: () => {}, status: (code: number) => { result.code = code; return response; }, json: (data: any) => { result.body = data; return response; } };
   await reportHandler({ method: 'POST', headers: { host: 'example.test', origin, 'content-type': 'application/json' }, body, socket: { remoteAddress: 'test-reporter' } }, response);
+  return result;
+}
+async function catalogCall() {
+  const result: { code: number; body: any } = { code: 0, body: null };
+  const response = { setHeader: () => {}, status: (code: number) => { result.code = code; return response; }, json: (body: any) => { result.body = body; return response; } };
+  await catalogHandler({ method: 'GET' }, response);
   return result;
 }
 async function feedbackCall(body: unknown, origin = 'https://example.test') {
@@ -141,6 +155,32 @@ async function main() {
   const undone = await call('POST', { action: 'undo', file: 'semester.json', expectedRevision: rev(second), source: 'Undo verified edit' }, ahmed);
   assert(undone.code === 200 && undone.body.entry.adminId === 'ahmed' && undone.body.entry.before === second && undone.body.entry.after === first, 'Undo was not attributed to admin');
   assert((await call('GET', {}, youssef, { action: 'draft', file: 'semester.json' })).body.content === first, 'Undo did not restore previous draft');
+  const originalCatalog = (await catalogCall()).body;
+  const changedCourses = structuredClone(courses);
+  const meeting = changedCourses.flatMap(course => course.instructors.flatMap(teacher => teacher.lectures))[0];
+  const originalRoom = meeting.room;
+  meeting.room = 'VERIFIED-TEST-ROOM';
+  const content = JSON.stringify(changedCourses);
+  const live = await call('GET', {}, ahmed, { action: 'live', file: 'courses.json' });
+  assert(live.code === 200 && live.body.revision === rev(JSON.stringify(courses)), 'Live catalog revision missing');
+  const privateDraft = await call('POST', { action: 'save_draft', file: 'courses.json', content, expectedRevision: '', source: 'Verified test' }, ahmed);
+  assert(privateDraft.code === 200 && (await catalogCall()).body.courses[0].instructors[0].lectures[0].room === originalRoom, 'Private import was published');
+  assert((await call('POST', { action: 'save', file: 'courses.json', content, expectedRevision: '', source: 'Verified test' }, '', {}, 'https://example.test')).code === 401, 'Guest published a change');
+  assert((await call('POST', { action: 'save', file: 'courses.json', content, expectedRevision: '', source: 'Verified test' }, ahmed)).code === 409, 'Save without live revision accepted');
+  assert((await catalogCall()).body.courses[0].instructors[0].lectures[0].room === originalRoom, 'Unsaved draft reached students');
+  const publish = await call('POST', { action: 'save', file: 'courses.json', content: JSON.stringify({ ...changedCourses[0], name: 'test' }), expectedRevision: rev(content), expectedLiveRevision: live.body.revision, source: 'Bad shape' }, ahmed);
+  assert(publish.code === 400, 'Malformed course catalog accepted');
+  const published = await call('POST', { action: 'save', file: 'courses.json', content, expectedRevision: rev(content), expectedLiveRevision: live.body.revision, source: 'Verified test' }, ahmed);
+  assert(published.code === 200 && published.body.published, `Verified save failed: ${JSON.stringify(published.body)}`);
+  assert((await catalogCall()).body.courses[0].instructors[0].lectures[0].room === 'VERIFIED-TEST-ROOM', 'Published room did not reach public catalog');
+  assert(hydrateCatalog((await catalogCall()).body.courses, (await catalogCall()).body.sch) && COURSE_BY_ID[changedCourses[0].id].instructors[0].lectures[0].room === 'VERIFIED-TEST-ROOM', 'Student planner did not hydrate from live data');
+  assert(!hydrateCatalog(changedCourses.slice(1), sch), 'Incomplete live catalog replaced the planner');
+  assert(hydrateCatalog(courses, sch), 'Could not restore built-in planner data after test');
+  assert((await call('POST', { action: 'save', file: 'courses.json', content: JSON.stringify(courses), expectedRevision: published.body.revision, expectedLiveRevision: live.body.revision, source: 'Stale' }, youssef)).code === 409, 'Stale live revision accepted');
+  assert((await call('POST', { action: 'undo_live', file: 'courses.json', expectedLiveRevision: live.body.revision }, ahmed)).code === 409, 'Stale published undo accepted');
+  const rollback = await call('POST', { action: 'undo_live', file: 'courses.json', expectedLiveRevision: published.body.liveRevision }, ahmed);
+  assert(rollback.code === 200 && (await catalogCall()).body.courses[0].instructors[0].lectures[0].room === originalRoom, 'Published rollback failed');
+  assert(originalCatalog.sch.length === (await catalogCall()).body.sch.length, 'Unrelated catalog changed');
   const report = { types: ['Day or time', 'Room'], courseCode: 'CSAI 205', component: 'Lecture', section: '03', details: 'Please check this meeting.', publishedData: 'Current meeting' };
   assert((await reportCall(report, 'https://evil.test')).code === 403, 'Cross-origin report accepted');
   assert((await reportCall({ ...report, types: ['Invalid'] })).code === 400, 'Invalid report type accepted');
