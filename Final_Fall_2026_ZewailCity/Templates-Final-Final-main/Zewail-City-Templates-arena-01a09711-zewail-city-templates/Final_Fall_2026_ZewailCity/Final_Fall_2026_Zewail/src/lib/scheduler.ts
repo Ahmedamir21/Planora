@@ -108,18 +108,6 @@ export function buildCoursePairings(course: Course): Pairing[] {
  * Build every internally conflict-free combination of the components that
  * actually exist for this instructor (lecture × lab × tutorial).
  *
- * Kept for the engine audit and group-level views — the student-facing candidate
- * space is now buildCoursePairings(), which does NOT require one instructor.
- *
- * Components that do not exist are never invented: an instructor with a lecture
- * and no labs yields lecture-only pairings, and an instructor with labs and no
- * lecture yields lab-only pairings. Section numbers are NOT assumed to match.
- */
-
-/**
- * Build every internally conflict-free combination of the components that
- * actually exist for this instructor (lecture × lab × tutorial).
- *
  * Components that do not exist are never invented: an instructor with a lecture
  * and no labs yields lecture-only pairings, and an instructor with labs and no
  * lecture yields lab-only pairings. Section numbers are NOT assumed to match.

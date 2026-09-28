@@ -51,7 +51,6 @@ import { StatsBar } from './components/StatsBar';
 import { ScheduleDetails, type DetailEntry } from './components/ScheduleDetails';
 import { CombinationNav, Filters, type TypeFilter } from './components/Controls';
 import { EmptyState } from './components/EmptyState';
-import { EngineAudit } from './components/EngineAudit';
 import { CreditsDashboard } from './components/CreditsDashboard';
 import { ShareSchedule } from './components/ShareSchedule';
 import { AboutPage } from './components/AboutPage';
@@ -1864,11 +1863,6 @@ export default function App() {
                 <ScheduleDetails
                   entries={detailEntries}
                   yearBadges={yearBadges}
-                />
-
-                <EngineAudit
-                  combos={count}
-                  truncated={generation?.truncated ?? false}
                 />
 
                 <div className="panel flex flex-wrap items-center gap-2 p-3">
