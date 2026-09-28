@@ -48,6 +48,8 @@ jobs:
 
       - name: Admin login tests
         run: npm run test:admin
+      - name: Published data completeness report
+        run: npm run test:completeness
 
       - name: Admin course search tests
         run: npm run test:admin-ui

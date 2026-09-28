@@ -9,6 +9,7 @@
     "typecheck": "tsc --noEmit",
     "preview": "vite preview",
     "test:admin": "esbuild tests/admin-auth.ts --bundle --platform=node --format=esm --outfile=node_modules/.tmp/admin-auth.mjs --log-level=error && node node_modules/.tmp/admin-auth.mjs",
+    "test:completeness": "esbuild tests/data-completeness.ts --bundle --platform=node --format=esm --outfile=node_modules/.tmp/data-completeness.mjs --log-level=error && node node_modules/.tmp/data-completeness.mjs",
     "test:admin-ui": "esbuild tests/ui-admin-course-search.tsx --bundle --platform=node --format=esm --packages=external --jsx=automatic --outfile=node_modules/.tmp/ui-admin-course-search.mjs --log-level=error && node node_modules/.tmp/ui-admin-course-search.mjs",
     "test:import": "esbuild tests/admin-import.ts --bundle --platform=node --format=esm --outfile=node_modules/.tmp/admin-import.mjs --log-level=error && node node_modules/.tmp/admin-import.mjs",
     "test:patch": "esbuild tests/schedule-patch.ts --bundle --platform=node --format=esm --outfile=node_modules/.tmp/schedule-patch.mjs --log-level=error && node node_modules/.tmp/schedule-patch.mjs",
