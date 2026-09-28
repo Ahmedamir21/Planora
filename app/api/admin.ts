@@ -246,7 +246,10 @@ export default async function handler(req: any, res: any) {
       const expected = typeof body.expectedRevision === 'string' ? body.expectedRevision : '';
       const source = typeof body.source === 'string' ? body.source.trim().slice(0, 240) : '';
       const error = validData(body.file, content);
-      if (error) return res.status(400).json({ error });
+      if (error) {
+        console.warn('Admin save rejected.', { file: body.file, reason: 'invalid_structure' });
+        return res.status(400).json({ error });
+      }
       if (!source) return res.status(400).json({ error: 'Add a source or reason for this change.' });
       const before = await redis(['GET', draftKey(body.file)]) || '';
       if (sha(before) !== expected && !(before === '' && expected === '')) return res.status(409).json({ error: 'Another admin updated this draft. Reload it before saving.' });
@@ -254,13 +257,22 @@ export default async function handler(req: any, res: any) {
         const liveOverride = await redis(['GET', liveKey(body.file)]) || '';
         const live = liveOverride || JSON.stringify(published[body.file]);
         if (typeof body.expectedLiveRevision !== 'string' || sha(live) !== body.expectedLiveRevision) return res.status(409).json({ error: 'The live catalog changed. Reload this file and review the latest version before saving.' });
-        if (JSON.stringify(JSON.parse(live)) === JSON.stringify(JSON.parse(content))) return res.status(400).json({ error: 'There are no changes to publish.' });
+        if (JSON.stringify(JSON.parse(live)) === JSON.stringify(JSON.parse(content))) {
+          console.warn('Admin save rejected.', { file: body.file, reason: 'unchanged_live_data' });
+          return res.status(400).json({ error: 'There are no changes to publish.' });
+        }
         const other = body.file === 'courses.json' ? 'sch.json' : 'courses.json';
         const otherContent = await redis(['GET', liveKey(other)]);
         const check = validateDataset({ semester: publishedSemester, majors: publishedMajors, [body.file.slice(0, -5)]: JSON.parse(content), [other.slice(0, -5)]: otherContent ? JSON.parse(otherContent) : published[other] });
-        if (check.errors.length) return res.status(400).json({ error: `Fix ${check.errors.length} catalog errors before saving.`, errors: check.errors.slice(0, 20) });
+        if (check.errors.length) {
+          console.warn('Admin save rejected.', { file: body.file, reason: 'catalog_validation', count: check.errors.length });
+          return res.status(400).json({ error: `Fix ${check.errors.length} catalog errors before saving.`, errors: check.errors.slice(0, 20) });
+        }
         const ids = (value: string) => (JSON.parse(value) as Array<{ id: string }>).map(course => course.id).sort().join('\n');
-        if (ids(content) !== ids(live)) return res.status(400).json({ error: 'Adding or removing courses requires a reviewed deployment; this save can update existing courses only.' });
+        if (ids(content) !== ids(live)) {
+          console.warn('Admin save rejected.', { file: body.file, reason: 'course_ids_changed' });
+          return res.status(400).json({ error: 'Adding or removing courses requires a reviewed deployment; this save can update existing courses only.' });
+        }
         const entry = event(admin, 'save_live', { file: body.file, source, changed: changes(live, content), before: liveOverride, after: content, method: 'Save and publish catalog' });
         if (await saveLive(body.file, before, liveOverride, content, entry) !== 1) return res.status(409).json({ error: 'Another admin updated this draft or live catalog. Reload and review again.' });
         return res.status(200).json({ revision: sha(content), liveRevision: sha(content), entry: JSON.parse(entry), published: true });

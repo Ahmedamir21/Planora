@@ -46,5 +46,12 @@ const codeField = Array.from(doc.querySelectorAll('input')).find(input => input.
 type(codeField, 'CSAI 201 REVIEW');
 if (!doc.querySelector('[aria-label="Private preview of selected course"]')?.textContent?.includes('CSAI 201 REVIEW')) throw Error('Private timetable did not reflect course code change');
 if (!doc.body.textContent?.includes('Change is only in this browser')) throw Error('Save guidance is missing');
+const unassignedIndex = draft.find(course => course.id === 'csai201')!.instructors.findIndex(instructor => instructor.unassigned);
+if (unassignedIndex < 0) throw Error('Missing unassigned instructor test fixture');
+const instructorInputs = Array.from(doc.querySelectorAll('label')).filter(label => /^Instructor \d+$/.test(label.textContent?.trim() || '')).map(label => label.querySelector('input')!);
+type(instructorInputs[unassignedIndex], 'Verified Teacher');
+if (draft.find(course => course.id === 'csai201')!.instructors[unassignedIndex].unassigned) throw Error('Assigned teacher still marked unassigned');
+type(instructorInputs[unassignedIndex], 'Instructor Not Assigned');
+if (!draft.find(course => course.id === 'csai201')!.instructors[unassignedIndex].unassigned) throw Error('Unassigned placeholder lost its flag');
 act(() => root.unmount());
 console.log('Admin course search by code/name and draft guidance OK');
