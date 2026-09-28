@@ -3,7 +3,7 @@ import { COURSE_BY_ID } from './data/courses';
 import {
   allAvailableCourseIds,
   allYearCourseIds,
-  COMMON_COURSE_IDS,
+  sharedCourseIdsForMajor,
   MAJOR_BY_ID,
   yearBadgeOf,
   yearPlanOf,
@@ -334,7 +334,7 @@ export default function App() {
     if (!major || !yearPlan) return [];
 
     // Current year's courses + common courses (e.g. SCH) available to every year.
-    const baseIds = [...yearPlan.courseIds, ...(major.id === 'cyber' ? [] : COMMON_COURSE_IDS)];
+    const baseIds = [...new Set([...yearPlan.courseIds, ...sharedCourseIdsForMajor(major)])];
 
     const base = baseIds
       .map((id) => COURSE_BY_ID[id])
@@ -916,7 +916,7 @@ export default function App() {
             .filter((c) => c.noFixedSchedule)
             .map((course) => ({
               course,
-              instructor: course.instructors[0],
+              instructor: course.instructors[0] ?? { name: 'Not published', unassigned: true, lectures: [], labs: [], tutorials: [] },
               pairing: { meetings: [], labs: [], tutorials: [] },
             })),
         ),
@@ -1365,7 +1365,7 @@ export default function App() {
     });
 
     lines.push('--------------------------------');
-    lines.push(`Total credits: ${totalCredits}`);
+    lines.push(`Total known credits: ${totalCredits}${takenCourses.some(course => course.credits == null) ? ' (excludes courses with unverified credits)' : ''}`);
     lines.push(
       `Sessions: ${metrics.sessions} · Campus days: ${metrics.days} · ${formatDuration(
         metrics.gapMinutes,
@@ -1396,7 +1396,7 @@ export default function App() {
 
       document.body.removeChild(ta);
     }
-  }, [detailEntries, metrics, totalCredits]);
+  }, [detailEntries, metrics, totalCredits, takenCourses]);
 
   /* ---------------- render ---------------- */
 
@@ -1695,6 +1695,7 @@ export default function App() {
               creditCap={effectiveCap}
               onChangeLimit={reopenCapNote}
             />
+            {takenCourses.some(course => course.credits == null) && <p role="status" className="mt-2 text-xs" style={{ color: 'var(--warn)' }}>Some selected English levels have unverified credits. The number above counts known credits only; check your official credit limit before registration.</p>}
 
             <BestSchedule
               courses={takenCourses}

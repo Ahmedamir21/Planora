@@ -61,6 +61,7 @@ export function ScheduleDetails({
                 <span className="pill" style={{ flex: 'none' }}>
                   Instructor
                 </span>
+                {entry.course.awaitingSource && <span style={{ color: 'var(--warn)' }}>Not published</span>}
                 {instructorLabels(entry).map((l) => (
                   <span key={l.kind} style={{ color: l.unassigned ? 'var(--warn)' : 'var(--ink)' }}>
                     {instructorLabels(entry).length > 1 ? `${l.kind}: ` : ''}{l.name}
@@ -102,7 +103,7 @@ export function ScheduleDetails({
 
               {entry.pairing.meetings.length === 0 && (
                 <p className="text-[11.5px]" style={{ color: 'var(--muted)' }}>
-                  No scheduled meetings for this instructor.
+                  {entry.course.awaitingSource ? 'Official sections, times and credits have not been added yet.' : 'No scheduled meetings for this instructor.'}
                 </p>
               )}
             </div>

@@ -24,7 +24,9 @@ function validateDataset({ semester, courses, sch, majors }) {
     check(typeof course.name === 'string' && course.name.trim(), `${label}: missing course name.`);
     check(Number.isInteger(course.c) && course.c >= 1 && course.c <= 7, `${label}: palette index must be 1–7.`);
     check(course.credits === undefined || Number.isFinite(course.credits) && course.credits >= 0 && course.credits <= 21, `${label}: invalid credits.`);
-    check(Array.isArray(course.instructors) && course.instructors.length > 0, `${label}: missing instructor groups.`);
+    const pendingEnglish = course.awaitingSource === true && /^ENGL (003|004|156|157)$/.test(course.code);
+    check(Array.isArray(course.instructors) && (course.instructors.length > 0 || pendingEnglish), `${label}: missing instructor groups.`);
+    if (course.awaitingSource) check(pendingEnglish && course.noFixedSchedule === true && course.credits === undefined && course.name === course.code && course.instructors?.length === 0, `${label}: incomplete English shell has unexpected published metadata.`);
     if (!Array.isArray(course.instructors)) continue;
     const sectionIds = new Set();
     let count = 0;

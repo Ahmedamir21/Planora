@@ -83,15 +83,22 @@ export function parseAdminImport(input: string, selectedCourseCode = '', format:
     });
     if (!sections.length) warnings.push('No Self-Service Subtype/Section results found. Check the copied text or use CSV.');
   }
-  // A duplicate may disagree about the actual time or room. Never select one silently.
+  // Repeated identical exports are harmless; distinct meetings of one section need review.
   const key = (row: ImportRow) => `${normalized(row.courseCode)}|${row.subtype}|${row.section.trim().toUpperCase()}`;
-  const counts = new Map<string, number>();
-  for (const row of rows) counts.set(key(row), (counts.get(key(row)) || 0) + 1);
-  const unique = rows.filter(row => {
-    if (counts.get(key(row)) === 1) return true;
-    warnings.push(`${row.courseCode} ${row.subtype} ${row.section}: duplicate in this import; all copies skipped. Check Self-Service before editing.`);
-    return false;
-  });
+  const grouped = new Map<string, ImportRow[]>();
+  for (const row of rows) grouped.set(key(row), [...(grouped.get(key(row)) ?? []), row]);
+  const unique: ImportRow[] = [];
+  for (const group of grouped.values()) {
+    const variants = new Set(group.map(row => JSON.stringify([row.day, row.start, row.end, row.room, row.instructor])));
+    if (variants.size > 1) {
+      const first = group[0];
+      const overlap = group.some((a, i) => group.slice(i + 1).some(b => a.day === b.day && a.start < b.end && b.start < a.end));
+      group.forEach(() => warnings.push(`${first.courseCode} ${first.subtype} ${first.section}: ${overlap ? 'conflicting rows' : 'multiple meeting times'} for one section; all held for manual review.`));
+    } else {
+      unique.push(group[0]);
+      group.slice(1).forEach(() => warnings.push(`${group[0].courseCode} ${group[0].subtype} ${group[0].section}: identical repeated row ignored.`));
+    }
+  }
   return { rows: unique, warnings };
 }
 
@@ -102,6 +109,7 @@ export function applyAdminImport(courses: Course[], rows: ImportRow[]): { course
     const matches = result.filter(course => normalized(course.code) === normalized(row.courseCode));
     if (matches.length !== 1) { warnings.push(`Row ${index + 1}: ${row.courseCode} is not a unique course in this draft; skipped.`); continue; }
     const course = matches[0];
+    if (course.awaitingSource) { warnings.push(`Row ${index + 1}: ${course.code} needs a verified name and credits. Use the complete English CSV importer.`); continue; }
     const list = groups[row.subtype];
     const prior = course.instructors.flatMap(teacher => teacher[list].filter(meeting => meeting.sec === row.section));
     if (prior.length > 1) { warnings.push(`Row ${index + 1}: ${course.code} ${row.subtype} ${row.section} is ambiguous; edit it manually.`); continue; }
@@ -113,6 +121,7 @@ export function applyAdminImport(courses: Course[], rows: ImportRow[]): { course
     for (const instructor of course.instructors) instructor[list] = instructor[list].filter(meeting => meeting.sec !== row.section);
     const meeting: Meeting = { type: row.subtype, sec: row.section, day: row.day, start: row.start, end: row.end, room: row.room };
     teacher[list].push(meeting);
+    if (course.noFixedSchedule) course.noFixedSchedule = false;
     applied++;
     if (!row.room) warnings.push(`Row ${index + 1}: room is unpublished. Review before saving.`);
   }

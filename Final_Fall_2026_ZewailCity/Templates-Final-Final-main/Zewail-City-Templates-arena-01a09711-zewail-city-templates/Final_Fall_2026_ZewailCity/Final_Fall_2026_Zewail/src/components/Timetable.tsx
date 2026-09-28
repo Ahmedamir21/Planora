@@ -11,6 +11,10 @@ export interface TimetableEvent {
 
 const PX_PER_HOUR = 62;
 const GUTTER = 54;
+function meetingInstructor({ course, meeting }: TimetableEvent): string {
+  const teacher = course.instructors.find(instructor => [...instructor.lectures, ...instructor.labs, ...instructor.tutorials].includes(meeting));
+  return teacher && !teacher.unassigned ? teacher.name : 'Instructor not assigned';
+}
 
 export function Timetable({
   events,
@@ -154,6 +158,7 @@ export function Timetable({
                   const left = `calc(${(lane * 100) / lanes}% + ${inset}px)`;
                   const compact = h < 52;
                   const clash = clashing.has(uid(meeting));
+                  const instructor = meetingInstructor(ev);
                   return (
                     <button
                       type="button"
@@ -184,7 +189,7 @@ export function Timetable({
                               borderLeftColor: `var(--c${ev.course.c})`,
                             }
                       }
-                      title={`${ev.course.code} — ${ev.course.name}\n${meeting.type} Sec ${meeting.sec} · ${DAY_LABEL[meeting.day]} ${formatRange(meeting.start, meeting.end)} · ${meeting.room}${
+                      title={`${ev.course.code} — ${ev.course.name}\n${meeting.type} Sec ${meeting.sec} · ${DAY_LABEL[meeting.day]} ${formatRange(meeting.start, meeting.end)} · ${meeting.room || 'Room not published'}\nInstructor: ${instructor}${
                         yearBadges?.[ev.course.id] ? `\n${yearBadges[ev.course.id]} course (added from another year)` : ''
                       }`}
                     >
@@ -192,7 +197,10 @@ export function Timetable({
                         {ev.course.code}
                       </p>
                       <p className="truncate font-semibold opacity-90" style={{ fontSize: compact ? 9 : 9.5 }}>
-                        {shortType(meeting.type)} {meeting.sec} · {meeting.room}
+                        {shortType(meeting.type)} {meeting.sec} · {meeting.room || 'Room TBA'}
+                      </p>
+                      <p className="truncate opacity-85" style={{ fontSize: compact ? 8.5 : 9 }} title={instructor}>
+                        {instructor}
                       </p>
                       {!compact && (
                         <p className="mono truncate opacity-75" style={{ fontSize: 9 }}>
@@ -230,7 +238,7 @@ export function Timetable({
             <Detail label="Term" value={TERM_SESSION_LABEL} />
             <Detail label="Credits" value={selectedEvent.course.credits == null ? 'Not published' : String(selectedEvent.course.credits)} />
             <Detail label="Component and section" value={`${selectedEvent.meeting.type} · ${selectedEvent.meeting.sec}`} />
-            <Detail label="Instructor" value={selectedEvent.course.instructors.find(instructor => [...instructor.lectures, ...instructor.labs, ...instructor.tutorials].includes(selectedEvent.meeting))?.name ?? 'Not published'} />
+            <Detail label="Instructor" value={meetingInstructor(selectedEvent)} />
             <Detail label="Schedule" value={`${DAY_LABEL[selectedEvent.meeting.day]} · ${formatRange(selectedEvent.meeting.start, selectedEvent.meeting.end)}`} />
             <Detail label="Room" value={selectedEvent.meeting.room || 'Not published'} />
           </div>

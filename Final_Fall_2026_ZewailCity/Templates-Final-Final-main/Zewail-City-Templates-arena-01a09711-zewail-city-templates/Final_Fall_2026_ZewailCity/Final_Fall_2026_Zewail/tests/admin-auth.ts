@@ -17,6 +17,7 @@ process.env.UPSTASH_REDIS_REST_TOKEN = 'test-only-token';
 
 const memory = new Map<string, string>();
 const history: string[] = [];
+const securityEntries: string[] = [];
 const reportIds: string[] = [];
 const reportRows = new Map<string, string>();
 const feedbackIds: string[] = [];
@@ -25,12 +26,14 @@ const emailRows = new Map<string, string>();
 const requests = new Map<string, number>();
 let emailSends = 0;
 let emailShouldFail = false;
+let lastSecurityMail: any = null;
 let storageDown = false;
 (globalThis as any).fetch = async (_url: string, options: { body: string; headers?: Record<string, string> }) => {
   if (_url === 'https://script.google.com/macros/s/test-deployment/exec') {
     emailSends++;
     const payload = JSON.parse(options.body);
-    assert(payload.secret === 'x'.repeat(40) && !!payload.id && !options.body.includes('Please check this meeting.'), 'Email webhook exposed the report or missed authentication');
+    assert(payload.secret === 'x'.repeat(40) && !!payload.id && !options.body.includes('Please check this meeting.') && !options.body.includes('long-test-password'), 'Email webhook exposed a report or credential');
+    if (payload.kind === 'security') lastSecurityMail = payload;
     return { ok: true, status: 200, json: async () => ({ ok: !emailShouldFail }) };
   }
   if (storageDown) throw new Error('Storage unavailable');
@@ -39,13 +42,16 @@ let storageDown = false;
   if (command === 'GET') result = memory.get(args[0]) ?? null;
   if (command === 'LPUSH') { history.unshift(args[1]); result = history.length; }
   if (command === 'LRANGE') result = history.slice(args[1], args[2] + 1);
+  if (command === 'LRANGE' && args[0].includes(':security:')) result = securityEntries.slice(args[1], args[2] + 1);
   if (command === 'HGET') result = (args[0].includes(':feedback:') ? feedbackRows : reportRows).get(args[1]) ?? null;
   if (command === 'HMGET') result = args.slice(1).map((id: string) => (args[0].includes(':email:') ? emailRows : args[0].includes(':feedback:') ? feedbackRows : reportRows).get(id) ?? null);
   if (command === 'HSET') { (args[0].includes(':email:') ? emailRows : reportRows).set(args[1], args[2]); result = 1; }
   if (command === 'LRANGE' && args[0].includes(':reports:')) result = reportIds.slice(args[1], args[2] + 1);
   if (command === 'LRANGE' && args[0].includes(':feedback:')) result = feedbackIds.slice(args[1], args[2] + 1);
   if (command === 'EVAL') {
-    if (args[0].includes("return n")) {
+    if (args[0].includes("redis.call('LTRIM'")) {
+      securityEntries.unshift(args[3]); securityEntries.length = Math.min(200, securityEntries.length); result = 1;
+    } else if (args[0].includes("return n")) {
       const key = args[2];
       result = (requests.get(key) || 0) + 1;
       requests.set(key, result);
@@ -71,10 +77,10 @@ let storageDown = false;
   return { ok: true, json: async () => ({ result }) };
 };
 
-async function call(method: string, body: unknown = {}, cookie = '', query: Record<string, string> = {}, origin = 'https://example.test', ip = 'test-ip', contentType = 'application/json') {
+async function call(method: string, body: unknown = {}, cookie = '', query: Record<string, string> = {}, origin = 'https://example.test', ip = '192.0.2.1', contentType = 'application/json') {
   const result: { code: number; body: any; cookie?: string } = { code: 0, body: null };
   const response = { setHeader: (name: string, value: string) => { if (name === 'Set-Cookie') result.cookie = value; }, status: (code: number) => { result.code = code; return response; }, json: (data: any) => { result.body = data; return response; } };
-  await handler({ method, headers: { host: 'example.test', origin, cookie, 'content-type': contentType }, query, body, socket: { remoteAddress: ip } }, response);
+  await handler({ method, headers: { host: 'example.test', origin, cookie, 'content-type': contentType, 'user-agent': 'Mozilla/5.0 (Windows NT 10.0) AppleWebKit/537.36 Chrome/120.0' }, query, body, socket: { remoteAddress: ip } }, response);
   return result;
 }
 async function reportCall(body: unknown, origin = 'https://example.test') {
@@ -107,6 +113,11 @@ async function main() {
   const ahmed = getCookie(a), youssef = getCookie(b);
   assert((await call('GET', {}, ahmed)).body.user.name === 'Ahmed Amir', 'Ahmed identity missing');
   assert((await call('GET', {}, youssef)).body.user.name === 'Youssef Taha', 'Youssef identity missing');
+  assert(!(await call('GET', {}, '', { action: 'security' })).body.entries, 'Guest read security events');
+  const log = (await call('GET', {}, ahmed, { action: 'security' })).body.entries;
+  assert(log.some((entry: any) => entry.action === 'login_failure' && entry.claimedUsername === 'ahmed' && !entry.adminName), 'Failed sign-in was not logged as unverified');
+  assert(log.some((entry: any) => entry.action === 'login_success' && entry.adminName === 'Ahmed Amir' && entry.ip === '192.0.2.1' && entry.device === 'Chrome · Windows'), 'Verified sign-in metadata missing');
+  assert(!JSON.stringify(log).includes('long-test-password') && !JSON.stringify(log).includes('test-only-token'), 'Security log leaked a credential');
   assert(!(await call('GET', {}, ahmed.replace(/.$/, 'x'))).body.authenticated, 'Forged session accepted');
 
   const first = JSON.stringify(semester);
@@ -170,8 +181,19 @@ async function main() {
   assert((await feedbackCall({ category: 'Overall experience', rating: 9, message: '' })).code === 201, 'Anonymous overall rating-only feedback rejected');
   assert((await feedbackCall(message)).code === 201 && (await feedbackCall(message)).code === 429, 'Feedback rate limit failed');
   assert((await call('DELETE', {}, ahmed)).cookie?.includes('Max-Age=0') === true, 'Logout cookie missing');
-  for (let i = 0; i < 5; i++) assert((await call('POST', { action: 'login', username: 'ahmed', password: 'wrong' }, '', {}, 'https://example.test', 'brute-force-ip')).code === 401, 'Login limit blocked too soon');
-  assert((await call('POST', { action: 'login', username: 'ahmed', password: 'ahmed-long-test-password' }, '', {}, 'https://example.test', 'brute-force-ip')).code === 429, 'Distributed login limit did not block valid credentials');
+  for (let i = 0; i < 5; i++) assert((await call('POST', { action: 'login', username: 'ahmed', password: 'wrong' }, '', {}, 'https://example.test', '192.0.2.88')).code === 401, 'Login limit blocked too soon');
+  assert((await call('POST', { action: 'login', username: 'ahmed', password: 'ahmed-long-test-password' }, '', {}, 'https://example.test', '192.0.2.88')).code === 429, 'Distributed login limit did not block valid credentials');
+  assert((await call('GET', {}, ahmed, { action: 'security' })).body.entries[0].action === 'login_blocked', 'Blocked attempt was not recorded');
+  process.env.PLANORA_REPORT_MAIL_WEBHOOK_URL = 'https://script.google.com/macros/s/test-deployment/exec';
+  process.env.PLANORA_REPORT_MAIL_WEBHOOK_SECRET = 'x'.repeat(40);
+  process.env.PLANORA_SECURITY_MAIL_ENABLED = 'true';
+  const alerted = await call('POST', { action: 'login', username: 'youssef', password: 'youssef-long-test-password' }, '', {}, 'https://example.test', '192.0.2.55');
+  assert(alerted.code === 200 && lastSecurityMail?.action === 'login_success' && lastSecurityMail.ip === '192.0.2.55', 'Opt-in sign-in email was not sent');
+  lastSecurityMail = null;
+  for (let i = 0; i < 6; i++) await call('POST', { action: 'login', username: 'not-an-admin', password: 'wrong' }, '', {}, 'https://example.test', '192.0.2.66');
+  assert(lastSecurityMail?.action === 'login_blocked' && !lastSecurityMail.adminName, 'Opt-in lockout email was not sent or wrongly identified a visitor');
+  delete process.env.PLANORA_SECURITY_MAIL_ENABLED;
+  delete process.env.PLANORA_REPORT_MAIL_WEBHOOK_URL;
   storageDown = true;
   const failed = await call('POST', { action: 'login', username: 'ahmed', password: 'ahmed-long-test-password' });
   assert(failed.code === 503 && !failed.cookie, 'Login succeeded without audit storage');

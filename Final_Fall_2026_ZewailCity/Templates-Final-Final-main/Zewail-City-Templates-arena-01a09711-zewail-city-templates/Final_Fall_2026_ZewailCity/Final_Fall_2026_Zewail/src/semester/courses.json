@@ -3266,5 +3266,9 @@
         "tutorials": []
       }
     ]
-  }
+  },
+  { "id": "engl003", "code": "ENGL 003", "name": "ENGL 003", "c": 2, "noFixedSchedule": true, "awaitingSource": true, "instructors": [] },
+  { "id": "engl004", "code": "ENGL 004", "name": "ENGL 004", "c": 2, "noFixedSchedule": true, "awaitingSource": true, "instructors": [] },
+  { "id": "engl156", "code": "ENGL 156", "name": "ENGL 156", "c": 2, "noFixedSchedule": true, "awaitingSource": true, "instructors": [] },
+  { "id": "engl157", "code": "ENGL 157", "name": "ENGL 157", "c": 2, "noFixedSchedule": true, "awaitingSource": true, "instructors": [] }
 ]

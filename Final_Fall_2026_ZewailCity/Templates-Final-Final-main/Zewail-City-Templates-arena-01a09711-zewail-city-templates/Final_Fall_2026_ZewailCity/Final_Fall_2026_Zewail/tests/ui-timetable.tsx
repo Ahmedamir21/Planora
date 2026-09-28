@@ -12,6 +12,7 @@ const root = createRoot(dom.window.document.getElementById('root')!);
 act(() => root.render(<Timetable events={[{ course, meeting }]} hiddenCount={0} />));
 const card = dom.window.document.querySelector(`button[aria-label="View ${course.code} Lecture section ${meeting.sec} details"]`) as HTMLButtonElement;
 if (!card) throw new Error('The session cannot be opened');
+if (!card.textContent?.includes(course.instructors[0].name)) throw new Error('The timetable card does not show its instructor');
 act(() => card.click());
 const dialog = dom.window.document.querySelector('[role="dialog"]');
 if (!dialog?.textContent?.includes(course.name) || !dialog.textContent.includes(course.instructors[0].name) || !dialog.textContent.includes(meeting.room)) throw new Error('Published meeting details are missing');

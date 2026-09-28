@@ -10,6 +10,7 @@ import { ADMIN_ACCOUNTS } from '../admin-accounts';
 import { REPORTS_DATA, REPORTS_KEY } from './reports';
 import { REPORT_EMAIL_STATUS } from './report-email';
 import { FEEDBACK_DATA, FEEDBACK_IDS, feedbackSummary, type Feedback } from './feedback';
+import { SECURITY_KEY, clientIp, securityEmail, securityEvent } from './admin-security';
 
 const COOKIE = 'planora_admin';
 const FILES = ['semester.json', 'courses.json', 'majors.json', 'sch.json'] as const;
@@ -135,6 +136,10 @@ export default async function handler(req: any, res: any) {
         const raw = await redis(['LRANGE', HISTORY_KEY, page * 20, page * 20 + 19]);
         return res.status(200).json({ entries: (raw || []).map((row: string) => JSON.parse(row)) });
       }
+      if (action === 'security') {
+        const raw = await redis(['LRANGE', SECURITY_KEY, 0, 199]);
+        return res.status(200).json({ entries: (raw || []).map((row: string) => JSON.parse(row)) });
+      }
       if (action === 'draft') {
         if (!allowedFile(req.query?.file)) return res.status(400).json({ error: 'Invalid filename.' });
         const content = await redis(['GET', draftKey(req.query.file)]);
@@ -149,18 +154,25 @@ export default async function handler(req: any, res: any) {
     }
     const body = req.body && typeof req.body === 'object' ? req.body : {};
     if (body.action === 'login') {
-      const ip = String(req.headers['x-forwarded-for'] || req.socket?.remoteAddress || 'unknown').split(',')[0].trim();
-      if (await rateLimited('admin-login', ip, 5, 15 * 60, config.secret)) return res.status(429).json({ error: 'Too many attempts. Try again later.' });
       const username = typeof body.username === 'string' ? body.username : '';
       const password = typeof body.password === 'string' ? body.password : '';
+      const ip = clientIp(req);
+      if (await rateLimited('admin-login', ip, 5, 15 * 60, config.secret)) {
+        const blocked = await securityEvent(req, 'login_blocked', username);
+        if (!(await rateLimited('admin-alert-blocked', ip, 1, 15 * 60, config.secret))) await securityEmail(blocked);
+        return res.status(429).json({ error: 'Too many attempts. Try again later.' });
+      }
       const candidate = config.admins.find(a => equal(a.username, username));
       if (!candidate || !verifyPassword(password, candidate.hash)) {
+        await securityEvent(req, 'login_failure', username);
         return res.status(401).json({ error: 'Incorrect username or password.' });
       }
+      const signIn = await securityEvent(req, 'login_success', username, candidate.name);
       await redis(['LPUSH', HISTORY_KEY, event(candidate, 'login')]);
       const age = 8 * 60 * 60;
       const payload = Buffer.from(JSON.stringify({ id: candidate.id, exp: Date.now() + age * 1000 })).toString('base64url');
       res.setHeader('Set-Cookie', cookie(`${payload}.${sign(payload, config.secret)}`, age));
+      await securityEmail(signIn);
       return res.status(200).json({ authenticated: true, user: { id: candidate.id, name: candidate.name } });
     }
     if (!admin) return res.status(401).json({ error: 'Sign in again.' });

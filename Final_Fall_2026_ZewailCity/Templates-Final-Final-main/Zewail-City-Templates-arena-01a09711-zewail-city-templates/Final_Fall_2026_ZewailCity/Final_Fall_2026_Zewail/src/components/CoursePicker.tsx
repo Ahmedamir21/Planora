@@ -459,8 +459,7 @@ function CourseCard({
           className="mt-3 rounded-lg px-2.5 py-2 text-[11.5px] leading-relaxed"
           style={{ background: 'var(--surface)', color: 'var(--muted)' }}
         >
-          No fixed schedule — arranged individually. Its {course.credits ?? 0} credit
-          {(course.credits ?? 0) === 1 ? '' : 's'} still count toward your limit; nothing appears on the timetable.
+          {course.awaitingSource ? 'Course details, credits and sections are awaiting verified Self-Service data. This selection has no timetable entry; the shown credit total excludes its unknown credits.' : <>No fixed schedule — arranged individually. Its {course.credits ?? 0} credit{(course.credits ?? 0) === 1 ? '' : 's'} still count toward your limit; nothing appears on the timetable.</>}
         </p>
       )}
 

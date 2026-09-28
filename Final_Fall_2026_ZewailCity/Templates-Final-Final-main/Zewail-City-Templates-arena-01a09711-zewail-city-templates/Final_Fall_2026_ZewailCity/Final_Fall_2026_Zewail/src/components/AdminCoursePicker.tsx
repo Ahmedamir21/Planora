@@ -1,4 +1,4 @@
-import { useId, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 import type { Course } from '../types';
 
 export function AdminCoursePicker({ courses, value, onChange, label }: {
@@ -11,6 +11,7 @@ export function AdminCoursePicker({ courses, value, onChange, label }: {
   const [open, setOpen] = useState(false);
   const resultsId = useId();
   const selected = courses.find(course => course.id === value);
+  useEffect(() => { if (!open && selected) setQuery(`${selected.code} · ${selected.name}`); }, [selected?.code, selected?.name, value, open]);
   const words = query.trim().toLocaleLowerCase().split(/\s+/).filter(Boolean);
   const matches = courses.filter(course => {
     const text = `${course.code} ${course.name}`.toLocaleLowerCase();
