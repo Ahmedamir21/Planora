@@ -61,6 +61,7 @@ export function ScheduleDetails({
                 <span className="pill" style={{ flex: 'none' }}>
                   Instructor
                 </span>
+                {entry.course.awaitingSource && <span style={{ color: 'var(--warn)' }}>Not published</span>}
                 {instructorLabels(entry).map((l) => (
                   <span key={l.kind} style={{ color: l.unassigned ? 'var(--warn)' : 'var(--ink)' }}>
                     {instructorLabels(entry).length > 1 ? `${l.kind}: ` : ''}{l.name}
