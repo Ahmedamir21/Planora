@@ -3,7 +3,7 @@ import { COURSE_BY_ID } from './data/courses';
 import {
   allAvailableCourseIds,
   allYearCourseIds,
-  COMMON_COURSE_IDS,
+  sharedCourseIdsForMajor,
   MAJOR_BY_ID,
   yearBadgeOf,
   yearPlanOf,
@@ -334,7 +334,7 @@ export default function App() {
     if (!major || !yearPlan) return [];
 
     // Current year's courses + common courses (e.g. SCH) available to every year.
-    const baseIds = [...yearPlan.courseIds, ...(major.id === 'cyber' ? [] : COMMON_COURSE_IDS)];
+    const baseIds = [...new Set([...yearPlan.courseIds, ...sharedCourseIdsForMajor(major)])];
 
     const base = baseIds
       .map((id) => COURSE_BY_ID[id])

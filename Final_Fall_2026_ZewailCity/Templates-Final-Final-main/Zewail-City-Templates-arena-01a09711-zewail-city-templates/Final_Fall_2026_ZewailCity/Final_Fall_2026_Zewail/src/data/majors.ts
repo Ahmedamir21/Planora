@@ -1,6 +1,7 @@
 
 import type { Major, YearPlan } from '../types';
 import { SCH_ELECTIVE_COURSE_IDS } from './schElectives';
+import { ENGLISH_LEVEL_COURSE_IDS } from './courses';
 
 export const YEAR_IDS = ['y1', 'y2', 'y3', 'y4'] as const;
 
@@ -10,6 +11,7 @@ export const YEAR_IDS = ['y1', 'y2', 'y3', 'y4'] as const;
  */
 export const COMMON_COURSE_IDS: string[] = [
   ...SCH_ELECTIVE_COURSE_IDS,
+  ...ENGLISH_LEVEL_COURSE_IDS,
 ];
 
 import majorData from '../semester/majors.json';
@@ -41,17 +43,22 @@ export function allYearCourseIds(major: Major): string[] {
   return out;
 }
 
-export function allAvailableCourseIds(major: Major): string[] {
+export function allAvailableCourseIds(major: Major, availableEnglishIds: string[] = ENGLISH_LEVEL_COURSE_IDS): string[] {
   const seen = new Set<string>();
   const out: string[] = [];
 
-  [...allYearCourseIds(major), ...(major.id === 'cyber' ? [] : COMMON_COURSE_IDS)].forEach((id) => {
+  [...allYearCourseIds(major), ...sharedCourseIdsForMajor(major, availableEnglishIds)].forEach((id) => {
     if (seen.has(id)) return;
     seen.add(id);
     out.push(id);
   });
 
   return out;
+}
+
+/** Cyber's unpublished upper-year plans stay empty; verified English is shared with everyone. */
+export function sharedCourseIdsForMajor(major: Major, availableEnglishIds: string[] = ENGLISH_LEVEL_COURSE_IDS): string[] {
+  return major.id === 'cyber' ? availableEnglishIds : [...SCH_ELECTIVE_COURSE_IDS, ...availableEnglishIds];
 }
 
 export function yearBadgeOf(

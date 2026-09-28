@@ -83,15 +83,22 @@ export function parseAdminImport(input: string, selectedCourseCode = '', format:
     });
     if (!sections.length) warnings.push('No Self-Service Subtype/Section results found. Check the copied text or use CSV.');
   }
-  // A duplicate may disagree about the actual time or room. Never select one silently.
+  // Repeated identical exports are harmless; distinct meetings of one section need review.
   const key = (row: ImportRow) => `${normalized(row.courseCode)}|${row.subtype}|${row.section.trim().toUpperCase()}`;
-  const counts = new Map<string, number>();
-  for (const row of rows) counts.set(key(row), (counts.get(key(row)) || 0) + 1);
-  const unique = rows.filter(row => {
-    if (counts.get(key(row)) === 1) return true;
-    warnings.push(`${row.courseCode} ${row.subtype} ${row.section}: duplicate in this import; all copies skipped. Check Self-Service before editing.`);
-    return false;
-  });
+  const grouped = new Map<string, ImportRow[]>();
+  for (const row of rows) grouped.set(key(row), [...(grouped.get(key(row)) ?? []), row]);
+  const unique: ImportRow[] = [];
+  for (const group of grouped.values()) {
+    const variants = new Set(group.map(row => JSON.stringify([row.day, row.start, row.end, row.room, row.instructor])));
+    if (variants.size > 1) {
+      const first = group[0];
+      const overlap = group.some((a, i) => group.slice(i + 1).some(b => a.day === b.day && a.start < b.end && b.start < a.end));
+      group.forEach(() => warnings.push(`${first.courseCode} ${first.subtype} ${first.section}: ${overlap ? 'conflicting rows' : 'multiple meeting times'} for one section; all held for manual review.`));
+    } else {
+      unique.push(group[0]);
+      group.slice(1).forEach(() => warnings.push(`${group[0].courseCode} ${group[0].subtype} ${group[0].section}: identical repeated row ignored.`));
+    }
+  }
   return { rows: unique, warnings };
 }
 

@@ -52,6 +52,12 @@ jobs:
       - name: Admin course search tests
         run: npm run test:admin-ui
 
+      - name: Times and rooms CSV import tests
+        run: npm run test:patch && npm run test:patch-ui
+
+      - name: Optional English course readiness
+        run: npm run test:english
+
       - name: Scheduling engine audit
         run: npm run test:audit
 
