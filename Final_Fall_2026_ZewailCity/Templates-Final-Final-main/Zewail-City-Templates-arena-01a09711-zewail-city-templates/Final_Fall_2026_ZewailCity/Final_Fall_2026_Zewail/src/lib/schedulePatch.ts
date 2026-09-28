@@ -30,7 +30,7 @@ function parseClock(input: string): number | null {
 }
 
 /** Quote-aware CSV reader; preserves strings such as section 01 and rooms with commas. */
-function csvRows(input: string): { cells: string[]; line: number }[] {
+export function csvRows(input: string): { cells: string[]; line: number }[] {
   const rows: { cells: string[]; line: number }[] = [];
   let fields: string[] = [], field = '', quoted = false, closed = false, line = 1, rowStart = 1;
   for (let i = 0; i < input.length; i++) {

@@ -12,6 +12,11 @@ for (const code of ENGLISH_LEVEL_CODES) {
   check(COURSES.filter(course => course.code === code).length <= 1, `${code} must have no duplicate published record`);
 }
 check(new Set(ENGLISH_LEVEL_COURSE_IDS).size === ENGLISH_LEVEL_COURSE_IDS.length, 'Published English course IDs must remain unique');
+check(ENGLISH_LEVEL_COURSE_IDS.length === 4, 'All four English shells should exist');
+for (const code of ENGLISH_LEVEL_CODES) {
+  const shell = COURSES.find(course => course.code === code)!;
+  check(shell.awaitingSource && shell.noFixedSchedule && shell.credits === undefined && shell.instructors.length === 0, `${code}: no academic facts should be invented`);
+}
 const fixtures: Course[] = ENGLISH_LEVEL_CODES.map((code, index) => ({
   id: `test-engl-${code.slice(-3)}`, code, name: `Fixture ${code}`, c: 2, credits: index + 1,
   instructors: [{ name: 'Fixture instructor', lectures: [{ type: 'Lecture', sec: '01', day: 'Mon', start: 600, end: 720, room: 'Fixture room' }], labs: [], tutorials: [] }],
@@ -27,4 +32,4 @@ for (const major of MAJORS) for (const year of major.years) {
 check(fixtures.every(course => buildCoursePairings(course).length === 1), 'A verified English meeting should be selectable');
 check(overlaps(fixtures[0].instructors[0].lectures[0], fixtures[1].instructors[0].lectures[0]), 'Two conflicting English sections must conflict');
 check(fixtures.slice(0, 2).reduce((sum, course) => sum + (course.credits ?? 0), 0) === 3, 'Chosen levels must count their published credit values');
-console.log(`English readiness: optional shared fixtures passed; ${ENGLISH_LEVEL_CODES.length - ENGLISH_LEVEL_COURSE_IDS.length} levels still await verified published records`);
+console.log('English readiness: all four optional shells are shared, empty and await verified course details');

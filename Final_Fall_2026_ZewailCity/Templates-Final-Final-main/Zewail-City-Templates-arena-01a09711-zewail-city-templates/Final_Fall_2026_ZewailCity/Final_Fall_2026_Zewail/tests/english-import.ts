@@ -1,0 +1,20 @@
+import { COURSES } from '../src/data/courses';
+import { ENGLISH_CSV_HEADER, previewEnglishImport } from '../src/lib/englishImport';
+import { buildCoursePairings } from '../src/lib/scheduler';
+
+const check = (value: unknown, message: string) => { if (!value) throw new Error(message); };
+const line = (code: string, section: string, start = '10:00', end = '12:00') => `${code},Verified English Course,3,Lecture,${section},Tue,${start},${end},G015-E,Verified Instructor`;
+const input = [ENGLISH_CSV_HEADER, line('ENGL 003', '01'), line('ENGL 003', '02', '12:00', '14:00'), line('ENGL 004', '01')].join('\n');
+const preview = previewEnglishImport(input, COURSES);
+check(preview.applied === 3 && preview.changes.length === 2 && preview.rejected.length === 0, 'Official English metadata and three sections must stage');
+const engl = preview.next.find(c => c.code === 'ENGL 003')!;
+check(engl.name === 'Verified English Course' && engl.credits === 3 && !engl.noFixedSchedule && !engl.awaitingSource, 'Shell must become complete only after verified CSV');
+check(engl.instructors[0].lectures[0].sec === '01' && buildCoursePairings(engl).length === 2, 'Leading zeros and selectable section alternatives lost');
+check(preview.next.find(c => c.code === 'CSAI 201')?.instructors[0].lectures[0].room === COURSES.find(c => c.code === 'CSAI 201')?.instructors[0].lectures[0].room, 'An unrelated course changed');
+check(COURSES.find(c => c.code === 'ENGL 003')?.awaitingSource, 'Preview modified the source catalog');
+check(previewEnglishImport([ENGLISH_CSV_HEADER, line('ENGL 003', '01'), line('ENGL 003', '02', '12:00', '13:59')].join('\n'), COURSES).applied === 0, 'Partial section import accepted ambiguous time');
+check(previewEnglishImport([ENGLISH_CSV_HEADER, line('ENGL 003', '01'), line('ENGL 003', '01', '12:00', '14:00')].join('\n'), COURSES).applied === 0, 'Multiple meetings for the same section were silently applied');
+check(previewEnglishImport([ENGLISH_CSV_HEADER, line('MATH 105', '01')].join('\n'), COURSES).applied === 0, 'Non-English course accepted');
+check(previewEnglishImport(input, preview.next).applied === 0, 'Existing course overwritten by repeated English import');
+check(previewEnglishImport([ENGLISH_CSV_HEADER, line('ENGL 003', '01').replace('G015-E', 'ROOM_UNPUBLISHED')].join('\n'), COURSES).next.find(c => c.code === 'ENGL 003')?.instructors[0].lectures[0].room === '', 'Verified unpublished room marker was stored as a physical room');
+console.log('English CSV: verified metadata, zero-padded sections, isolation and unsafe rows OK');

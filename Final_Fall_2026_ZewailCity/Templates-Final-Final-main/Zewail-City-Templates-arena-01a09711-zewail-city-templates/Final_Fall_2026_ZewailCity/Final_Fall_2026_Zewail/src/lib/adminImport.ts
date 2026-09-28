@@ -109,6 +109,7 @@ export function applyAdminImport(courses: Course[], rows: ImportRow[]): { course
     const matches = result.filter(course => normalized(course.code) === normalized(row.courseCode));
     if (matches.length !== 1) { warnings.push(`Row ${index + 1}: ${row.courseCode} is not a unique course in this draft; skipped.`); continue; }
     const course = matches[0];
+    if (course.awaitingSource) { warnings.push(`Row ${index + 1}: ${course.code} needs a verified name and credits. Use the complete English CSV importer.`); continue; }
     const list = groups[row.subtype];
     const prior = course.instructors.flatMap(teacher => teacher[list].filter(meeting => meeting.sec === row.section));
     if (prior.length > 1) { warnings.push(`Row ${index + 1}: ${course.code} ${row.subtype} ${row.section} is ambiguous; edit it manually.`); continue; }
@@ -120,6 +121,7 @@ export function applyAdminImport(courses: Course[], rows: ImportRow[]): { course
     for (const instructor of course.instructors) instructor[list] = instructor[list].filter(meeting => meeting.sec !== row.section);
     const meeting: Meeting = { type: row.subtype, sec: row.section, day: row.day, start: row.start, end: row.end, room: row.room };
     teacher[list].push(meeting);
+    if (course.noFixedSchedule) course.noFixedSchedule = false;
     applied++;
     if (!row.room) warnings.push(`Row ${index + 1}: room is unpublished. Review before saving.`);
   }

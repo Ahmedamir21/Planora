@@ -38,6 +38,13 @@ if (!doc.body.textContent?.includes('Internal ID: csai201')) throw Error('Pickin
 const nameField = Array.from(doc.querySelectorAll('input')).find(input => input.parentElement?.textContent?.includes('Course name'))!;
 type(nameField, 'Data Structures (reviewed)');
 if (draft.find(course => course.id === 'csai201')?.name !== 'Data Structures (reviewed)') throw Error('Course edit was not staged');
+const roomField = Array.from(doc.querySelectorAll('input')).find(input => input.parentElement?.textContent?.startsWith('Room'))!;
+type(roomField, 'VERIFIED-ROOM');
+if (!draft.find(course => course.id === 'csai201')?.instructors[0].lectures[0].room.includes('VERIFIED-ROOM')) throw Error('Meeting room edit was not staged');
+if (!doc.querySelector('[aria-label="Private preview of selected course"]')?.textContent?.includes('VERIFIED-ROOM')) throw Error('Private student timetable did not reflect the edit');
+const codeField = Array.from(doc.querySelectorAll('input')).find(input => input.parentElement?.textContent?.includes('Course code'))!;
+type(codeField, 'CSAI 201 REVIEW');
+if (!doc.querySelector('[aria-label="Private preview of selected course"]')?.textContent?.includes('CSAI 201 REVIEW')) throw Error('Private timetable did not reflect course code change');
 if (!doc.body.textContent?.includes('Change is only in this browser')) throw Error('Save guidance is missing');
 act(() => root.unmount());
 console.log('Admin course search by code/name and draft guidance OK');

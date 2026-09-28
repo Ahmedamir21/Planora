@@ -15,6 +15,7 @@
     "test:patch": "esbuild tests/schedule-patch.ts --bundle --platform=node --format=esm --outfile=node_modules/.tmp/schedule-patch.mjs --log-level=error && node node_modules/.tmp/schedule-patch.mjs",
     "test:patch-ui": "esbuild tests/ui-schedule-patch.tsx --bundle --platform=node --format=esm --packages=external --jsx=automatic --outfile=node_modules/.tmp/ui-schedule-patch.mjs --log-level=error && node node_modules/.tmp/ui-schedule-patch.mjs",
     "test:english": "esbuild tests/english-readiness.ts --bundle --platform=node --format=esm --outfile=node_modules/.tmp/english-readiness.mjs --log-level=error && node node_modules/.tmp/english-readiness.mjs",
+    "test:english-import": "esbuild tests/english-import.ts --bundle --platform=node --format=esm --outfile=node_modules/.tmp/english-import.mjs --log-level=error && node node_modules/.tmp/english-import.mjs",
     "test:harness": "esbuild tests/harness.ts --bundle --platform=node --format=esm --outfile=node_modules/.tmp/harness.mjs --log-level=error && node node_modules/.tmp/harness.mjs",
     "test:audit": "esbuild tests/engine-audit.ts --bundle --platform=node --format=esm --outfile=node_modules/.tmp/engine-audit.mjs --log-level=error && node node_modules/.tmp/engine-audit.mjs",
     "test:platform": "esbuild tests/platform-features.ts --bundle --platform=node --format=esm --outfile=node_modules/.tmp/platform-features.mjs --log-level=error && node node_modules/.tmp/platform-features.mjs",

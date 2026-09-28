@@ -44,11 +44,13 @@ export interface Course {
   /** Legacy grouping kept for reference (IT 205 / DSAI 203 share the elective slot). */
   group?: string;
   /**
-   * True only for courses confirmed to exist (with real credit value) but with ZERO
-   * published day/time/room/instructor data (e.g. Senior Project). Their schedule is
-   * arranged individually — nothing is ever invented for them, they simply carry credits.
+   * No published meetings. Senior Project is arranged individually and carries its
+   * confirmed credits. English shells are instead marked awaitingSource and have
+   * unknown credits until a verified CSV fills all official details.
    */
   noFixedSchedule?: boolean;
+  /** English level shell awaiting a verified course title, credits and published sections. */
+  awaitingSource?: boolean;
   instructors: Instructor[];
 }
 

@@ -55,7 +55,7 @@ COURSES.forEach((course) => {
   check(`${course.code}: name is non-empty`, Boolean(course.name.trim()));
   check(`${course.code}: palette index is 1..7`, Number.isInteger(course.c) && course.c >= 1 && course.c <= 7);
   check(`${course.code}: credits are valid when present`, course.credits == null || (Number.isFinite(course.credits) && course.credits >= 0 && course.credits <= 21));
-  check(`${course.code}: has at least one instructor bucket`, course.instructors.length > 0);
+  check(`${course.code}: has an instructor bucket or is an empty English shell`, course.instructors.length > 0 || course.awaitingSource === true && /^ENGL (003|004|156|157)$/.test(course.code) && course.credits === undefined && course.name === course.code && course.noFixedSchedule === true);
 
   const meetings: Meeting[] = [];
   const identities = new Set<string>();

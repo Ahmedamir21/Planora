@@ -102,7 +102,7 @@ export function ScheduleDetails({
 
               {entry.pairing.meetings.length === 0 && (
                 <p className="text-[11.5px]" style={{ color: 'var(--muted)' }}>
-                  No scheduled meetings for this instructor.
+                  {entry.course.awaitingSource ? 'Official sections, times and credits have not been added yet.' : 'No scheduled meetings for this instructor.'}
                 </p>
               )}
             </div>

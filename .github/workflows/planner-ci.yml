@@ -58,7 +58,7 @@ jobs:
         run: npm run test:patch && npm run test:patch-ui
 
       - name: Optional English course readiness
-        run: npm run test:english
+        run: npm run test:english && npm run test:english-import
 
       - name: Scheduling engine audit
         run: npm run test:audit

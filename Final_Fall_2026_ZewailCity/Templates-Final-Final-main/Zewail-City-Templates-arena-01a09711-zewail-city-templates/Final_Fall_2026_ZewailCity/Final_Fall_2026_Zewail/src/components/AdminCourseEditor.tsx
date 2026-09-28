@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { Course, Day, Instructor, Meeting } from '../types';
 import { AdminCoursePicker } from './AdminCoursePicker';
+import { Timetable } from './Timetable';
 
 type ComponentKey = 'lectures' | 'labs' | 'tutorials';
 const components: ComponentKey[] = ['lectures', 'labs', 'tutorials'];
@@ -52,6 +53,7 @@ export function AdminCourseEditor({ courses, onChange }: { courses: Course[]; on
           <label className="font-semibold">Room<input className="select mt-1" value={meeting.room} onChange={event => changeMeeting(i, kind, j, item => { item.room = event.target.value; })} /></label>
         </div>))}
       </div>)}
+      <div aria-label="Private preview of selected course"><h4 className="mb-2 text-sm font-semibold">Student timetable preview · private draft</h4><p className="mb-3 text-xs">Changes to times, rooms and sections appear here immediately. The public planner uses the deployed catalog until the reviewed JSON is published.</p><Timetable events={course.instructors.flatMap(instructor => [...instructor.lectures, ...instructor.labs, ...instructor.tutorials].map(meeting => ({ course, meeting })))} hiddenCount={0} variant="draft" /></div>
     </div>}
   </div>;
 }
