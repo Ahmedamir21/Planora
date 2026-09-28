@@ -60,6 +60,12 @@ for(let i=0;i<12;i++){
 }
 assert.equal((await secured({cookie:sessionCookie})).statusCode,429,'Assistant browser limit was bypassed across requests');
 assert.equal(providerCalls,12,'Blocked requests still reached the AI provider');
+const ipKey = [...counts.keys()].find(key => key.includes(':assistant-ip:'));
+assert(ipKey,'Shared IP limit was not counted');
+counts.set(ipKey,900);
+assert.equal((await secured()).statusCode,429,'Shared IP ceiling was bypassed');
+assert.equal(providerCalls,12,'Shared IP block still reached the AI provider');
+counts.set(ipKey,0);
 console.log('PASS protected assistant origin, JSON, private API key and distributed browser limit');
 
 const priorFetch = globalThis.fetch;

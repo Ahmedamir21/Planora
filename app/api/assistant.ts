@@ -148,8 +148,9 @@ export default async function handler(req: any, res: any) {
   try {
     const id = browserId(req, res, secret);
     const ip = clientKey(req);
+    // A campus NAT can put the entire cohort behind one public address.
     if (await rateLimited('assistant-browser', id, 12, 60, secret) ||
-        await rateLimited('assistant-ip', ip, 240, 60, secret)) {
+        await rateLimited('assistant-ip', ip, 900, 60, secret)) {
       return res.status(429).json({ error: 'Too many messages right now. Please try again in a minute.' });
     }
   } catch {
