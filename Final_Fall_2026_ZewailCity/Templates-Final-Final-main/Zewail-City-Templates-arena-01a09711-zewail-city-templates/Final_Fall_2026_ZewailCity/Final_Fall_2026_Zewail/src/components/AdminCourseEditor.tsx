@@ -8,7 +8,7 @@ const components: ComponentKey[] = ['lectures', 'labs', 'tutorials'];
 const days: Day[] = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu'];
 const clock = (minutes: number) => `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`;
 
-/** All edits remain in the browser draft until the main admin form records a source and saves. */
+/** Edits remain in the browser until the authenticated admin reviews and saves them. */
 export function AdminCourseEditor({ courses, onChange }: { courses: Course[]; onChange: (next: Course[]) => void }) {
   const [selectedId, setSelectedId] = useState('');
   const [notice, setNotice] = useState('');
@@ -19,9 +19,12 @@ export function AdminCourseEditor({ courses, onChange }: { courses: Course[]; on
     if (!target) return;
     edit(target);
     onChange(next);
-    setNotice('Change is only in this browser. Review the changes below, enter a source or reason, then click “Save private draft & record history”. It is not live for students.');
+    setNotice('Change is only in this browser. Review it, enter its verified source, then use Save & publish to students below.');
   };
-  const changeInstructor = (index: number, value: string) => stage(target => { target.instructors[index].name = value; });
+  const changeInstructor = (index: number, value: string) => stage(target => {
+    target.instructors[index].name = value;
+    target.instructors[index].unassigned = /^\s*(instructor\s+not\s+assigned|tba)\s*$/i.test(value);
+  });
   const changeMeeting = (i: number, kind: ComponentKey, j: number, edit: (meeting: Meeting) => void) => stage(target => edit(target.instructors[i][kind][j]));
   const changeTime = (i: number, kind: ComponentKey, j: number, field: 'start' | 'end', value: string) => {
     if (!/^\d{2}:\d{2}$/.test(value)) return;
@@ -33,7 +36,7 @@ export function AdminCourseEditor({ courses, onChange }: { courses: Course[]; on
 
   return <div className="panel-soft mb-4 p-4">
     <h3 className="font-semibold">Edit one course</h3>
-    <p className="mt-1 text-xs" style={{ color: 'var(--muted)' }}>Pick a course and change only the published field you checked in Self-Service. These edits stay in the private draft until you review and save them below.</p>
+    <p className="mt-1 text-xs" style={{ color: 'var(--muted)' }}>Pick a course and change only the field you checked in Self-Service. Review and publish below to update the student site.</p>
     <AdminCoursePicker courses={courses} value={selectedId} onChange={id => { setSelectedId(id); setNotice(''); }} label="Course to edit" />
     {notice && <p role="status" className="mt-3 text-xs" style={{ color: 'var(--accent)' }}>{notice}</p>}
     {course && <div className="mt-4 space-y-4">
@@ -53,7 +56,7 @@ export function AdminCourseEditor({ courses, onChange }: { courses: Course[]; on
           <label className="font-semibold">Room<input className="select mt-1" value={meeting.room} onChange={event => changeMeeting(i, kind, j, item => { item.room = event.target.value; })} /></label>
         </div>))}
       </div>)}
-      <div aria-label="Private preview of selected course"><h4 className="mb-2 text-sm font-semibold">Student timetable preview · private draft</h4><p className="mb-3 text-xs">Changes to times, rooms and sections appear here immediately. The public planner uses the deployed catalog until the reviewed JSON is published.</p><Timetable events={course.instructors.flatMap(instructor => [...instructor.lectures, ...instructor.labs, ...instructor.tutorials].map(meeting => ({ course, meeting })))} hiddenCount={0} variant="draft" /></div>
+      <div aria-label="Private preview of selected course"><h4 className="mb-2 text-sm font-semibold">Student timetable preview · browser edit</h4><p className="mb-3 text-xs">Changes to times, rooms and sections appear here immediately. Students see them only after a successful Save & publish.</p><Timetable events={course.instructors.flatMap(instructor => [...instructor.lectures, ...instructor.labs, ...instructor.tutorials].map(meeting => ({ course, meeting })))} hiddenCount={0} variant="draft" /></div>
     </div>}
   </div>;
 }
