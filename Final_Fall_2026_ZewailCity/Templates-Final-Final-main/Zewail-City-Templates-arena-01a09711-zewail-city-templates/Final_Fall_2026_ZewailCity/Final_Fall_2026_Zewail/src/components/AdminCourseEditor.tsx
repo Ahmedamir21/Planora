@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { Course, Day, Instructor, Meeting } from '../types';
+import { AdminCoursePicker } from './AdminCoursePicker';
 
 type ComponentKey = 'lectures' | 'labs' | 'tutorials';
 const components: ComponentKey[] = ['lectures', 'labs', 'tutorials'];
@@ -17,7 +18,7 @@ export function AdminCourseEditor({ courses, onChange }: { courses: Course[]; on
     if (!target) return;
     edit(target);
     onChange(next);
-    setNotice('Staged in the browser draft. Review the comparison and save with a source to record it.');
+    setNotice('Change is only in this browser. Review the changes below, enter a source or reason, then click “Save private draft & record history”. It is not live for students.');
   };
   const changeInstructor = (index: number, value: string) => stage(target => { target.instructors[index].name = value; });
   const changeMeeting = (i: number, kind: ComponentKey, j: number, edit: (meeting: Meeting) => void) => stage(target => edit(target.instructors[i][kind][j]));
@@ -32,12 +33,8 @@ export function AdminCourseEditor({ courses, onChange }: { courses: Course[]; on
   return <div className="panel-soft mb-4 p-4">
     <h3 className="font-semibold">Edit one course</h3>
     <p className="mt-1 text-xs" style={{ color: 'var(--muted)' }}>Pick a course and change only the published field you checked in Self-Service. These edits stay in the private draft until you review and save them below.</p>
-    <label className="mt-3 block text-xs font-semibold">Course
-      <select className="select mt-1" value={selectedId} onChange={event => { setSelectedId(event.target.value); setNotice(''); }}>
-        <option value="">Choose a course</option>
-        {courses.map(item => <option key={item.id} value={item.id}>{item.code} · {item.name}</option>)}
-      </select>
-    </label>
+    <AdminCoursePicker courses={courses} value={selectedId} onChange={id => { setSelectedId(id); setNotice(''); }} label="Course to edit" />
+    {notice && <p role="status" className="mt-3 text-xs" style={{ color: 'var(--accent)' }}>{notice}</p>}
     {course && <div className="mt-4 space-y-4">
       <p className="text-xs">Internal ID: <code>{course.id}</code> (kept stable for saved selections and links)</p>
       <div className="grid gap-3 sm:grid-cols-3">
@@ -55,7 +52,6 @@ export function AdminCourseEditor({ courses, onChange }: { courses: Course[]; on
           <label className="font-semibold">Room<input className="select mt-1" value={meeting.room} onChange={event => changeMeeting(i, kind, j, item => { item.room = event.target.value; })} /></label>
         </div>))}
       </div>)}
-      {notice && <p role="status" className="text-xs">{notice}</p>}
     </div>}
   </div>;
 }

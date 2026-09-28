@@ -49,6 +49,12 @@ jobs:
       - name: Admin login tests
         run: npm run test:admin
 
+      - name: Admin course search tests
+        run: npm run test:admin-ui
+
+      - name: Scheduling engine audit
+        run: npm run test:audit
+
       - name: SSR smoke test
         run: npm run test:ssr
 
