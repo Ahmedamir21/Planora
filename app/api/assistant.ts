@@ -1,6 +1,7 @@
-const WINDOW_MS = 60_000;
-const MAX_REQUESTS_PER_WINDOW = 12;
-const buckets = new Map();
+import { createHmac, randomUUID, timingSafeEqual } from 'node:crypto';
+import { rateLimited, storageConfigured } from './admin-store';
+import { jsonRequest, sameOrigin } from './security';
+
 
 const ASSISTANT_RESPONSE_SCHEMA = {
   type: 'object',
@@ -33,22 +34,19 @@ function clientKey(req) {
   return req.socket?.remoteAddress || 'unknown';
 }
 
-function rateLimited(key) {
-  const now = Date.now();
-
-  if (buckets.size > 2000) {
-    for (const [bucketKey, value] of buckets) {
-      if (now - value.startedAt > WINDOW_MS) buckets.delete(bucketKey);
-    }
+function browserId(req, res, secret) {
+  const raw = String(req.headers?.cookie || '').split(';').map(part => part.trim()).find(part => part.startsWith('planora_assistant='))?.slice('planora_assistant='.length);
+  const [id, signature, extra] = (raw || '').split('.');
+  if (!extra && /^[0-9a-f-]{36}$/.test(id || '') && typeof signature === 'string') {
+    const expected = createHmac('sha256', secret).update(id).digest('base64url');
+    const received = Buffer.from(signature);
+    const correct = Buffer.from(expected);
+    if (received.length === correct.length && timingSafeEqual(received, correct)) return id;
   }
-
-  const current = buckets.get(key);
-  if (!current || now - current.startedAt > WINDOW_MS) {
-    buckets.set(key, { startedAt: now, count: 1 });
-    return false;
-  }
-  current.count += 1;
-  return current.count > MAX_REQUESTS_PER_WINDOW;
+  const next = randomUUID();
+  const signatureNew = createHmac('sha256', secret).update(next).digest('base64url');
+  res.setHeader('Set-Cookie', `planora_assistant=${next}.${signatureNew}; Path=/api/assistant; HttpOnly; Secure; SameSite=Strict; Max-Age=2592000`);
+  return next;
 }
 
 /** Resolve an explicit section swap from the same options shown in the planner. */
@@ -128,12 +126,15 @@ function exactSectionChange(message: string, context: any) {
 }
 
 export default async function handler(req: any, res: any) {
-  res.setHeader('Cache-Control', 'no-store');
+  res.setHeader('Cache-Control', 'no-store, private');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
 
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
     return res.status(405).json({ error: 'Method not allowed' });
   }
+  if (!sameOrigin(req)) return res.status(403).json({ error: 'Invalid origin.' });
+  if (!jsonRequest(req, 100_000)) return res.status(413).json({ error: 'Invalid or oversized JSON request.' });
 
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
@@ -142,9 +143,17 @@ export default async function handler(req: any, res: any) {
     });
   }
 
-  const key = clientKey(req);
-  if (rateLimited(key)) {
-    return res.status(429).json({ error: 'Too many messages right now. Please try again in a minute.' });
+  const secret = process.env.PLANORA_ADMIN_SESSION_SECRET || apiKey;
+  if (!storageConfigured()) return res.status(503).json({ error: 'Assistant rate limiting is temporarily unavailable.' });
+  try {
+    const id = browserId(req, res, secret);
+    const ip = clientKey(req);
+    if (await rateLimited('assistant-browser', id, 12, 60, secret) ||
+        await rateLimited('assistant-ip', ip, 240, 60, secret)) {
+      return res.status(429).json({ error: 'Too many messages right now. Please try again in a minute.' });
+    }
+  } catch {
+    return res.status(503).json({ error: 'Assistant rate limiting is temporarily unavailable.' });
   }
 
   let body = {};
@@ -229,10 +238,10 @@ export default async function handler(req: any, res: any) {
     let parsed: any = null;
     for (let attempt = 0; attempt < 2; attempt += 1) {
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,
         {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
           signal,
           body: JSON.stringify({
             systemInstruction: { parts: [{ text: system }] },
@@ -250,7 +259,7 @@ export default async function handler(req: any, res: any) {
       const data = await response.json();
 
     if (!response.ok) {
-      console.error('Gemini API error', response.status, data?.error?.message || data);
+      console.error('Gemini API error', response.status);
       const geminiMessage = String(data?.error?.message || '');
       const status = response.status;
 
@@ -389,7 +398,7 @@ export default async function handler(req: any, res: any) {
 
     return res.status(200).json({ text: replyText, proposal, constraintsAdd, lockActions });
   } catch (error) {
-    console.error('Schedule Assistant request failed', error);
+    console.error('Schedule Assistant request failed', error instanceof Error ? error.name : 'unknown');
     if (error instanceof Error && (error.name === 'TimeoutError' || error.name === 'AbortError')) {
       return res.status(504).json({ error: 'The assistant took too long to answer. Please try again.' });
     }

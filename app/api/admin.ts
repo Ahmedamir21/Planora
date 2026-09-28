@@ -1,5 +1,6 @@
 import { createHash, createHmac, randomUUID, scryptSync, timingSafeEqual } from 'node:crypto';
-import { draftKey, HISTORY_KEY, redis, saveWithHistory, undoWithHistory, storageConfigured } from './admin-store';
+import { draftKey, HISTORY_KEY, rateLimited, redis, saveWithHistory, undoWithHistory, storageConfigured } from './admin-store';
+import { jsonRequest, sameOrigin } from './security';
 import { validateDataset } from '../dataset-validation.cjs';
 import publishedSemester from '../../Final_Fall_2026_ZewailCity/Templates-Final-Final-main/Zewail-City-Templates-arena-01a09711-zewail-city-templates/Final_Fall_2026_ZewailCity/Final_Fall_2026_Zewail/src/semester/semester.json';
 import publishedCourses from '../../Final_Fall_2026_ZewailCity/Templates-Final-Final-main/Zewail-City-Templates-arena-01a09711-zewail-city-templates/Final_Fall_2026_ZewailCity/Final_Fall_2026_Zewail/src/semester/courses.json';
@@ -12,8 +13,6 @@ import { FEEDBACK_DATA, FEEDBACK_IDS, feedbackSummary, type Feedback } from './f
 
 const COOKIE = 'planora_admin';
 const FILES = ['semester.json', 'courses.json', 'majors.json', 'sch.json'] as const;
-const WINDOW_MS = 15 * 60_000;
-const failures = new Map<string, { count: number; since: number }>();
 const UPDATE_REPORT = `local old = redis.call('HGET', KEYS[1], ARGV[1])
 if not old or old ~= ARGV[2] then return 0 end
 redis.call('HSET', KEYS[1], ARGV[1], ARGV[3])
@@ -106,16 +105,13 @@ function changes(before: string, after: string): string[] {
 function event(admin: Admin, action: string, options: Record<string, unknown> = {}) {
   return JSON.stringify({ id: randomUUID(), at: new Date().toISOString(), adminId: admin.id, adminName: admin.name, action, ...options });
 }
-function sameOrigin(req: any) {
-  try { return typeof req.headers.origin === 'string' && new URL(req.headers.origin).host === req.headers.host; }
-  catch { return false; }
-}
 export default async function handler(req: any, res: any) {
   res.setHeader('Cache-Control', 'no-store, private'); res.setHeader('X-Content-Type-Options', 'nosniff');
   const config = configured();
   if (!config) return res.status(503).json({ error: 'Set both admin password hashes and the session secret, and connect Upstash Redis to Production in Vercel.' });
   if (!['GET', 'POST', 'DELETE'].includes(req.method)) return res.status(405).json({ error: 'Method not allowed' });
   if (req.method !== 'GET' && !sameOrigin(req)) return res.status(403).json({ error: 'Invalid origin' });
+  if (req.method === 'POST' && !jsonRequest(req, 300_000)) return res.status(413).json({ error: 'Invalid or oversized JSON request.' });
   const admin = session(req, config);
   if (req.method === 'GET' && !admin) return res.status(200).json({ authenticated: false });
   try {
@@ -154,17 +150,14 @@ export default async function handler(req: any, res: any) {
     const body = req.body && typeof req.body === 'object' ? req.body : {};
     if (body.action === 'login') {
       const ip = String(req.headers['x-forwarded-for'] || req.socket?.remoteAddress || 'unknown').split(',')[0].trim();
-      const record = failures.get(ip);
-      if (record && Date.now() - record.since < WINDOW_MS && record.count >= 5) return res.status(429).json({ error: 'Too many attempts. Try again later.' });
+      if (await rateLimited('admin-login', ip, 5, 15 * 60, config.secret)) return res.status(429).json({ error: 'Too many attempts. Try again later.' });
       const username = typeof body.username === 'string' ? body.username : '';
       const password = typeof body.password === 'string' ? body.password : '';
       const candidate = config.admins.find(a => equal(a.username, username));
       if (!candidate || !verifyPassword(password, candidate.hash)) {
-        failures.set(ip, { count: record && Date.now() - record.since < WINDOW_MS ? record.count + 1 : 1, since: record && Date.now() - record.since < WINDOW_MS ? record.since : Date.now() });
         return res.status(401).json({ error: 'Incorrect username or password.' });
       }
       await redis(['LPUSH', HISTORY_KEY, event(candidate, 'login')]);
-      failures.delete(ip);
       const age = 8 * 60 * 60;
       const payload = Buffer.from(JSON.stringify({ id: candidate.id, exp: Date.now() + age * 1000 })).toString('base64url');
       res.setHeader('Set-Cookie', cookie(`${payload}.${sign(payload, config.secret)}`, age));
@@ -236,8 +229,8 @@ export default async function handler(req: any, res: any) {
       return res.status(200).json({ content });
     }
     return res.status(400).json({ error: 'Unknown admin action.' });
-  } catch (error) {
-    console.error('Admin storage operation failed', error instanceof Error ? error.message : 'unknown');
+  } catch {
+    console.error('Admin storage operation failed.');
     return res.status(503).json({ error: 'The audit storage is unavailable. No change was saved; try again later.' });
   }
 }

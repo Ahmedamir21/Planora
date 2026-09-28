@@ -1,6 +1,7 @@
 import { createHmac, randomUUID } from 'node:crypto';
 import { redis, storageConfigured } from './admin-store';
 import { notifyAdmins } from './report-email';
+import { jsonRequest, sameOrigin } from './security';
 
 export const REPORTS_KEY = 'planora:reports:ids:v1';
 export const REPORTS_DATA = 'planora:reports:data:v1';
@@ -13,16 +14,12 @@ redis.call('HSET', KEYS[3], ARGV[1], ARGV[2])
 redis.call('LPUSH', KEYS[2], ARGV[1])
 return 1`;
 
-function sameOrigin(req: any) {
-  try { return typeof req.headers.origin === 'string' && new URL(req.headers.origin).host === req.headers.host; }
-  catch { return false; }
-}
-
 export default async function handler(req: any, res: any) {
   res.setHeader('Cache-Control', 'no-store, private');
   res.setHeader('X-Content-Type-Options', 'nosniff');
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed.' });
   if (!sameOrigin(req)) return res.status(403).json({ error: 'Invalid origin.' });
+  if (!jsonRequest(req, 8_000)) return res.status(413).json({ error: 'Invalid or oversized JSON request.' });
   if (!storageConfigured()) return res.status(503).json({ error: 'Reports are temporarily unavailable. Please try again later.' });
   const body = req.body && typeof req.body === 'object' ? req.body : {};
   const fields = ['courseCode', 'component', 'section', 'details', 'publishedData'];
@@ -45,8 +42,8 @@ export default async function handler(req: any, res: any) {
     if (saved !== 1) return res.status(503).json({ error: 'The inbox is full. Please try again later.' });
     await notifyAdmins(report);
     return res.status(201).json({ id: report.id });
-  } catch (error) {
-    console.error('Report storage failed', error instanceof Error ? error.message : 'unknown');
+  } catch {
+    console.error('Report storage failed.');
     return res.status(503).json({ error: 'Report could not be delivered. Please try again later.' });
   }
 }

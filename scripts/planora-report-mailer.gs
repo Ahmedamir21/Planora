@@ -22,7 +22,7 @@ function doPost(e) {
     cache.put(data.id, 'sent', 21600);
     return reply_({ ok: true });
   } catch (error) {
-    console.error(error);
+    console.error('Planora mailer rejected a request.');
     return reply_({ ok: false });
   }
 }

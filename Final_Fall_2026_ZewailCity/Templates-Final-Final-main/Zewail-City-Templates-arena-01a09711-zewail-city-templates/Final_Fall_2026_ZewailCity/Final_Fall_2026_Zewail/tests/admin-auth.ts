@@ -45,7 +45,11 @@ let storageDown = false;
   if (command === 'LRANGE' && args[0].includes(':reports:')) result = reportIds.slice(args[1], args[2] + 1);
   if (command === 'LRANGE' && args[0].includes(':feedback:')) result = feedbackIds.slice(args[1], args[2] + 1);
   if (command === 'EVAL') {
-    if (args[0].includes("redis.call('INCR'")) {
+    if (args[0].includes("return n")) {
+      const key = args[2];
+      result = (requests.get(key) || 0) + 1;
+      requests.set(key, result);
+    } else if (args[0].includes("redis.call('INCR'")) {
       const [, , limitKey, , , id, content] = args;
       const count = (requests.get(limitKey) || 0) + 1; requests.set(limitKey, count);
       const isFeedback = limitKey.includes(':feedback:');
@@ -67,22 +71,22 @@ let storageDown = false;
   return { ok: true, json: async () => ({ result }) };
 };
 
-async function call(method: string, body: unknown = {}, cookie = '', query: Record<string, string> = {}, origin = 'https://example.test') {
+async function call(method: string, body: unknown = {}, cookie = '', query: Record<string, string> = {}, origin = 'https://example.test', ip = 'test-ip', contentType = 'application/json') {
   const result: { code: number; body: any; cookie?: string } = { code: 0, body: null };
   const response = { setHeader: (name: string, value: string) => { if (name === 'Set-Cookie') result.cookie = value; }, status: (code: number) => { result.code = code; return response; }, json: (data: any) => { result.body = data; return response; } };
-  await handler({ method, headers: { host: 'example.test', origin, cookie }, query, body, socket: { remoteAddress: 'test-ip' } }, response);
+  await handler({ method, headers: { host: 'example.test', origin, cookie, 'content-type': contentType }, query, body, socket: { remoteAddress: ip } }, response);
   return result;
 }
 async function reportCall(body: unknown, origin = 'https://example.test') {
   const result: { code: number; body: any } = { code: 0, body: null };
   const response = { setHeader: () => {}, status: (code: number) => { result.code = code; return response; }, json: (data: any) => { result.body = data; return response; } };
-  await reportHandler({ method: 'POST', headers: { host: 'example.test', origin }, body, socket: { remoteAddress: 'test-reporter' } }, response);
+  await reportHandler({ method: 'POST', headers: { host: 'example.test', origin, 'content-type': 'application/json' }, body, socket: { remoteAddress: 'test-reporter' } }, response);
   return result;
 }
 async function feedbackCall(body: unknown, origin = 'https://example.test') {
   const result: { code: number; body: any } = { code: 0, body: null };
   const response = { setHeader: () => {}, status: (code: number) => { result.code = code; return response; }, json: (data: any) => { result.body = data; return response; } };
-  await feedbackHandler({ method: 'POST', headers: { host: 'example.test', origin }, body, socket: { remoteAddress: 'feedback-test-user' } }, response);
+  await feedbackHandler({ method: 'POST', headers: { host: 'example.test', origin, 'content-type': 'application/json' }, body, socket: { remoteAddress: 'feedback-test-user' } }, response);
   return result;
 }
 const assert = (condition: boolean, message: string) => { if (!condition) throw new Error(message); };
@@ -93,6 +97,10 @@ async function main() {
   assert(!(await call('GET')).body.authenticated, 'Guest authenticated');
   assert((await call('POST', { action: 'login', username: 'ahmed', password: 'youssef-long-test-password' })).code === 401, 'Accounts share passwords');
   assert((await call('POST', { action: 'login', username: 'ahmed', password: 'ahmed-long-test-password' }, '', {}, 'https://evil.test')).code === 403, 'Origin check failed');
+  assert((await call('POST', { action: 'login' }, '', {}, 'http://example.test')).code === 403, 'Insecure origin was accepted');
+  assert((await call('POST', { action: 'login' }, '', {}, 'https://example.test.evil.test')).code === 403, 'Spoofed origin was accepted');
+  assert((await call('POST', { action: 'login' }, '', {}, 'https://example.test', 'test-ip', 'text/plain')).code === 413, 'Non-JSON login was accepted');
+  assert((await call('POST', { action: 'login', padding: 'x'.repeat(300_001) })).code === 413, 'Oversized login was accepted');
   const a = await call('POST', { action: 'login', username: 'ahmed', password: 'ahmed-long-test-password' });
   const b = await call('POST', { action: 'login', username: 'youssef', password: 'youssef-long-test-password' });
   assert(a.code === 200 && b.code === 200 && !!a.cookie?.includes('HttpOnly; Secure; SameSite=Strict'), 'Separate secure logins failed');
@@ -162,6 +170,8 @@ async function main() {
   assert((await feedbackCall({ category: 'Overall experience', rating: 9, message: '' })).code === 201, 'Anonymous overall rating-only feedback rejected');
   assert((await feedbackCall(message)).code === 201 && (await feedbackCall(message)).code === 429, 'Feedback rate limit failed');
   assert((await call('DELETE', {}, ahmed)).cookie?.includes('Max-Age=0') === true, 'Logout cookie missing');
+  for (let i = 0; i < 5; i++) assert((await call('POST', { action: 'login', username: 'ahmed', password: 'wrong' }, '', {}, 'https://example.test', 'brute-force-ip')).code === 401, 'Login limit blocked too soon');
+  assert((await call('POST', { action: 'login', username: 'ahmed', password: 'ahmed-long-test-password' }, '', {}, 'https://example.test', 'brute-force-ip')).code === 429, 'Distributed login limit did not block valid credentials');
   storageDown = true;
   const failed = await call('POST', { action: 'login', username: 'ahmed', password: 'ahmed-long-test-password' });
   assert(failed.code === 503 && !failed.cookie, 'Login succeeded without audit storage');

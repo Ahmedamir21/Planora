@@ -17,7 +17,7 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {
-    console.error('Planner UI crashed', error, info);
+    if (import.meta.env.DEV) console.error('Planner UI crashed', error, info);
   }
 
   private reset = () => {

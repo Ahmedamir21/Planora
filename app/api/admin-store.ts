@@ -1,4 +1,6 @@
 /** Private REST adapter. No browser code receives the Redis token. */
+import { createHmac } from 'node:crypto';
+
 function connection() {
   const upstashUrl = process.env.UPSTASH_REDIS_REST_URL;
   const upstashToken = process.env.UPSTASH_REDIS_REST_TOKEN;
@@ -29,6 +31,18 @@ export async function redis(command: Array<string | number>): Promise<any> {
 
 export const HISTORY_KEY = 'planora:admin:history:v1';
 export function draftKey(file: string) { return `planora:admin:draft:v1:${file}`; }
+
+// Atomic and shared across all serverless instances. A secret-derived key keeps IPs
+// and account names out of the Redis keyspace.
+const RATE_LIMIT = `local n = redis.call('INCR', KEYS[1])
+if n == 1 then redis.call('EXPIRE', KEYS[1], ARGV[1]) end
+return n`;
+export async function rateLimited(scope: string, identity: string, max: number, seconds: number, secret: string): Promise<boolean> {
+  const bucket = createHmac('sha256', secret).update(identity).digest('hex');
+  const count = await redis(['EVAL', RATE_LIMIT, 1, `planora:limit:${scope}:${bucket}`, seconds]);
+  if (!Number.isInteger(count) || count < 1) throw new Error('Invalid rate limit result.');
+  return count > max;
+}
 
 // Atomic compare-and-set. If the audit append fails, the draft write also fails.
 const SAVE_WITH_HISTORY = `local previous = redis.call('GET', KEYS[1]) or ''

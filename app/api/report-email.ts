@@ -17,8 +17,8 @@ export async function notifyAdmins(report: { id: string; courseCode: string; typ
     if (!response.ok || (await response.json()).ok !== true) throw new Error('Email sender did not confirm the alert.');
     await redis(['HSET', REPORT_EMAIL_STATUS, report.id, 'sent']);
     return 'sent';
-  } catch (error) {
-    console.error('Report email alert failed', error instanceof Error ? error.message : 'unknown');
+  } catch {
+    console.error('Report email alert failed.');
     try { await redis(['HSET', REPORT_EMAIL_STATUS, report.id, 'failed']); } catch { /* Report is still in the inbox. */ }
     return 'failed';
   }
