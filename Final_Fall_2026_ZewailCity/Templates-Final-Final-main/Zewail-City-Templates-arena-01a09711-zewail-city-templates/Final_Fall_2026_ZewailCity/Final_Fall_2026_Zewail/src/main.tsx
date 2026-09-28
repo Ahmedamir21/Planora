@@ -3,14 +3,30 @@ import { createRoot } from "react-dom/client";
 import "./index.css";
 import App from "./App";
 import { ErrorBoundary } from "./components/ErrorBoundary";
+import { hydrateCatalog } from './data/courses';
 
-createRoot(document.getElementById("root")!).render(
+async function start() {
+  try {
+    const response = await fetch('/api/catalog', { cache: 'no-store' });
+    if (!response.ok) throw new Error('Catalog unavailable');
+    const catalog = await response.json();
+    if (!hydrateCatalog(catalog.courses, catalog.sch)) throw new Error('Catalog incompatible with this version');
+  } catch {
+    const notice = document.createElement('p');
+    notice.setAttribute('role', 'alert');
+    notice.textContent = 'Live course updates are temporarily unavailable. Showing the built-in timetable; check again before relying on its times and rooms.';
+    notice.style.cssText = 'padding:12px;background:#854d0e;color:white;text-align:center';
+    document.body.prepend(notice);
+  }
+  createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <ErrorBoundary>
       <App />
     </ErrorBoundary>
   </StrictMode>,
 );
+}
+void start();
 
 if (import.meta.env.PROD && 'serviceWorker' in navigator) {
   window.addEventListener('load', () => {
