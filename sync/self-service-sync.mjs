@@ -91,7 +91,7 @@ async function searchCourse(page, code) {
   if (/requested URL was rejected|support ID/i.test(body)) throw new Error('Self-Service rejected the courses page.');
 
   const search = page.locator(SEARCH_SELECTOR).first();
-  if (await search.count() === 0) throw new Error(\`Could not find the configured visible course search input for \${code}. Nothing was clicked.\`);
+  if (await search.count() === 0) throw new Error(`Could not find the configured visible course search input for ${code}. Nothing was clicked.`);
   await search.fill(code);
   await search.press('Enter');
   await page.waitForLoadState('networkidle', { timeout:20_000 }).catch(()=>{});
@@ -100,20 +100,20 @@ async function searchCourse(page, code) {
   // Safety boundary: never guess which cards belong to the left results pane.
   required('SELF_SERVICE_RESULTS_SELECTOR', RESULTS_SELECTOR);
   const source = page.locator(RESULTS_SELECTOR).first();
-  if (await source.count() === 0) throw new Error(\`Configured left-results container was not found for \${code}. Right-side schedule was not inspected.\`);
+  if (await source.count() === 0) throw new Error(`Configured left-results container was not found for ${code}. Right-side schedule was not inspected.`);
 
   // Read the blue course-title link inside the configured LEFT results pane only.
   // This is a read operation; the scraper never clicks the course link.
   const linkTexts = await source.locator('a').allInnerTexts();
-  const escapedCode = code.replace(/[.*+?^\${}()|[\]\\]/g, '\\$&');
-  const titlePattern = new RegExp(\`^\\\\s*\${escapedCode}\\\\s*:\\\\s*\\\\S\`, 'i');
+  const escapedCode = code.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const titlePattern = new RegExp(`^\\\\s*${escapedCode}\\\\s*:\\\\s*\\\\S`, 'i');
   const courseTitle = linkTexts.map(value => value.trim()).find(value => titlePattern.test(value)) || '';
-  if (!courseTitle) throw new Error(\`Could not read the blue \${code}: Course Name link inside the configured left-results pane. Nothing was clicked.\`);
+  if (!courseTitle) throw new Error(`Could not read the blue ${code}: Course Name link inside the configured left-results pane. Nothing was clicked.`);
 
   const cards = source.locator('article, li, [class*="card"], [class*="Card"], [role="article"]');
   const texts = await cards.evaluateAll(nodes => nodes.map(node => node.innerText || '').filter(Boolean));
   const rawTexts = texts.length ? texts : [await source.innerText()];
-  const withTrustedTitle = rawTexts.map(text => new RegExp(escapedCode, 'i').test(text) && /:\\s*[^\\n]+/.test(text) ? text : \`\${courseTitle}\\n\${text}\`);
+  const withTrustedTitle = rawTexts.map(text => new RegExp(escapedCode, 'i').test(text) && /:\\s*[^\\n]+/.test(text) ? text : `${courseTitle}\\n${text}`);
   return pickCardTexts(withTrustedTitle);
 }
 
