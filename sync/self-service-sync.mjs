@@ -64,6 +64,7 @@ function pickCardTexts(texts) {
 async function login(page) {
   await page.goto(LOGIN_URL, { waitUntil:'domcontentloaded', timeout:45_000 });
   if (/requested URL was rejected|support ID/i.test(await page.locator('body').innerText().catch(()=>''))) throw new Error('Self-Service rejected the automation environment before login.');
+  await page.waitForSelector('#txtUserName, input:not([type="hidden"]):visible', { state:'visible', timeout:15_000 }).catch(()=>{});
   // PowerCampus renders the label without a `for` attribute; use its stable id,
   // then the first visible non-hidden input for runner variants with a rewritten id.
   let username = page.locator('#txtUserName').first();
