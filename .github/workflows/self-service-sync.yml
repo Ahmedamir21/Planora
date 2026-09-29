@@ -1,0 +1,38 @@
+name: Self-Service Draft Sync
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  fetch-draft:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install scraper dependency
+        working-directory: sync
+        run: npm install --no-audit --no-fund
+
+      - name: Install Chromium
+        working-directory: sync
+        run: npx playwright install --with-deps chromium
+
+      - name: Fetch Self-Service into Planora Draft
+        run: node sync/self-service-sync.mjs
+        env:
+          SELF_SERVICE_USERNAME: ${{ secrets.SELF_SERVICE_USERNAME }}
+          SELF_SERVICE_PASSWORD: ${{ secrets.SELF_SERVICE_PASSWORD }}
+          SELF_SERVICE_RESULTS_SELECTOR: ${{ secrets.SELF_SERVICE_RESULTS_SELECTOR }}
+          SELF_SERVICE_SEARCH_SELECTOR: ${{ secrets.SELF_SERVICE_SEARCH_SELECTOR }}
+          PLANORA_SYNC_INGEST_URL: ${{ secrets.PLANORA_SYNC_INGEST_URL }}
+          PLANORA_SYNC_INGEST_SECRET: ${{ secrets.PLANORA_SYNC_INGEST_SECRET }}
