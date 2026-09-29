@@ -14,7 +14,7 @@ const USERNAME = process.env.SELF_SERVICE_USERNAME;
 const PASSWORD = process.env.SELF_SERVICE_PASSWORD;
 const HEADLESS = process.env.SELF_SERVICE_HEADLESS !== 'false';
 const RESULTS_SELECTOR = process.env.SELF_SERVICE_RESULTS_SELECTOR;
-const SEARCH_SELECTOR = process.env.SELF_SERVICE_SEARCH_SELECTOR || 'input[type="search"]:visible, input[placeholder*="Search" i]:visible';
+const SEARCH_SELECTOR = process.env.SELF_SERVICE_SEARCH_SELECTOR;
 const END_59_IS_NEXT_HOUR = process.env.SELF_SERVICE_END_59_IS_NEXT_HOUR !== 'false';
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -138,6 +138,7 @@ async function main() {
   required('SELF_SERVICE_USERNAME', USERNAME);
   required('SELF_SERVICE_PASSWORD', PASSWORD);
   required('SELF_SERVICE_RESULTS_SELECTOR', RESULTS_SELECTOR);
+  required('SELF_SERVICE_SEARCH_SELECTOR', SEARCH_SELECTOR);
   required('PLANORA_SYNC_INGEST_URL', INGEST_URL);
   required('PLANORA_SYNC_INGEST_SECRET', INGEST_SECRET);
 
@@ -149,7 +150,12 @@ async function main() {
     const courses = JSON.parse(await fs.readFile(path.join(SEMESTER_DIR,'courses.json'),'utf8'));
     const sch = JSON.parse(await fs.readFile(path.join(SEMESTER_DIR,'sch.json'),'utf8'));
     const all = [...courses, ...sch], warnings = [], records = [];
-    const requested = process.env.PLANORA_COURSE_CODES ? process.env.PLANORA_COURSE_CODES.split(',').map(value=>value.trim().toUpperCase()).filter(Boolean) : all.map(course=>course.code);
+    const requestedRaw = required('PLANORA_COURSE_CODES', process.env.PLANORA_COURSE_CODES);
+    const requested = [...new Set(requestedRaw.split(',').map(value=>value.trim().toUpperCase()).filter(Boolean))];
+    if (!requested.length || requested.length > 3) throw new Error('First-test safety limit: provide 1 to 3 explicit PLANORA_COURSE_CODES only.');
+    const knownCodes = new Set(all.map(course => course.code));
+    const unknown = requested.filter(code => !knownCodes.has(code));
+    if (unknown.length) throw new Error(`Unknown Planora course code(s): ${unknown.join(', ')}.`);
     for (const code of requested) {
       const rows = await searchCourse(page, code);
       records.push(...rows);
