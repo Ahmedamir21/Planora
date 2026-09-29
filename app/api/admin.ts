@@ -129,18 +129,23 @@ function syncCounts(courses: any[], sch: any[]) {
 function syncChangeSummary(beforeCourses: any[], beforeSch: any[], nextCourses: any[], nextSch: any[]) {
   const before = [...beforeCourses, ...beforeSch];
   const next = [...nextCourses, ...nextSch];
-  const oldMap = new Map(before.map((course: any) => [course.id, JSON.stringify(course)]));
-  const newMap = new Map(next.map((course: any) => [course.id, JSON.stringify(course)]));
+  const oldMap = new Map(before.map((course: any) => [course.id, { raw: JSON.stringify(course), code: course.code || course.id }]));
+  const newMap = new Map(next.map((course: any) => [course.id, { raw: JSON.stringify(course), code: course.code || course.id }]));
   const ids = new Set([...oldMap.keys(), ...newMap.keys()]);
-  let changedCourses = 0, addedCourses = 0, removedCourses = 0;
+  const changed: string[] = [], added: string[] = [], removed: string[] = [];
   ids.forEach(id => {
-    if (!oldMap.has(id)) addedCourses++;
-    else if (!newMap.has(id)) removedCourses++;
-    else if (oldMap.get(id) !== newMap.get(id)) changedCourses++;
+    const oldCourse = oldMap.get(id); const newCourse = newMap.get(id);
+    if (!oldCourse && newCourse) added.push(String(newCourse.code));
+    else if (oldCourse && !newCourse) removed.push(String(oldCourse.code));
+    else if (oldCourse?.raw !== newCourse?.raw) changed.push(String(newCourse?.code || oldCourse?.code || id));
   });
   const beforeCounts = syncCounts(beforeCourses, beforeSch);
   const nextCounts = syncCounts(nextCourses, nextSch);
-  return { changedCourses, addedCourses, removedCourses, previousSections: beforeCounts.sections, sections: nextCounts.sections, sectionDelta: nextCounts.sections - beforeCounts.sections };
+  return {
+    changedCourses: changed.length, addedCourses: added.length, removedCourses: removed.length,
+    changed: changed.slice(0, 100), added: added.slice(0, 100), removed: removed.slice(0, 100),
+    previousSections: beforeCounts.sections, sections: nextCounts.sections, sectionDelta: nextCounts.sections - beforeCounts.sections,
+  };
 }
 function syncStatus(value: Record<string, unknown>) {
   return JSON.stringify({ updatedAt: new Date().toISOString(), ...value });
@@ -248,7 +253,14 @@ export default async function handler(req: any, res: any) {
       const previous = await redis(['GET', SYNC_DRAFT_KEY]) || '';
       if ((previous ? sha(previous) : '') !== expectedRevision) return res.status(409).json({ error: 'The sync draft changed. Refresh Self-Service Sync before staging again.' });
       const check = validateDataset({ semester: publishedSemester, majors: publishedMajors, courses: dataset.courses, sch: dataset.sch });
-      if (check.errors.length) return res.status(400).json({ error: `Fetched data has ${check.errors.length} blocking validation errors.`, errors: check.errors.slice(0, 30) });
+      if (check.errors.length) {
+        const failedAt = new Date().toISOString();
+        const counts = syncCounts(dataset.courses, dataset.sch);
+        const status = syncStatus({ state: 'Failed', phase: 'validation_failed', startedAt: typeof body.startedAt === 'string' ? body.startedAt : failedAt, finishedAt: failedAt, source, ...counts, errors: check.errors.length, warnings: check.warnings.length });
+        await redis(['SET', SYNC_STATUS_KEY, status]);
+        await redis(['LPUSH', HISTORY_KEY, event(admin, 'sync_rejected', { source, changed: check.errors.slice(0, 10), method: 'Fetched data rejected before Draft; live data unchanged' })]);
+        return res.status(400).json({ error: `Fetched data has ${check.errors.length} blocking validation errors. Live data was not changed.`, errors: check.errors.slice(0, 30) });
+      }
       const live = await effectiveCatalog();
       const diff = syncChangeSummary(live.courses, live.sch, dataset.courses, dataset.sch);
       const warnings = [...check.warnings];
