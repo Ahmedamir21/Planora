@@ -1,1 +1,116 @@
-aW1wb3J0IHR5cGUgeyBNYWpvciB9IGZyb20gJy4uL3R5cGVzJzsKaW1wb3J0IHsgQ09VUlNFX0JZX0lEIH0gZnJvbSAnLi4vZGF0YS9jb3Vyc2VzJzsKaW1wb3J0IHsgTUFKT1JTIH0gZnJvbSAnLi4vZGF0YS9tYWpvcnMnOwoKaW50ZXJmYWNlIFByb3BzIHsKICBzZWxlY3RlZElkOiBzdHJpbmcgfCBudWxsOwogIG9uU2VsZWN0OiAoaWQ6IHN0cmluZykgPT4gdm9pZDsKICBjb21wYWN0PzogYm9vbGVhbjsKICB5ZWFySWQ/OiBzdHJpbmcgfCBudWxsOwp9CgpleHBvcnQgZnVuY3Rpb24gTWFqb3JQaWNrZXIoeyBzZWxlY3RlZElkLCBvblNlbGVjdCwgY29tcGFjdCA9IGZhbHNlLCB5ZWFySWQgfTogUHJvcHMpIHsKICByZXR1cm4gKAogICAgPGRpdgogICAgICBjbGFzc05hbWU9ewogICAgICAgIGNvbXBhY3QKICAgICAgICAgID8gJ2dyaWQgZ2FwLTIgc206Z3JpZC1jb2xzLTIgbGc6Z3JpZC1jb2xzLTQnCiAgICAgICAgICA6ICdncmlkIGdhcC0zIHNtOmdyaWQtY29scy0yIGxnOmdyaWQtY29scy00JwogICAgICB9CiAgICA+CiAgICAgIHtNQUpPUlMuZmlsdGVyKG1ham9yID0+ICgheWVhcklkIHx8IG1ham9yLnllYXJzLnNvbWUoeWVhciA9PiB5ZWFyLmlkID09PSB5ZWFySWQpKSAmJiAhKHllYXJJZCA9PT0gJ3kxJyAmJiBtYWpvci5pZCA9PT0gJ2l0JykpLm1hcCgobWFqb3IpID0+ICgKICAgICAgICA8TWFqb3JDYXJkIGtleT17bWFqb3IuaWR9IG1ham9yPXttYWpvcn0gc2VsZWN0ZWQ9e3NlbGVjdGVkSWQgPT09IG1ham9yLmlkfSBvblNlbGVjdD17KCkgPT4gb25TZWxlY3QobWFqb3IuaWQpfSBjb21wYWN0PXtjb21wYWN0fSB5ZWFySWQ9e3llYXJJZH0gLz4KICAgICAgKSl9CiAgICA8L2Rpdj4KICApOwp9CgpmdW5jdGlvbiBNYWpvckNhcmQoewogIG1ham9yLAogIHNlbGVjdGVkLAogIG9uU2VsZWN0LAogIGNvbXBhY3QsCiAgeWVhcklkLAp9OiB7CiAgbWFqb3I6IE1ham9yOwogIHNlbGVjdGVkOiBib29sZWFuOwogIG9uU2VsZWN0OiAoKSA9PiB2b2lkOwogIGNvbXBhY3Q6IGJvb2xlYW47CiAgeWVhcklkPzogc3RyaW5nIHwgbnVsbDsKfSkgewogIGNvbnN0IHllYXJDb3Vyc2VzID0gbWFqb3IueWVhcnMuZmluZCh5ZWFyID0+IHllYXIuaWQgPT09IHllYXJJZCk/LmNvdXJzZUlkcyA/PyBbXTsKICBjb25zdCBjb3Vyc2VzUGVuZGluZyA9IEJvb2xlYW4oeWVhcklkICYmIHllYXJDb3Vyc2VzLmxlbmd0aCA9PT0gMCk7CiAgcmV0dXJuICgKICAgIDxidXR0b24KICAgICAgdHlwZT0iYnV0dG9uIgogICAgICBvbkNsaWNrPXtvblNlbGVjdH0KICAgICAgYXJpYS1wcmVzc2VkPXtzZWxlY3RlZH0KICAgICAgY2xhc3NOYW1lPSJncm91cCB0ZXh0LWxlZnQgdHJhbnNpdGlvbi1hbGwiCiAgICAgIHN0eWxlPXt7CiAgICAgICAgYm9yZGVyUmFkaXVzOiAxNCwKICAgICAgICBib3JkZXI6IGAxcHggc29saWQgJHtzZWxlY3RlZCA/ICd2YXIoLS1hY2NlbnQpJyA6ICd2YXIoLS1saW5lKSd9YCwKICAgICAgICBiYWNrZ3JvdW5kOiBzZWxlY3RlZCA/ICdjb2xvci1taXgoaW4gc3JnYiwgdmFyKC0tYWNjZW50KSAxMCUsIHZhcigtLXBhcGVyKSknIDogJ3ZhcigtLXBhcGVyKScsCiAgICAgICAgYm94U2hhZG93OiBzZWxlY3RlZCA/ICdpbnNldCAwIDAgMCAxcHggdmFyKC0tYWNjZW50KSwgdmFyKC0tc2hhZG93KScgOiAnbm9uZScsCiAgICAgICAgcGFkZGluZzogY29tcGFjdCA/ICcxMHB4IDEycHgnIDogJzE2cHgnLAogICAgICB9fQogICAgPgogICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBpdGVtcy1zdGFydCBqdXN0aWZ5LWJldHdlZW4gZ2FwLTIiPgogICAgICAgIDxkaXYgY2xhc3NOYW1lPSJtaW4tdy0wIj4KICAgICAgICAgIDxwCiAgICAgICAgICAgIGNsYXNzTmFtZT0idHJ1bmNhdGUgdGV4dC1bMTBweF0gZm9udC1ib2xkIHVwcGVyY2FzZSB0cmFja2luZy1bMC4wOWVtXSIKICAgICAgICAgICAgc3R5bGU9e3sgY29sb3I6IHNlbGVjdGVkID8gJ3ZhcigtLWFjY2VudCknIDogJ3ZhcigtLW11dGVkLTIpJyB9fQogICAgICAgICAgPgogICAgICAgICAgICB7bWFqb3Iuc3VidGl0bGV9CiAgICAgICAgICA8L3A+CiAgICAgICAgICA8aDMgY2xhc3NOYW1lPXtgbXQtMSB0cnVuY2F0ZSBmb250LWJvbGQgdHJhY2tpbmctdGlnaHQgJHtjb21wYWN0ID8gJ3RleHQtWzEzLjVweF0nIDogJ3RleHQtWzE2cHhdJ31gfT4KICAgICAgICAgICAge21ham9yLnRpdGxlfQogICAgICAgICAgPC9oMz4KICAgICAgICA8L2Rpdj4KICAgICAgICA8c3BhbgogICAgICAgICAgY2xhc3NOYW1lPSJtdC0wLjUgZmxleCBoLTQgdy00IGZsZXgtbm9uZSBpdGVtcy1jZW50ZXIganVzdGlmeS1jZW50ZXIgcm91bmRlZC1mdWxsIGJvcmRlciB0cmFuc2l0aW9uLWNvbG9ycyIKICAgICAgICAgIHN0eWxlPXt7CiAgICAgICAgICAgIGJvcmRlckNvbG9yOiBzZWxlY3RlZCA/ICd2YXIoLS1hY2NlbnQpJyA6ICd2YXIoLS1saW5lKScsCiAgICAgICAgICAgIGJhY2tncm91bmQ6IHNlbGVjdGVkID8gJ3ZhcigtLWFjY2VudCknIDogJ3RyYW5zcGFyZW50JywKICAgICAgICAgIH19CiAgICAgICAgICBhcmlhLWhpZGRlbgogICAgICAgID4KICAgICAgICAgIHtzZWxlY3RlZCAmJiAoCiAgICAgICAgICAgIDxzdmcgdmlld0JveD0iMCAwIDI0IDI0IiBjbGFzc05hbWU9ImgtMyB3LTMiIGZpbGw9Im5vbmUiIHN0cm9rZT0idmFyKC0tYWNjZW50LWluaykiIHN0cm9rZVdpZHRoPXszLjV9PgogICAgICAgICAgICAgIDxwYXRoIGQ9Ik01IDEzbDQgNEwxOSA3IiAvPgogICAgICAgICAgICA8L3N2Zz4KICAgICAgICAgICl9CiAgICAgICAgPC9zcGFuPgogICAgICA8L2Rpdj4KCiAgICAgIHshY29tcGFjdCAmJiAoCiAgICAgICAgPD4KICAgICAgICAgIDxwIGNsYXNzTmFtZT0ibXQtMiB0ZXh0LVsxMnB4XSBsZWFkaW5nLXJlbGF4ZWQiIHN0eWxlPXt7IGNvbG9yOiAndmFyKC0tbXV0ZWQpJyB9fT4KICAgICAgICAgICAge2NvdXJzZXNQZW5kaW5nCiAgICAgICAgICAgICAgPyBgTm8gJHttYWpvci50aXRsZX0gY291cnNlcyBoYXZlIGJlZW4gcHVibGlzaGVkIGZvciBZZWFyICR7eWVhcklkPy5zbGljZSgxKX0geWV0LiBZb3UgY2FuIHN0aWxsIGJyb3dzZSBzaGFyZWQgY291cnNlcyBhbmQgY291cnNlcyBmcm9tIG90aGVyIHllYXJzLmAKICAgICAgICAgICAgICA6IHllYXJJZCA9PT0gJ3kxJyAmJiBtYWpvci5pZCA9PT0gJ3NvZnR3YXJlJwogICAgICAgICAgICAgICAgPyAnRXhwbG9yZSB0aGUgcHVibGlzaGVkIGZpcnN0LXllYXIgY291cnNlcyBmb3IgdGhpcyBtYWpvci4nCiAgICAgICAgICAgICAgICA6IG1ham9yLmJsdXJifQogICAgICAgICAgPC9wPgogICAgICAgICAgPGRpdiBjbGFzc05hbWU9Im10LTMgZmxleCBmbGV4LXdyYXAgZ2FwLTEuNSI+CiAgICAgICAgICAgIHsvKiBQcmV2aWV3IGNvdXJzZXMgZnJvbSB0aGUgY2hvc2VuIHllYXIsIG5ldmVyIGEgZGlmZmVyZW50IHllYXIncyBkYXRhLiAqL30KICAgICAgICAgICAge3llYXJDb3Vyc2VzLm1hcCgoaWQpID0+IHsKICAgICAgICAgICAgICBjb25zdCBjb3Vyc2UgPSBDT1VSU0VfQllfSURbaWRdOwogICAgICAgICAgICAgIHJldHVybiAoCiAgICAgICAgICAgICAgICA8c3BhbgogICAgICAgICAgICAgICAgICBrZXk9e2lkfQogICAgICAgICAgICAgICAgICBjbGFzc05hbWU9Im1vbm8gcm91bmRlZC1tZCBweC0xLjUgcHktMC41IHRleHQtWzEwLjVweF0gZm9udC1tZWRpdW0iCiAgICAgICAgICAgICAgICAgIHN0eWxlPXt7CiAgICAgICAgICAgICAgICAgICAgY29sb3I6IGB2YXIoLS1jJHtjb3Vyc2UuY30pYCwKICAgICAgICAgICAgICAgICAgICBiYWNrZ3JvdW5kOiBgdmFyKC0tYyR7Y291cnNlLmN9LWJnKWAsCiAgICAgICAgICAgICAgICAgIH19CiAgICAgICAgICAgICAgICA+CiAgICAgICAgICAgICAgICAgIHtjb3Vyc2UuY29kZX0KICAgICAgICAgICAgICAgIDwvc3Bhbj4KICAgICAgICAgICAgICApOwogICAgICAgICAgICB9KX0KICAgICAgICAgIDwvZGl2PgogICAgICAgIDwvPgogICAgICApfQogICAgPC9idXR0b24+CiAgKTsKfQo=
+import type { Major } from '../types';
+import { COURSE_BY_ID } from '../data/courses';
+import { MAJORS } from '../data/majors';
+
+interface Props {
+  selectedId: string | null;
+  onSelect: (id: string) => void;
+  compact?: boolean;
+  yearId?: string | null;
+}
+
+export function MajorPicker({ selectedId, onSelect, compact = false, yearId }: Props) {
+  return (
+    <div
+      className={
+        compact
+          ? 'grid gap-2 sm:grid-cols-2 lg:grid-cols-4'
+          : 'grid gap-3 sm:grid-cols-2 lg:grid-cols-4'
+      }
+    >
+      {MAJORS.filter(major => (!yearId || major.years.some(year => year.id === yearId)) && !(yearId === 'y1' && major.id === 'it')).map((major) => (
+        <MajorCard key={major.id} major={major} selected={selectedId === major.id} onSelect={() => onSelect(major.id)} compact={compact} yearId={yearId} />
+      ))}
+    </div>
+  );
+}
+
+function MajorCard({
+  major,
+  selected,
+  onSelect,
+  compact,
+  yearId,
+}: {
+  major: Major;
+  selected: boolean;
+  onSelect: () => void;
+  compact: boolean;
+  yearId?: string | null;
+}) {
+  const yearCourses = major.years.find(year => year.id === yearId)?.courseIds ?? [];
+  const coursesPending = Boolean(yearId && yearCourses.length === 0);
+  return (
+    <button
+      type="button"
+      onClick={onSelect}
+      aria-pressed={selected}
+      className="group text-left transition-all"
+      style={{
+        borderRadius: 14,
+        border: `1px solid ${selected ? 'var(--accent)' : 'var(--line)'}`,
+        background: selected ? 'color-mix(in srgb, var(--accent) 10%, var(--paper))' : 'var(--paper)',
+        boxShadow: selected ? 'inset 0 0 0 1px var(--accent), var(--shadow)' : 'none',
+        padding: compact ? '10px 12px' : '16px',
+      }}
+    >
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <p
+            className="truncate text-[10px] font-bold uppercase tracking-[0.09em]"
+            style={{ color: selected ? 'var(--accent)' : 'var(--muted-2)' }}
+          >
+            {major.subtitle}
+          </p>
+          <h3 className={`mt-1 truncate font-bold tracking-tight ${compact ? 'text-[13.5px]' : 'text-[16px]'}`}>
+            {major.title}
+          </h3>
+        </div>
+        <span
+          className="mt-0.5 flex h-4 w-4 flex-none items-center justify-center rounded-full border transition-colors"
+          style={{
+            borderColor: selected ? 'var(--accent)' : 'var(--line)',
+            background: selected ? 'var(--accent)' : 'transparent',
+          }}
+          aria-hidden
+        >
+          {selected && (
+            <svg viewBox="0 0 24 24" className="h-3 w-3" fill="none" stroke="var(--accent-ink)" strokeWidth={3.5}>
+              <path d="M5 13l4 4L19 7" />
+            </svg>
+          )}
+        </span>
+      </div>
+
+      {!compact && (
+        <>
+          <p className="mt-2 text-[12px] leading-relaxed" style={{ color: 'var(--muted)' }}>
+            {coursesPending
+              ? `No ${major.title} courses have been published for Year ${yearId?.slice(1)} yet. You can still browse shared courses and courses from other years.`
+              : yearId === 'y1' && major.id === 'software'
+                ? 'Explore the published first-year courses for this major.'
+                : major.blurb}
+          </p>
+          <div className="mt-3 flex flex-wrap gap-1.5">
+            {/* Preview courses from the chosen year, never a different year's data. */}
+            {yearCourses.map((id) => {
+              const course = COURSE_BY_ID[id];
+              return (
+                <span
+                  key={id}
+                  className="mono rounded-md px-1.5 py-0.5 text-[10.5px] font-medium"
+                  style={{
+                    color: `var(--c${course.c})`,
+                    background: `var(--c${course.c}-bg)`,
+                  }}
+                >
+                  {course.code}
+                </span>
+              );
+            })}
+          </div>
+        </>
+      )}
+    </button>
+  );
+}
