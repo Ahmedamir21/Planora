@@ -12,6 +12,7 @@ import { REPORTS_DATA, REPORTS_KEY } from './reports';
 import { REPORT_EMAIL_STATUS } from './report-email';
 import { FEEDBACK_DATA, FEEDBACK_IDS, feedbackSummary, type Feedback } from './feedback';
 import { SECURITY_KEY, clientIp, securityEmail, securityEvent } from './admin-security';
+import { SYNC_BACKUPS_KEY, SYNC_DRAFT_KEY, SYNC_STATUS_KEY, discardSyncDraft, publishSyncDraft, restoreSyncBackup, stageSyncDraft, syncBackupKey } from './sync-store';
 
 const COOKIE = 'planora_admin';
 const FILES = ['semester.json', 'courses.json', 'majors.json', 'sch.json'] as const;
@@ -107,6 +108,43 @@ function changes(before: string, after: string): string[] {
 function event(admin: Admin, action: string, options: Record<string, unknown> = {}) {
   return JSON.stringify({ id: randomUUID(), at: new Date().toISOString(), adminId: admin.id, adminName: admin.name, action, ...options });
 }
+
+async function effectiveCatalog() {
+  const [coursesOverride, schOverride] = await Promise.all([
+    redis(['GET', liveKey('courses.json')]), redis(['GET', liveKey('sch.json')]),
+  ]);
+  return {
+    coursesOverride: coursesOverride || '',
+    schOverride: schOverride || '',
+    courses: coursesOverride ? JSON.parse(coursesOverride) : publishedCourses,
+    sch: schOverride ? JSON.parse(schOverride) : publishedSch,
+  };
+}
+function syncCounts(courses: any[], sch: any[]) {
+  const all = [...courses, ...sch];
+  const meetings = all.flatMap(course => Array.isArray(course?.instructors) ? course.instructors : [])
+    .flatMap((teacher: any) => [...(teacher.lectures || []), ...(teacher.labs || []), ...(teacher.tutorials || [])]);
+  return { courses: all.length, sections: meetings.length };
+}
+function syncChangeSummary(beforeCourses: any[], beforeSch: any[], nextCourses: any[], nextSch: any[]) {
+  const before = [...beforeCourses, ...beforeSch];
+  const next = [...nextCourses, ...nextSch];
+  const oldMap = new Map(before.map((course: any) => [course.id, JSON.stringify(course)]));
+  const newMap = new Map(next.map((course: any) => [course.id, JSON.stringify(course)]));
+  const ids = new Set([...oldMap.keys(), ...newMap.keys()]);
+  let changedCourses = 0, addedCourses = 0, removedCourses = 0;
+  ids.forEach(id => {
+    if (!oldMap.has(id)) addedCourses++;
+    else if (!newMap.has(id)) removedCourses++;
+    else if (oldMap.get(id) !== newMap.get(id)) changedCourses++;
+  });
+  const beforeCounts = syncCounts(beforeCourses, beforeSch);
+  const nextCounts = syncCounts(nextCourses, nextSch);
+  return { changedCourses, addedCourses, removedCourses, previousSections: beforeCounts.sections, sections: nextCounts.sections, sectionDelta: nextCounts.sections - beforeCounts.sections };
+}
+function syncStatus(value: Record<string, unknown>) {
+  return JSON.stringify({ updatedAt: new Date().toISOString(), ...value });
+}
 export default async function handler(req: any, res: any) {
   res.setHeader('Cache-Control', 'no-store, private'); res.setHeader('X-Content-Type-Options', 'nosniff');
   const config = configured();
@@ -140,6 +178,25 @@ export default async function handler(req: any, res: any) {
       if (action === 'security') {
         const raw = await redis(['LRANGE', SECURITY_KEY, 0, 199]);
         return res.status(200).json({ entries: (raw || []).map((row: string) => JSON.parse(row)) });
+      }
+      if (action === 'sync_status') {
+        const [rawStatus, rawDraft, backups] = await Promise.all([
+          redis(['GET', SYNC_STATUS_KEY]), redis(['GET', SYNC_DRAFT_KEY]), redis(['LRANGE', SYNC_BACKUPS_KEY, 0, 19]),
+        ]);
+        const draft = rawDraft ? JSON.parse(rawDraft) : null;
+        return res.status(200).json({
+          status: rawStatus ? JSON.parse(rawStatus) : { state: 'Not run', phase: 'idle' },
+          draft: draft ? { ...draft, courses: undefined, sch: undefined } : null,
+          draftRevision: rawDraft ? sha(rawDraft) : '',
+          backups: backups || [],
+        });
+      }
+      if (action === 'sync_backup') {
+        const version = typeof req.query?.version === 'string' ? req.query.version : '';
+        if (!/^v\d{4}-\d{2}-\d{2}-\d{4}(?:-\d{2})?$/.test(version)) return res.status(400).json({ error: 'Invalid backup version.' });
+        const backup = await redis(['GET', syncBackupKey(version)]);
+        if (!backup) return res.status(404).json({ error: 'Backup not found.' });
+        return res.status(200).json({ backup: JSON.parse(backup) });
       }
       if (action === 'draft') {
         if (!allowedFile(req.query?.file)) return res.status(400).json({ error: 'Invalid filename.' });
@@ -183,6 +240,76 @@ export default async function handler(req: any, res: any) {
       return res.status(200).json({ authenticated: true, user: { id: candidate.id, name: candidate.name } });
     }
     if (!admin) return res.status(401).json({ error: 'Sign in again.' });
+    if (body.action === 'sync_stage') {
+      const source = typeof body.source === 'string' ? body.source.trim().slice(0, 240) : '';
+      const expectedRevision = typeof body.expectedSyncRevision === 'string' ? body.expectedSyncRevision : '';
+      const dataset = body.dataset && typeof body.dataset === 'object' ? body.dataset : null;
+      if (!source || !dataset || !Array.isArray(dataset.courses) || !Array.isArray(dataset.sch)) return res.status(400).json({ error: 'Add the fetched courses, SCH data, and a source label.' });
+      const previous = await redis(['GET', SYNC_DRAFT_KEY]) || '';
+      if ((previous ? sha(previous) : '') !== expectedRevision) return res.status(409).json({ error: 'The sync draft changed. Refresh Self-Service Sync before staging again.' });
+      const check = validateDataset({ semester: publishedSemester, majors: publishedMajors, courses: dataset.courses, sch: dataset.sch });
+      if (check.errors.length) return res.status(400).json({ error: `Fetched data has ${check.errors.length} blocking validation errors.`, errors: check.errors.slice(0, 30) });
+      const live = await effectiveCatalog();
+      const diff = syncChangeSummary(live.courses, live.sch, dataset.courses, dataset.sch);
+      const warnings = [...check.warnings];
+      const sectionBase = Math.max(1, diff.previousSections);
+      if (Math.abs(diff.sectionDelta) > Math.max(20, Math.ceil(sectionBase * 0.25))) warnings.unshift(`Large section-count change: ${diff.previousSections} → ${diff.sections}. Review before publishing.`);
+      if (diff.addedCourses || diff.removedCourses) warnings.unshift(`Course set changed: +${diff.addedCourses} / -${diff.removedCourses}. Review course mapping before publishing.`);
+      const now = new Date().toISOString();
+      const payload = JSON.stringify({
+        source, fetchedAt: typeof body.fetchedAt === 'string' ? body.fetchedAt : now, stagedAt: now,
+        courses: dataset.courses, sch: dataset.sch, validation: { warnings, summary: check.summary }, changes: diff,
+      });
+      const state = warnings.length ? 'Warning' : 'Success';
+      const status = syncStatus({ state, phase: 'draft_ready', startedAt: typeof body.startedAt === 'string' ? body.startedAt : now, finishedAt: now, source, ...syncCounts(dataset.courses, dataset.sch), warnings: warnings.length });
+      const log = event(admin, 'sync_stage', { source, changed: [`${diff.changedCourses} changed courses`, `${diff.addedCourses} added`, `${diff.removedCourses} removed`, `${diff.sectionDelta >= 0 ? '+' : ''}${diff.sectionDelta} sections`], method: 'Self-Service Sync draft only' });
+      if (await stageSyncDraft(previous, payload, status, log) !== 1) return res.status(409).json({ error: 'The sync draft changed while staging. Refresh and retry.' });
+      return res.status(200).json({ draftRevision: sha(payload), state, warnings, changes: diff, summary: check.summary });
+    }
+    if (body.action === 'sync_discard') {
+      const previous = await redis(['GET', SYNC_DRAFT_KEY]) || '';
+      const expectedRevision = typeof body.expectedSyncRevision === 'string' ? body.expectedSyncRevision : '';
+      if (!previous) return res.status(400).json({ error: 'There is no Self-Service sync draft to discard.' });
+      if (sha(previous) !== expectedRevision) return res.status(409).json({ error: 'The sync draft changed. Refresh before discarding it.' });
+      const status = syncStatus({ state: 'Success', phase: 'discarded', finishedAt: new Date().toISOString() });
+      const log = event(admin, 'sync_discard', { method: 'Discard fetched draft; live data unchanged' });
+      if (await discardSyncDraft(previous, status, log) !== 1) return res.status(409).json({ error: 'The sync draft changed. Refresh and retry.' });
+      return res.status(200).json({ discarded: true });
+    }
+    if (body.action === 'sync_publish') {
+      const previous = await redis(['GET', SYNC_DRAFT_KEY]) || '';
+      const expectedRevision = typeof body.expectedSyncRevision === 'string' ? body.expectedSyncRevision : '';
+      const reason = typeof body.source === 'string' ? body.source.trim().slice(0, 240) : '';
+      if (!previous || sha(previous) !== expectedRevision) return res.status(409).json({ error: 'Reload the latest Self-Service sync draft before publishing.' });
+      if (!reason) return res.status(400).json({ error: 'Add what you verified before publishing this draft.' });
+      const draft = JSON.parse(previous);
+      const check = validateDataset({ semester: publishedSemester, majors: publishedMajors, courses: draft.courses, sch: draft.sch });
+      if (check.errors.length) return res.status(400).json({ error: `Draft has ${check.errors.length} blocking errors.`, errors: check.errors.slice(0, 30) });
+      const live = await effectiveCatalog();
+      const now = new Date();
+      const version = `v${now.getUTCFullYear()}-${String(now.getUTCMonth()+1).padStart(2,'0')}-${String(now.getUTCDate()).padStart(2,'0')}-${String(now.getUTCHours()).padStart(2,'0')}${String(now.getUTCMinutes()).padStart(2,'0')}-${String(now.getUTCSeconds()).padStart(2,'0')}`;
+      const backup = JSON.stringify({ version, createdAt: now.toISOString(), createdBy: admin.name, semester: publishedSemester, majors: publishedMajors, courses: live.courses, sch: live.sch });
+      const status = syncStatus({ state: 'Success', phase: 'published', finishedAt: now.toISOString(), source: draft.source, publishedBy: admin.name, backupVersion: version, ...syncCounts(draft.courses, draft.sch), warnings: check.warnings.length });
+      const log = event(admin, 'sync_publish', { source: reason, backupVersion: version, changed: changes(JSON.stringify([...live.courses, ...live.sch]), JSON.stringify([...draft.courses, ...draft.sch])), method: 'Validated Self-Service draft → live catalog' });
+      const result = await publishSyncDraft({ expectedDraft: previous, expectedCoursesOverride: live.coursesOverride, expectedSchOverride: live.schOverride, backupKey: syncBackupKey(version), backup, version, courses: JSON.stringify(draft.courses), sch: JSON.stringify(draft.sch), status, history: log });
+      if (result !== 1) return res.status(409).json({ error: 'Live data or the sync draft changed. Nothing was published; refresh and review again.' });
+      return res.status(200).json({ published: true, backupVersion: version });
+    }
+    if (body.action === 'sync_restore') {
+      const version = typeof body.version === 'string' ? body.version : '';
+      const reason = typeof body.source === 'string' ? body.source.trim().slice(0, 240) : '';
+      if (!/^v\d{4}-\d{2}-\d{2}-\d{4}-\d{2}$/.test(version) || !reason) return res.status(400).json({ error: 'Choose a backup and add a restore reason.' });
+      const rawBackup = await redis(['GET', syncBackupKey(version)]);
+      if (!rawBackup) return res.status(404).json({ error: 'Backup not found.' });
+      const backup = JSON.parse(rawBackup);
+      const check = validateDataset({ semester: backup.semester, majors: backup.majors, courses: backup.courses, sch: backup.sch });
+      if (check.errors.length) return res.status(400).json({ error: 'This backup failed validation and was not restored.', errors: check.errors.slice(0, 30) });
+      const live = await effectiveCatalog();
+      const status = syncStatus({ state: 'Success', phase: 'restored', finishedAt: new Date().toISOString(), restoredVersion: version, restoredBy: admin.name });
+      const log = event(admin, 'sync_restore', { source: reason, backupVersion: version, method: 'Restore versioned Self-Service catalog backup' });
+      if (await restoreSyncBackup({ expectedCoursesOverride: live.coursesOverride, expectedSchOverride: live.schOverride, courses: JSON.stringify(backup.courses), sch: JSON.stringify(backup.sch), status, history: log }) !== 1) return res.status(409).json({ error: 'Live data changed while restoring. Nothing was restored; refresh and retry.' });
+      return res.status(200).json({ restored: true, version });
+    }
     if (body.action === 'review_feedback') {
       if (typeof body.id !== 'string' || !/^[\da-f-]{36}$/i.test(body.id) || !['reviewed', 'archived', 'new'].includes(body.status) || typeof body.note !== 'string' || !body.note.trim() || body.note.length > 500) return res.status(400).json({ error: 'Choose a status and add a review note.' });
       const previous = await redis(['HGET', FEEDBACK_DATA, body.id]);
