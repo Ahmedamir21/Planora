@@ -4,12 +4,12 @@ type SyncStatus = {
   state?: 'Success' | 'Warning' | 'Failed' | 'Not run';
   phase?: string; startedAt?: string; finishedAt?: string; updatedAt?: string;
   courses?: number; sections?: number; warnings?: number; source?: string;
-  backupVersion?: string; restoredVersion?: string;
+  backupVersion?: string; restoredVersion?: string; errors?: number;
 };
 type SyncDraft = {
   source?: string; fetchedAt?: string; stagedAt?: string;
   validation?: { warnings?: string[]; summary?: { courses?: number; meetings?: number; missingRooms?: number; unassigned?: number } };
-  changes?: { changedCourses?: number; addedCourses?: number; removedCourses?: number; previousSections?: number; sections?: number; sectionDelta?: number };
+  changes?: { changedCourses?: number; addedCourses?: number; removedCourses?: number; changed?: string[]; added?: string[]; removed?: string[]; previousSections?: number; sections?: number; sectionDelta?: number };
 };
 
 async function request(url: string, init?: RequestInit) {
@@ -30,6 +30,7 @@ export function AdminSelfServiceSync({ onActivity }: { onActivity?: () => void }
   const [draftRevision, setDraftRevision] = useState('');
   const [backups, setBackups] = useState<string[]>([]);
   const [source, setSource] = useState('');
+  const [restoreReason, setRestoreReason] = useState('');
   const [payload, setPayload] = useState('');
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
@@ -83,13 +84,13 @@ export function AdminSelfServiceSync({ onActivity }: { onActivity?: () => void }
     } catch (cause) { setMessage(cause instanceof Error ? cause.message : 'Could not download backup.'); }
     finally { setBusy(false); }
   };
-  const restore = async (version: string) => {
-    if (!source.trim()) { setMessage('Add a restore reason before restoring a backup.'); return; }
+  const restore = async (version: string, rollback = false) => {
+    if (!restoreReason.trim()) { setMessage('Add a restore / rollback reason first.'); return; }
     setBusy(true); setMessage('');
     try {
-      await post({ action: 'sync_restore', version, source: source.trim() });
-      setMessage(`Restored ${version}. The action was added to Activity History.`);
-      setSource(''); await refresh(); onActivity?.();
+      await post({ action: 'sync_restore', version, source: restoreReason.trim() });
+      setMessage(rollback ? `Rolled back to latest backup ${version}.` : `Restored ${version}. The action was added to Activity History.`);
+      setRestoreReason(''); await refresh(); onActivity?.();
     } catch (cause) { setMessage(cause instanceof Error ? cause.message : 'Could not restore backup.'); }
     finally { setBusy(false); }
   };
@@ -121,6 +122,15 @@ export function AdminSelfServiceSync({ onActivity }: { onActivity?: () => void }
         <div><b>{draft.validation?.summary?.missingRooms ?? 0} / {draft.validation?.summary?.unassigned ?? 0}</b><p className="text-xs">missing rooms / unassigned groups</p></div>
       </div>
       {(draft.validation?.warnings?.length || 0) > 0 && <details className="mt-3 text-xs" open><summary className="cursor-pointer font-semibold">{draft.validation!.warnings!.length} warnings to review</summary><ul className="mt-2 list-disc space-y-1 pl-5">{draft.validation!.warnings!.slice(0,30).map((item,index)=><li key={index}>{item}</li>)}</ul></details>}
+      <details className="mt-3 text-xs">
+        <summary className="cursor-pointer font-semibold">View Changes</summary>
+        <div className="mt-2 grid gap-3 md:grid-cols-3">
+          <div><b>Changed</b>{draft.changes?.changed?.length ? <ul className="mt-1 list-disc pl-5">{draft.changes.changed.map(code=><li key={code}>{code}</li>)}</ul> : <p className="mt-1">None</p>}</div>
+          <div><b>Added</b>{draft.changes?.added?.length ? <ul className="mt-1 list-disc pl-5">{draft.changes.added.map(code=><li key={code}>{code}</li>)}</ul> : <p className="mt-1">None</p>}</div>
+          <div><b>Removed</b>{draft.changes?.removed?.length ? <ul className="mt-1 list-disc pl-5">{draft.changes.removed.map(code=><li key={code}>{code}</li>)}</ul> : <p className="mt-1">None</p>}</div>
+        </div>
+        <p className="mt-2" style={{ color: 'var(--muted)' }}>Section count: {draft.changes?.previousSections ?? '—'} → {draft.changes?.sections ?? '—'} ({(draft.changes?.sectionDelta ?? 0) >= 0 ? '+' : ''}{draft.changes?.sectionDelta ?? 0}). Open the fetched JSON only when you need field-by-field inspection.</p>
+      </details>
       <label className="mt-3 block text-xs font-semibold">Verification / publish reason<input className="select mt-1" maxLength={240} value={source} onChange={event=>setSource(event.target.value)} placeholder="e.g. Compared with Self-Service search results on 2026-09-29" /></label>
       <div className="mt-3 flex flex-wrap gap-2"><button className="btn btn-accent px-4 py-2" disabled={busy || !source.trim()} onClick={()=>void publish()}>Publish Draft</button><button className="btn px-4 py-2" disabled={busy} onClick={()=>void discard()}>Discard Draft</button></div>
     </div>}
@@ -134,8 +144,10 @@ export function AdminSelfServiceSync({ onActivity }: { onActivity?: () => void }
       <button className="btn mt-3 px-4 py-2" disabled={busy || !payload.trim()} onClick={()=>void stage()}>Validate &amp; Stage Draft</button>
     </details>
 
-    <div className="panel-soft mt-4 p-4"><h3 className="font-semibold">Versioned backups</h3><p className="mt-1 text-xs" style={{ color: 'var(--muted)' }}>A full snapshot of semester.json, courses.json, majors.json and sch.json is stored before every Sync publish. The Sync restore changes only the live course catalogs because semester/major structure is never modified by the daily sync.</p>
-      {backups.length === 0 ? <p className="mt-3 text-sm">No Sync backups yet.</p> : <div className="mt-3 space-y-2">{backups.map(version=><div className="flex flex-wrap items-center justify-between gap-2" key={version}><code className="text-xs">{version}</code><div className="flex gap-2"><button className="btn px-3 py-2 text-xs" disabled={busy} onClick={()=>void downloadBackup(version)}>Download Backup</button><button className="btn px-3 py-2 text-xs" disabled={busy || !source.trim()} onClick={()=>void restore(version)}>Restore</button></div></div>)}</div>}
+    <div className="panel-soft mt-4 p-4">
+      <div className="flex flex-wrap items-start justify-between gap-2"><div><h3 className="font-semibold">Versioned backups</h3><p className="mt-1 text-xs" style={{ color: 'var(--muted)' }}>A full snapshot of semester.json, courses.json, majors.json and sch.json is stored before every Sync publish. Daily Sync never edits semester/major structure.</p></div>{backups[0] && <button className="btn px-3 py-2 text-xs" disabled={busy || !restoreReason.trim()} onClick={()=>void restore(backups[0], true)}>Rollback Latest</button>}</div>
+      {backups.length > 0 && <label className="mt-3 block text-xs font-semibold">Restore / rollback reason<input className="select mt-1" maxLength={240} value={restoreReason} onChange={event=>setRestoreReason(event.target.value)} placeholder="e.g. Wrong room changes were published; restoring last verified snapshot" /></label>}
+      {backups.length === 0 ? <p className="mt-3 text-sm">No Sync backups yet.</p> : <div className="mt-3 space-y-2">{backups.map((version,index)=><div className="flex flex-wrap items-center justify-between gap-2" key={version}><div><code className="text-xs">{version}</code>{index === 0 && <span className="pill ml-2">Latest</span>}</div><div className="flex gap-2"><button className="btn px-3 py-2 text-xs" disabled={busy} onClick={()=>void downloadBackup(version)}>Download Backup</button><button className="btn px-3 py-2 text-xs" disabled={busy || !restoreReason.trim()} onClick={()=>void restore(version)}>Restore</button></div></div>)}</div>}
     </div>
     {message && <p className="mt-3 text-sm" role="status" style={{ color: 'var(--warn)' }}>{message}</p>}
   </section>;
