@@ -90,7 +90,8 @@ async function login(page) {
   if (/incorrect|invalid|unable to sign|support ID|rejected/i.test(await page.locator('body').innerText().catch(()=>''))) throw new Error('Self-Service login failed or was rejected.');
 }
 async function searchCourse(page, code) {
-  await page.goto(COURSES_URL, { waitUntil:'domcontentloaded', timeout:45_000 });
+  await page.goto(COURSES_URL, { waitUntil:'commit', timeout:60_000 });
+  await page.waitForSelector(SEARCH_SELECTOR, { state:'visible', timeout:60_000 });
   const body = await page.locator('body').innerText().catch(()=>'');
   if (/requested URL was rejected|support ID/i.test(body)) throw new Error('Self-Service rejected the courses page.');
 
