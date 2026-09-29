@@ -28,6 +28,10 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Self-Service scraper syntax check
+        working-directory: .
+        run: node --check sync/self-service-sync.mjs
+
       - name: Dependency audit
         run: npm audit --audit-level=high
 
