@@ -2,6 +2,11 @@ name: Self-Service Draft Sync
 
 on:
   workflow_dispatch:
+    inputs:
+      course_codes:
+        description: 'Comma-separated course codes for this safe test (example: CSAI 201,MATH 105)'
+        required: true
+        default: 'CSAI 201'
 
 permissions:
   contents: read
@@ -21,7 +26,7 @@ jobs:
 
       - name: Install scraper dependency
         working-directory: sync
-        run: npm install --no-audit --no-fund
+        run: npm ci --no-audit --no-fund
 
       - name: Install Chromium
         working-directory: sync
@@ -30,6 +35,7 @@ jobs:
       - name: Fetch Self-Service into Planora Draft
         run: node sync/self-service-sync.mjs
         env:
+          PLANORA_COURSE_CODES: ${{ inputs.course_codes }}
           SELF_SERVICE_USERNAME: ${{ secrets.SELF_SERVICE_USERNAME }}
           SELF_SERVICE_PASSWORD: ${{ secrets.SELF_SERVICE_PASSWORD }}
           SELF_SERVICE_RESULTS_SELECTOR: ${{ secrets.SELF_SERVICE_RESULTS_SELECTOR }}
