@@ -7,6 +7,7 @@ on:
         description: 'Comma-separated course codes for this safe test (example: CSAI 201,MATH 105)'
         required: true
         default: 'CSAI 201'
+        type: string
 
 permissions:
   contents: read
