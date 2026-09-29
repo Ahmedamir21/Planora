@@ -14,7 +14,7 @@ const USERNAME = process.env.SELF_SERVICE_USERNAME;
 const PASSWORD = process.env.SELF_SERVICE_PASSWORD;
 const HEADLESS = process.env.SELF_SERVICE_HEADLESS !== 'false';
 const RESULTS_SELECTOR = process.env.SELF_SERVICE_RESULTS_SELECTOR;
-const SEARCH_SELECTOR = process.env.SELF_SERVICE_SEARCH_SELECTOR || 'input[type="search"]:visible, input[placeholder*="Search" i]:visible';
+const SEARCH_SELECTOR = process.env.SELF_SERVICE_SEARCH_SELECTOR;
 const END_59_IS_NEXT_HOUR = process.env.SELF_SERVICE_END_59_IS_NEXT_HOUR !== 'false';
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -98,13 +98,25 @@ async function searchCourse(page, code) {
   await sleep(800);
 
   // Safety boundary: never guess which cards belong to the left results pane.
-  // The exact left-results container must be configured after one DOM inspection.
   required('SELF_SERVICE_RESULTS_SELECTOR', RESULTS_SELECTOR);
-  const source = page.locator(RESULTS_SELECTOR);
+  const source = page.locator(RESULTS_SELECTOR).first();
   if (await source.count() === 0) throw new Error(`Configured left-results container was not found for ${code}. Right-side schedule was not inspected.`);
-  const texts = await source.locator('article, li, [class*="card"], [class*="Card"], [role="article"]').evaluateAll(nodes => nodes.map(node => node.innerText || '').filter(Boolean));
-  return pickCardTexts(texts.length ? texts : [await source.innerText()]);
+
+  // Read the blue course-title link inside the configured LEFT results pane only.
+  // This is a read operation; the scraper never clicks the course link.
+  const linkTexts = await source.locator('a').allInnerTexts();
+  const escapedCode = code.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const titlePattern = new RegExp(`^\\\\s*${escapedCode}\\\\s*:\\\\s*\\\\S`, 'i');
+  const courseTitle = linkTexts.map(value => value.trim()).find(value => titlePattern.test(value)) || '';
+  if (!courseTitle) throw new Error(`Could not read the blue ${code}: Course Name link inside the configured left-results pane. Nothing was clicked.`);
+
+  const cards = source.locator('article, li, [class*="card"], [class*="Card"], [role="article"]');
+  const texts = await cards.evaluateAll(nodes => nodes.map(node => node.innerText || '').filter(Boolean));
+  const rawTexts = texts.length ? texts : [await source.innerText()];
+  const withTrustedTitle = rawTexts.map(text => new RegExp(escapedCode, 'i').test(text) && /:\\s*[^\\n]+/.test(text) ? text : `${courseTitle}\\n${text}`);
+  return pickCardTexts(withTrustedTitle);
 }
+
 function meetingCount(course) {
   let total = 0;
   for (const teacher of course?.instructors || []) total += (teacher.lectures?.length || 0) + (teacher.labs?.length || 0) + (teacher.tutorials?.length || 0);
@@ -138,6 +150,7 @@ async function main() {
   required('SELF_SERVICE_USERNAME', USERNAME);
   required('SELF_SERVICE_PASSWORD', PASSWORD);
   required('SELF_SERVICE_RESULTS_SELECTOR', RESULTS_SELECTOR);
+  required('SELF_SERVICE_SEARCH_SELECTOR', SEARCH_SELECTOR);
   required('PLANORA_SYNC_INGEST_URL', INGEST_URL);
   required('PLANORA_SYNC_INGEST_SECRET', INGEST_SECRET);
 
@@ -149,7 +162,12 @@ async function main() {
     const courses = JSON.parse(await fs.readFile(path.join(SEMESTER_DIR,'courses.json'),'utf8'));
     const sch = JSON.parse(await fs.readFile(path.join(SEMESTER_DIR,'sch.json'),'utf8'));
     const all = [...courses, ...sch], warnings = [], records = [];
-    const requested = process.env.PLANORA_COURSE_CODES ? process.env.PLANORA_COURSE_CODES.split(',').map(value=>value.trim().toUpperCase()).filter(Boolean) : all.map(course=>course.code);
+    const requestedRaw = required('PLANORA_COURSE_CODES', process.env.PLANORA_COURSE_CODES);
+    const requested = [...new Set(requestedRaw.split(',').map(value=>value.trim().toUpperCase()).filter(Boolean))];
+    if (!requested.length || requested.length > 3) throw new Error('First-test safety limit: provide 1 to 3 explicit PLANORA_COURSE_CODES only.');
+    const knownCodes = new Set(all.map(course => course.code));
+    const unknown = requested.filter(code => !knownCodes.has(code));
+    if (unknown.length) throw new Error(`Unknown Planora course code(s): ${unknown.join(', ')}.`);
     for (const code of requested) {
       const rows = await searchCourse(page, code);
       records.push(...rows);
