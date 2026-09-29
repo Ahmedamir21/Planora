@@ -1,4 +1,4 @@
-import { createHash, timingSafeEqual } from 'node:crypto';
+import { createHash, randomUUID, timingSafeEqual } from 'node:crypto';
 import { jsonRequest } from './security';
 import { liveKey, HISTORY_KEY, rateLimited, redis, storageConfigured } from './admin-store';
 import { SYNC_DRAFT_KEY, SYNC_STATUS_KEY, stageSyncDraft } from './sync-store';
@@ -48,7 +48,7 @@ async function liveCatalog() {
 }
 function status(data: Record<string, unknown>) { return JSON.stringify({ ...data, updatedAt: new Date().toISOString() }); }
 function history(source: string, changed: string[]) {
-  return JSON.stringify({ id: crypto.randomUUID(), at: new Date().toISOString(), admin: { id: 'agent', name: 'Self-Service Agent' }, action: 'sync_stage', source, changed, method: 'Machine ingest → Draft only; live data unchanged' });
+  return JSON.stringify({ id: randomUUID(), at: new Date().toISOString(), admin: { id: 'agent', name: 'Self-Service Agent' }, action: 'sync_stage', source, changed, method: 'Machine ingest → Draft only; live data unchanged' });
 }
 
 export default async function handler(req: any, res: any) {
@@ -73,7 +73,7 @@ export default async function handler(req: any, res: any) {
   if (check.errors.length) {
     const failedAt = new Date().toISOString(), c = counts(dataset.courses, dataset.sch);
     await redis(['SET', SYNC_STATUS_KEY, status({ state:'Failed', phase:'validation_failed', startedAt: typeof body.startedAt === 'string' ? body.startedAt : failedAt, finishedAt:failedAt, source, ...c, errors:check.errors.length, warnings:check.warnings.length + agentWarnings.length })]);
-    await redis(['LPUSH', HISTORY_KEY, JSON.stringify({ id: crypto.randomUUID(), at: failedAt, admin:{ id:'agent', name:'Self-Service Agent' }, action:'sync_rejected', source, changed:check.errors.slice(0,10), method:'Machine ingest rejected before Draft; live data unchanged' })]);
+    await redis(['LPUSH', HISTORY_KEY, JSON.stringify({ id: randomUUID(), at: failedAt, admin:{ id:'agent', name:'Self-Service Agent' }, action:'sync_rejected', source, changed:check.errors.slice(0,10), method:'Machine ingest rejected before Draft; live data unchanged' })]);
     return res.status(400).json({ error:`Fetched data has ${check.errors.length} blocking validation errors. Live data was not changed.`, errors:check.errors.slice(0,30) });
   }
 
