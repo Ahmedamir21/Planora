@@ -64,8 +64,10 @@ function pickCardTexts(texts) {
 async function login(page) {
   await page.goto(LOGIN_URL, { waitUntil:'domcontentloaded', timeout:45_000 });
   if (/requested URL was rejected|support ID/i.test(await page.locator('body').innerText().catch(()=>''))) throw new Error('Self-Service rejected the automation environment before login.');
-  // PowerCampus renders the label without a `for` attribute; use its stable id first.
-  const username = page.locator('#txtUserName').first();
+  // PowerCampus renders the label without a `for` attribute; use its stable id,
+  // then the first visible non-hidden input for runner variants with a rewritten id.
+  let username = page.locator('#txtUserName').first();
+  if (await username.count() === 0) username = page.locator('input:not([type="hidden"]):visible').first();
   if (await username.count() === 0) throw new Error('Could not find the username field safely.');
   await username.fill(USERNAME);
   let password = page.locator('input[type="password"]:visible').first();
