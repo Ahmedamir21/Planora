@@ -58,6 +58,28 @@ function weeklyCount(first: Date): number {
   return Math.floor((end.getTime() - first.getTime()) / (7 * 24 * 60 * 60 * 1000)) + 1;
 }
 
+function cairoVtimezoneLines(): string[] {
+  const year = SEMESTER_CONFIG.year;
+  return [
+    'BEGIN:VTIMEZONE',
+    'TZID:Africa/Cairo',
+    'X-LIC-LOCATION:Africa/Cairo',
+    'BEGIN:DAYLIGHT',
+    'TZOFFSETFROM:+0200',
+    'TZOFFSETTO:+0300',
+    'TZNAME:EEST',
+    `DTSTART:${year}0424T000000`,
+    'END:DAYLIGHT',
+    'BEGIN:STANDARD',
+    'TZOFFSETFROM:+0300',
+    'TZOFFSETTO:+0200',
+    'TZNAME:EET',
+    `DTSTART:${year}1030T000000`,
+    'END:STANDARD',
+    'END:VTIMEZONE',
+  ];
+}
+
 export function buildCalendarIcs(meetings: DraftMeeting[]): string {
   const lines = [
     'BEGIN:VCALENDAR',
@@ -67,6 +89,7 @@ export function buildCalendarIcs(meetings: DraftMeeting[]): string {
     'METHOD:PUBLISH',
     `X-WR-CALNAME:${escapeIcs(`Planora · ${TERM_LABEL}`)}`,
     'X-WR-TIMEZONE:Africa/Cairo',
+    ...cairoVtimezoneLines(),
   ];
 
   meetings.forEach(({ course, meeting, option }) => {
