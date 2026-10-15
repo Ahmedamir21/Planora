@@ -233,7 +233,17 @@ export async function restorePostgresSyncBackup(args: {
     // Preserve the pre-restore live state as a new backup in the same transaction.
     // If any later write fails, this backup and the restore both roll back.
     const now = new Date();
-    const backupVersion = `v${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, '0')}-${String(now.getUTCDate()).padStart(2, '0')}-${String(now.getUTCHours()).padStart(2, '0')}${String(now.getUTCMinutes()).padStart(2, '0')}-${String(now.getUTCSeconds()).padStart(2, '0')}`;
+    const backupVersionBase = `v${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, '0')}-${String(now.getUTCDate()).padStart(2, '0')}-${String(now.getUTCHours()).padStart(2, '0')}${String(now.getUTCMinutes()).padStart(2, '0')}-${String(now.getUTCSeconds()).padStart(2, '0')}`;
+    let backupVersion = backupVersionBase;
+    for (let suffix = 1; suffix <= 99; suffix += 1) {
+      const existing = await client.query(
+        'SELECT 1 FROM planora.sync_backups WHERE semester_key=$1 AND version=$2',
+        [semesterKey, backupVersion],
+      );
+      if (existing.rowCount === 0) break;
+      if (suffix === 99) throw new Error('Could not allocate a unique automatic safety backup version.');
+      backupVersion = `${backupVersionBase}-${String(suffix).padStart(2, '0')}`;
+    }
     const beforeRestore = {
       semesterKey,
       version: backupVersion,
