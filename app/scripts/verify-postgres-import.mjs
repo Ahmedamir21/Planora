@@ -96,6 +96,56 @@ async function main() {
       fail('Major/year/course mappings differ from majors.json.');
     }
 
+    // Check each normalized child row, not just aggregate counts: aggregate-only
+    // checks can miss swapped or incorrectly attached meeting records.
+    const normalized = await pool.query(
+      'SELECT c.catalog_type, c.course_id, i.instructor_order, i.name AS instructor_name, ' +
+      'i.raw_payload AS instructor_payload, m.meeting_type, m.meeting_order, m.raw_payload AS meeting_payload ' +
+      'FROM planora.courses c JOIN planora.instructors i ' +
+      'ON i.semester_key=c.semester_key AND i.catalog_type=c.catalog_type AND i.course_id=c.course_id ' +
+      'LEFT JOIN planora.meetings m ON m.instructor_id=i.instructor_id ' +
+      'WHERE c.semester_key=$1 ORDER BY c.catalog_type, c.source_order, i.instructor_order, m.meeting_type, m.meeting_order',
+      [semester.key]
+    );
+    const meetingFields = { lecture: 'lectures', lab: 'labs', tutorial: 'tutorials' };
+    const seenInstructors = new Set();
+    const seenMeetings = new Set();
+    for (const row of normalized.rows) {
+      const course = expectedCourses.find(item => item.type === row.catalog_type && item.value.id === row.course_id)?.value;
+      if (!course) fail('Unexpected normalized instructor course: ' + row.catalog_type + '/' + row.course_id);
+      const instructorKey = JSON.stringify([row.catalog_type, row.course_id, row.instructor_order]);
+      const instructor = course.instructors[row.instructor_order];
+      if (!instructor) fail('Unexpected instructor order: ' + instructorKey);
+      if (!seenInstructors.has(instructorKey)) {
+        if (row.instructor_name !== instructor.name || !equalJson(row.instructor_payload, instructor)) {
+          fail('Normalized instructor differs from source: ' + instructorKey);
+        }
+        seenInstructors.add(instructorKey);
+      }
+      if (row.meeting_type !== null) {
+        const field = meetingFields[row.meeting_type];
+        const expectedMeeting = field && instructor[field]?.[row.meeting_order];
+        const meetingKey = JSON.stringify([instructorKey, row.meeting_type, row.meeting_order]);
+        if (!expectedMeeting || !equalJson(row.meeting_payload, expectedMeeting)) {
+          fail('Normalized meeting differs from source: ' + meetingKey);
+        }
+        seenMeetings.add(meetingKey);
+      }
+    }
+    if (seenInstructors.size !== expectedInstructors) fail('Normalized instructor identities differ from source.');
+    const expectedMeetingKeys = new Set();
+    for (const item of expectedCourses) for (const [instructorOrder, instructor] of item.value.instructors.entries()) {
+      const instructorKey = JSON.stringify([item.type, item.value.id, instructorOrder]);
+      for (const [meetingType, field] of Object.entries(meetingFields)) {
+        for (const [meetingOrder] of instructor[field].entries()) {
+          expectedMeetingKeys.add(JSON.stringify([instructorKey, meetingType, meetingOrder]));
+        }
+      }
+    }
+    if (seenMeetings.size !== expectedMeetingKeys.size || [...expectedMeetingKeys].some(key => !seenMeetings.has(key))) {
+      fail('Normalized meeting identities differ from source.');
+    }
+
     console.log(JSON.stringify({
       ok: true,
       semesterKey: semester.key,
