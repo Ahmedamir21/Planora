@@ -125,7 +125,13 @@ export async function savePostgresDraft(args: {
   try { parsed = JSON.parse(args.content); } catch { throw new Error('Draft content must be valid JSON.'); }
   const contentSha256 = createHash('sha256').update(args.content).digest('hex');
   return withPostgresTransaction(async client => {
-    const semesterKey = await activeSemesterKey(client);
+    // Serialize first-draft creation too; SELECT ... FOR UPDATE on a missing draft
+    // row alone cannot prevent two concurrent first saves from racing.
+    const active = await client.query<{ semester_key: string }>(
+      'SELECT semester_key FROM planora.semesters WHERE is_active = true FOR UPDATE'
+    );
+    if (active.rowCount !== 1) throw new Error('PostgreSQL must contain exactly one active Planora semester.');
+    const semesterKey = active.rows[0].semester_key;
     const current = await client.query<{ revision: number; content_sha256: string }>(
       "SELECT revision, content_sha256 FROM planora.catalog_documents WHERE semester_key=$1 AND document_name=$2 AND state='draft' FOR UPDATE",
       [semesterKey, args.documentName],
