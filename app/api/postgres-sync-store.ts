@@ -42,6 +42,17 @@ export async function stagePostgresSyncDraft(args: {
       [semesterKey],
     );
     if ((current.rows[0]?.content_sha256.trim() || '') !== args.expectedDraftHash) return { staged: false as const };
+    // A reviewed replacement supersedes the previous pending run; keep its history,
+    // but do not leave it appearing as a still-publishable validated run.
+    const previousRunId = current.rows[0]?.run_id;
+    if (previousRunId) {
+      await client.query(
+        "UPDATE planora.sync_runs SET status='rejected', phase='draft_superseded', " +
+        "error_summary='Superseded by a newer staged draft.', completed_at=now() " +
+        "WHERE run_id=$1 AND status='validated'",
+        [previousRunId],
+      );
+    }
     const run = await client.query<{ run_id: string }>(
       "INSERT INTO planora.sync_runs (source, status, phase, counts, warnings, started_at, completed_at) " +
       "VALUES ($1,'validated','draft_ready',$2::jsonb,$3::jsonb,now(),now()) RETURNING run_id",
