@@ -48,7 +48,13 @@ async function main() {
   const semester = data['semester.json'];
   const verifiedAt = typeof semester.dataLastVerified === 'string' ? Date.parse(semester.dataLastVerified + 'T00:00:00Z') : NaN;
   const ageDays = Number.isFinite(verifiedAt) ? (Date.now() - verifiedAt) / 86_400_000 : Infinity;
-  const maxAgeDays = Number(process.env.PLANORA_MAX_DATA_AGE_DAYS || 7);
+  const maxAgeRaw = process.env.PLANORA_MAX_DATA_AGE_DAYS;
+  const maxAgeDays = maxAgeRaw === undefined || maxAgeRaw.trim() === '' ? 7 : Number(maxAgeRaw);
+  // Fail closed: a typo such as PLANORA_MAX_DATA_AGE_DAYS=oops must never disable
+  // the stale-data guard by making comparisons with NaN evaluate to false.
+  if (!Number.isFinite(maxAgeDays) || maxAgeDays < 0 || maxAgeDays > 365) {
+    throw new Error('PLANORA_MAX_DATA_AGE_DAYS must be a number between 0 and 365.');
+  }
   if (!Number.isFinite(verifiedAt) || ageDays < -1 || ageDays > maxAgeDays) {
     const override = process.env.ALLOW_STALE_DATA_IMPORT === 'true';
     if (!override) throw new Error('Refusing to import stale/undated source JSON (dataLastVerified=' +
