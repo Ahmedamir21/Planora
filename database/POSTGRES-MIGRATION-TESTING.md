@@ -46,3 +46,5 @@ Do not enable a partial backend switch. Implement and verify the following as on
 ## Current verification snapshot
 
 The migration branch has a Vercel preview deployment marked Ready, and the latest recorded Planner CI and Claude Security Review workflow runs completed successfully. This validates the recorded repository checks only; it does not prove database import/runtime behavior because no disposable PostgreSQL connection was configured for this work. The production API remains on its existing backend.
+
+The storage layer also now exposes `readPostgresCatalogSnapshot()`: it reads the active semester and all published/draft catalog documents in a single SQL statement, requires all four published documents, rejects duplicate/unknown/incomplete document rows, and returns the database-stored hashes for concurrency checks. This is a building block for route integration; it is not yet used by the HTTP handlers and has not yet been exercised against a live PostgreSQL instance.
