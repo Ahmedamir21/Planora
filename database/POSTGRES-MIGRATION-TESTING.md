@@ -4,7 +4,7 @@ Run these commands from the repository root after applying the schema to a **dis
 
 1. Install dependencies: `cd app && npm ci`
 2. Apply the base schema with your private database URL: `psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f ../database/migrations/0001_initial_schema.sql`
-3. Apply follow-up migrations in numeric order: `psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f ../database/migrations/0002_expand_catalog_revision_actions.sql` and `psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f ../database/migrations/0003_sync_drafts_and_backups.sql` and `database/migrations/0004_sync_draft_run_link.sql`. Apply all migrations in numeric order.
+3. Apply follow-up migrations in numeric order, one command at a time: `psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f ../database/migrations/0002_expand_catalog_revision_actions.sql`, then `psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f ../database/migrations/0003_sync_drafts_and_backups.sql`, then `psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f ../database/migrations/0004_sync_draft_run_link.sql`.
 4. Import the checked-in source catalog once: `npm run db:import-json`
 5. Verify the import without modifying it: `npm run db:verify-import`
 
@@ -46,6 +46,6 @@ Do not enable a partial backend switch. Implement and verify the following as on
 
 ## Current verification snapshot
 
-The migration branch has a Vercel preview deployment marked Ready, and the latest recorded Planner CI and Claude Security Review workflow runs completed successfully. This validates the recorded repository checks only; it does not prove database import/runtime behavior because no disposable PostgreSQL connection was configured for this work. The production API remains on its existing backend.
+Earlier commits on this migration branch had Planner CI and Claude Security Review runs complete successfully, but the newest commits have no confirmed workflow results yet. This validates only the specific earlier commits; it does not prove database import/runtime behavior because no disposable PostgreSQL connection was configured for this work. The production API remains on its existing backend.
 
 The storage layer exposes `readPostgresCatalogSnapshot()`: it reads the active semester and all published/draft catalog documents in a single SQL statement, requires all four published documents, rejects duplicate/unknown/incomplete document rows, and returns database-stored hashes. `catalog.ts` now uses it for public catalog GETs in PostgreSQL mode. This route and the new fail-closed admin/sync guards have not yet been exercised against a live PostgreSQL instance; admin and sync are intentionally unavailable while the flag is on.
