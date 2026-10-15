@@ -198,7 +198,7 @@ export default async function handler(req: any, res: any) {
             status: draft?.status || { state: 'Not run', phase: 'idle' },
             draft: draft ? { ...draft.content, courses: undefined, sch: undefined } : null,
             draftRevision: draft?.contentSha256 || '',
-            backups: backups.entries,
+            backups: backups.entries.map(entry => entry.version),
           });
         }
         if (action === 'sync_backup') {
