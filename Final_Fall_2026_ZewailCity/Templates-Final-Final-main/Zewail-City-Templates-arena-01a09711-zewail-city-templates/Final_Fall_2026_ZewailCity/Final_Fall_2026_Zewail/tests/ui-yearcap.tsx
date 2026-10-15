@@ -12,6 +12,7 @@ g.document = dom.window.document;
 Object.defineProperty(g, 'navigator', { value: dom.window.navigator, configurable: true });
 g.HTMLElement = dom.window.HTMLElement;
 g.Element = dom.window.Element;
+g.MutationObserver = dom.window.MutationObserver;
 g.Node = dom.window.Node;
 g.MouseEvent = dom.window.MouseEvent;
 g.KeyboardEvent = dom.window.KeyboardEvent;
