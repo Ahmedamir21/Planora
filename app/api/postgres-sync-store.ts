@@ -242,3 +242,84 @@ export async function restorePostgresSyncBackup(args: {
     return { restored: true as const, coursesHash, schHash };
   });
 }
+
+
+/** Discard only the sync draft whose hash the admin reviewed; live data is untouched. */
+export async function discardPostgresSyncDraft(args: {
+  expectedDraftHash: string;
+  actorId: string;
+  actorName: string;
+  reason: string;
+}): Promise<{ discarded: true } | { discarded: false }> {
+  if (!args.reason.trim()) throw new Error('A discard reason is required.');
+  return withPostgresTransaction(async client => {
+    const active = await client.query<{ semester_key: string }>(
+      'SELECT semester_key FROM planora.semesters WHERE is_active=true FOR UPDATE'
+    );
+    if (active.rowCount !== 1) throw new Error('PostgreSQL must contain exactly one active semester.');
+    const semesterKey = active.rows[0].semester_key;
+    const current = await client.query<{ content_sha256: string; source: string }>(
+      'SELECT content_sha256, source FROM planora.sync_drafts WHERE semester_key=$1 FOR UPDATE',
+      [semesterKey],
+    );
+    if (current.rowCount !== 1 || current.rows[0].content_sha256.trim() !== args.expectedDraftHash) {
+      return { discarded: false as const };
+    }
+    await client.query('DELETE FROM planora.sync_drafts WHERE semester_key=$1 AND content_sha256=$2', [
+      semesterKey, args.expectedDraftHash,
+    ]);
+    await client.query(
+      "INSERT INTO planora.sync_runs (source, status, phase, counts, warnings, error_summary, started_at, completed_at) " +
+      "VALUES ($1,'rejected','draft_discarded','{}'::jsonb,'[]'::jsonb,$2,now(),now())",
+      [current.rows[0].source, args.reason.trim().slice(0, 500)],
+    );
+    await client.query(
+      'INSERT INTO planora.admin_audit_events (actor_id, actor_name, action, metadata) VALUES ($1,$2,$3,$4::jsonb)',
+      [args.actorId, args.actorName, 'sync_discard', JSON.stringify({
+        semesterKey, source: current.rows[0].source, contentSha256: args.expectedDraftHash,
+        reason: args.reason.trim().slice(0, 500),
+      })],
+    );
+    return { discarded: true as const };
+  });
+}
+
+/** List bounded backup metadata without transferring full catalog snapshots. */
+export async function listPostgresSyncBackups(page = 0, pageSize = 20): Promise<{
+  entries: Array<{ version: string; createdBy: string | null; reason: string; createdAt: string }>;
+  page: number;
+  pageSize: number;
+}> {
+  const { postgresPool, activeSemesterKey } = await import('./postgres-store');
+  const safePage = Number.isSafeInteger(page) ? Math.max(0, Math.min(1000, page)) : 0;
+  const safeSize = Number.isSafeInteger(pageSize) ? Math.max(1, Math.min(100, pageSize)) : 20;
+  const semesterKey = await activeSemesterKey();
+  const result = await postgresPool().query<{
+    version: string; created_by: string | null; reason: string; created_at: Date | string;
+  }>(
+    'SELECT version, created_by, reason, created_at FROM planora.sync_backups ' +
+    'WHERE semester_key=$1 ORDER BY created_at DESC OFFSET $2 LIMIT $3',
+    [semesterKey, safePage * safeSize, safeSize],
+  );
+  return {
+    page: safePage, pageSize: safeSize,
+    entries: result.rows.map(row => ({
+      version: row.version, createdBy: row.created_by, reason: row.reason,
+      createdAt: (row.created_at instanceof Date ? row.created_at : new Date(row.created_at)).toISOString(),
+    })),
+  };
+}
+
+/** Fetch one backup only after its exact version is selected by an authenticated admin. */
+export async function readPostgresSyncBackup(version: string): Promise<unknown | null> {
+  if (!/^v\\d{4}-\\d{2}-\\d{2}-\\d{4}-\\d{2}$/.test(version)) {
+    throw new Error('Invalid sync backup version.');
+  }
+  const { postgresPool, activeSemesterKey } = await import('./postgres-store');
+  const semesterKey = await activeSemesterKey();
+  const result = await postgresPool().query<{ snapshot: unknown }>(
+    'SELECT snapshot FROM planora.sync_backups WHERE semester_key=$1 AND version=$2',
+    [semesterKey, version],
+  );
+  return result.rowCount === 1 ? result.rows[0].snapshot : null;
+}
