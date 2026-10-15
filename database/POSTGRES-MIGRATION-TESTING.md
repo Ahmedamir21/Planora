@@ -30,3 +30,19 @@ The staged `app/api/postgres-store.ts` module now includes:
 - a readiness query for the active semester and published document count.
 
 These are persistence primitives, not a completed cutover. Current `admin.ts`, `catalog.ts`, and `sync-ingest.ts` still use Redis. Do not enable the flag or deploy this module as the live source until route integration, combined-dataset validation, sync draft/publish/backup/restore parity, authorization review, and end-to-end tests are complete. The primitives have not yet been exercised against a real PostgreSQL server in this environment.
+
+## Required API cutover order
+
+Do not enable a partial backend switch. Implement and verify the following as one feature branch:
+
+1. **Shared catalog adapter:** read all four published documents and all four draft documents from the same active semester; keep bundled JSON only as an explicit bootstrap/reference fallback, never as a silent fallback after PostgreSQL has been selected.
+2. **Admin route parity:** preserve the existing signed admin cookie and same-origin protections. Move draft/live reads, save, publish, undo/restore, revision history, and audit writes to the PostgreSQL adapter. Keep reports, feedback, security events, and rate limiting on Redis until their separate migration is designed; make their dependency explicit rather than claiming all admin storage moved.
+3. **Whole-dataset validation:** before any catalog publish, combine the proposed document with the other current published documents, run the existing dataset validator, and reject invalid combinations before the write transaction. Preserve the rule that public catalog quick-save cannot add/remove course IDs.
+4. **Sync parity:** store sync draft, status, and backup metadata in a consistent backend; ingestion must remain read-only against the student portal and draft-only. Publish/restore must validate the complete dataset and atomically update both courses.json and sch.json, revision history, audit, and sync status in one transaction.
+5. **Optimistic concurrency:** hashes returned to the UI must be stable tokens from the selected backend. PostgreSQL jsonb normalizes JSON representation, so never recompute the database token from the serialized read response; pass the stored content_sha256 back for compare-and-set.
+6. **Fail closed:** if PLANORA_STORAGE_BACKEND=postgres is selected but the database is unavailable or uninitialized, return a controlled 503. Never silently read or write Redis as a substitute for catalog data.
+7. **Verification before preview:** test stale hashes, concurrent first draft saves, concurrent publish, invalid combined datasets, missing documents, rollback on transaction failure, restore creating a new revision, and the guarantee that sync staging never changes published data. Then run CI/build, the import verifier, and a preview-only end-to-end pass against a disposable database.
+
+## Current verification snapshot
+
+The migration branch has a Vercel preview deployment marked Ready, and the latest recorded Planner CI and Claude Security Review workflow runs completed successfully. This validates the recorded repository checks only; it does not prove database import/runtime behavior because no disposable PostgreSQL connection was configured for this work. The production API remains on its existing backend.
