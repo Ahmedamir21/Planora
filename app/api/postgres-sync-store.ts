@@ -192,7 +192,7 @@ export async function restorePostgresSyncBackup(args: {
   actorId: string;
   actorName: string;
   reason: string;
-}): Promise<{ restored: true; coursesHash: string; schHash: string } | { restored: false }> {
+}): Promise<{ restored: true; backupVersion: string; coursesHash: string; schHash: string } | { restored: false }> {
   if (!/^v\d{4}-\d{2}-\d{2}-\d{4}-\d{2}$/.test(args.version) || !args.reason.trim()) {
     throw new Error('A valid backup version and restore reason are required.');
   }
@@ -214,9 +214,9 @@ export async function restorePostgresSyncBackup(args: {
       throw new Error('Sync backup is invalid or belongs to a different semester.');
     }
     const currentResult = await client.query<{
-      document_name: CatalogName; revision: number; content_sha256: string;
+      document_name: CatalogName; content: unknown; revision: number; content_sha256: string;
     }>(
-      "SELECT document_name, revision, content_sha256 FROM planora.catalog_documents " +
+      "SELECT document_name, content, revision, content_sha256 FROM planora.catalog_documents " +
       "WHERE semester_key=$1 AND state='published' AND document_name IN ('courses.json','sch.json') FOR UPDATE",
       [semesterKey],
     );
@@ -229,6 +229,25 @@ export async function restorePostgresSyncBackup(args: {
     const nextSch = JSON.stringify(backup.sch);
     const coursesHash = sha256(nextCourses);
     const schHash = sha256(nextSch);
+
+    // Preserve the pre-restore live state as a new backup in the same transaction.
+    // If any later write fails, this backup and the restore both roll back.
+    const now = new Date();
+    const backupVersion = `v${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, '0')}-${String(now.getUTCDate()).padStart(2, '0')}-${String(now.getUTCHours()).padStart(2, '0')}${String(now.getUTCMinutes()).padStart(2, '0')}-${String(now.getUTCSeconds()).padStart(2, '0')}`;
+    const beforeRestore = {
+      semesterKey,
+      version: backupVersion,
+      createdAt: now.toISOString(),
+      createdBy: args.actorName,
+      reason: (`Automatic safety backup before restoring ${args.version}: ${args.reason}`).slice(0, 500),
+      courses: currentCourses.content,
+      sch: currentSch.content,
+    };
+    await client.query(
+      'INSERT INTO planora.sync_backups (semester_key, version, snapshot, created_by, reason) VALUES ($1,$2,$3::jsonb,$4,$5)',
+      [semesterKey, backupVersion, JSON.stringify(beforeRestore), args.actorName, beforeRestore.reason],
+    );
+
     for (const item of [
       { name: 'courses.json' as const, content: nextCourses, hash: coursesHash, revision: currentCourses.revision + 1 },
       { name: 'sch.json' as const, content: nextSch, hash: schHash, revision: currentSch.revision + 1 },
@@ -251,7 +270,7 @@ export async function restorePostgresSyncBackup(args: {
         semesterKey, version: args.version, coursesHash, schHash, reason: args.reason.trim(),
       })],
     );
-    return { restored: true as const, coursesHash, schHash };
+    return { restored: true as const, backupVersion, coursesHash, schHash };
   });
 }
 
