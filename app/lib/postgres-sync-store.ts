@@ -360,7 +360,7 @@ export async function listPostgresSyncBackups(page = 0, pageSize = 20): Promise<
 
 /** Fetch one backup only after its exact version is selected by an authenticated admin. */
 export async function readPostgresSyncBackup(version: string): Promise<unknown | null> {
-  if (!/^v\d{4}-\d{2}-\d{2}-\d{4}-\d{2}$/.test(version)) {
+  if (!/^v\d{4}-\d{2}-\d{2}-\d{4}-\d{2}(?:-\d{2})?$/.test(version)) {
     throw new Error('Invalid sync backup version.');
   }
   const { postgresPool, activeSemesterKey } = await import('./postgres-store');
