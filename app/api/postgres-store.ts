@@ -108,6 +108,75 @@ export async function readCatalogDocument(
 
 
 /**
+ * Reads the active catalog as one SQL statement so callers never combine
+ * semester/documents from separate snapshots. Requires all four published
+ * documents; draft documents are optional. Hashes are the stored DB tokens.
+ */
+export async function readPostgresCatalogSnapshot(): Promise<{
+  semesterKey: string;
+  published: Record<'semester.json' | 'courses.json' | 'majors.json' | 'sch.json', {
+    content: string; revision: number; contentSha256: string; updatedAt: string;
+  }>;
+  drafts: Partial<Record<'semester.json' | 'courses.json' | 'majors.json' | 'sch.json', {
+    content: string; revision: number; contentSha256: string; updatedAt: string;
+  }>>;
+}> {
+  const result = await postgresPool().query<{
+    semester_key: string;
+    document_name: 'semester.json' | 'courses.json' | 'majors.json' | 'sch.json' | null;
+    state: 'published' | 'draft' | null;
+    content: unknown;
+    revision: number | null;
+    content_sha256: string | null;
+    updated_at: Date | string | null;
+  }>(
+    'SELECT s.semester_key, d.document_name, d.state, d.content, d.revision, d.content_sha256, d.updated_at ' +
+    'FROM planora.semesters s LEFT JOIN planora.catalog_documents d ON d.semester_key=s.semester_key ' +
+    'WHERE s.is_active=true ORDER BY d.document_name, d.state',
+  );
+  const semesterKeys = [...new Set(result.rows.map(row => row.semester_key))];
+  if (semesterKeys.length !== 1) {
+    throw new Error('PostgreSQL must contain exactly one active Planora semester.');
+  }
+  const semesterKey = semesterKeys[0];
+  const published: Record<string, { content: string; revision: number; contentSha256: string; updatedAt: string }> = {};
+  const drafts: Record<string, { content: string; revision: number; contentSha256: string; updatedAt: string }> = {};
+  for (const row of result.rows) {
+    if (!row.document_name || !row.state) continue;
+    if (!['semester.json', 'courses.json', 'majors.json', 'sch.json'].includes(row.document_name) ||
+        !row.content_sha256 || row.revision == null || row.updated_at == null) {
+      throw new Error('PostgreSQL catalog contains an incomplete or unknown document record.');
+    }
+    const serialized = JSON.stringify(row.content);
+    if (typeof serialized !== 'string') throw new Error('Stored catalog document is not serializable JSON.');
+    const updatedAt = row.updated_at instanceof Date ? row.updated_at : new Date(row.updated_at);
+    const value = {
+      content: serialized,
+      revision: row.revision,
+      contentSha256: row.content_sha256.trim(),
+      updatedAt: updatedAt.toISOString(),
+    };
+    const target = row.state === 'published' ? published : drafts;
+    if (target[row.document_name]) throw new Error('PostgreSQL contains duplicate catalog state records.');
+    target[row.document_name] = value;
+  }
+  const required = ['semester.json', 'courses.json', 'majors.json', 'sch.json'];
+  if (required.some(name => !published[name])) {
+    throw new Error('PostgreSQL catalog is not initialized: all four published documents are required.');
+  }
+  return {
+    semesterKey,
+    published: published as Record<'semester.json' | 'courses.json' | 'majors.json' | 'sch.json', {
+      content: string; revision: number; contentSha256: string; updatedAt: string;
+    }>,
+    drafts: drafts as Partial<Record<'semester.json' | 'courses.json' | 'majors.json' | 'sch.json', {
+      content: string; revision: number; contentSha256: string; updatedAt: string;
+    }>>,
+  };
+}
+
+
+/**
  * Saves a draft and its immutable revision/audit event atomically.
  * expectedHash is the content_sha256 returned by readCatalogDocument, or '' if
  * no draft exists. The caller remains responsible for authorization and dataset
