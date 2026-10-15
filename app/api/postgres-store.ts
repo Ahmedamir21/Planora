@@ -219,6 +219,63 @@ export async function publishPostgresDraft(args: {
   });
 }
 
+
+/** Restores a historical published revision as a new revision; history is never rewritten. */
+export async function restorePostgresRevision(args: {
+  documentName: 'semester.json' | 'courses.json' | 'majors.json' | 'sch.json';
+  sourceRevision: number;
+  expectedPublishedHash: string;
+  actorId: string;
+  actorName: string;
+  reason?: string;
+}): Promise<{ restored: true; revision: number; contentSha256: string } | { restored: false }> {
+  if (!Number.isSafeInteger(args.sourceRevision) || args.sourceRevision < 1) {
+    throw new Error('A positive historical revision number is required.');
+  }
+  return withPostgresTransaction(async client => {
+    const active = await client.query<{ semester_key: string }>(
+      'SELECT semester_key FROM planora.semesters WHERE is_active = true FOR UPDATE'
+    );
+    if (active.rowCount !== 1) throw new Error('PostgreSQL must contain exactly one active Planora semester.');
+    const semesterKey = active.rows[0].semester_key;
+    const current = await client.query<{ revision: number; content_sha256: string }>(
+      "SELECT revision, content_sha256 FROM planora.catalog_documents " +
+      "WHERE semester_key=$1 AND document_name=$2 AND state='published' FOR UPDATE",
+      [semesterKey, args.documentName],
+    );
+    if (current.rowCount !== 1 || current.rows[0].content_sha256.trim() !== args.expectedPublishedHash) {
+      return { restored: false as const };
+    }
+    const source = await client.query<{ content: unknown; content_sha256: string }>(
+      "SELECT content, content_sha256 FROM planora.catalog_revisions " +
+      "WHERE semester_key=$1 AND document_name=$2 AND state='published' AND revision=$3",
+      [semesterKey, args.documentName, args.sourceRevision],
+    );
+    if (source.rowCount !== 1) throw new Error('Requested published revision does not exist.');
+    const content = JSON.stringify(source.rows[0].content);
+    const contentSha256 = source.rows[0].content_sha256.trim();
+    const revision = current.rows[0].revision + 1;
+    await client.query(
+      "UPDATE planora.catalog_documents SET content=$3::jsonb, content_sha256=$4, revision=$5, updated_by=$6, updated_at=now() " +
+      "WHERE semester_key=$1 AND document_name=$2 AND state='published'",
+      [semesterKey, args.documentName, content, contentSha256, revision, args.actorId],
+    );
+    await client.query(
+      "INSERT INTO planora.catalog_revisions (semester_key, document_name, revision, state, action, content, content_sha256, actor_id, actor_name, reason) " +
+      "VALUES ($1,$2,$3,'published','restore',$4::jsonb,$5,$6,$7,$8)",
+      [semesterKey, args.documentName, revision, content, contentSha256, args.actorId, args.actorName,
+        ('Restore revision ' + args.sourceRevision + (args.reason ? ': ' + args.reason : '')).slice(0, 500)],
+    );
+    await client.query(
+      'INSERT INTO planora.admin_audit_events (actor_id, actor_name, action, metadata) VALUES ($1,$2,$3,$4::jsonb)',
+      [args.actorId, args.actorName, 'restore', JSON.stringify({
+        semesterKey, documentName: args.documentName, sourceRevision: args.sourceRevision, revision, contentSha256,
+      })],
+    );
+    return { restored: true as const, revision, contentSha256 };
+  });
+}
+
 /** Parameterized, read-only diagnostic for a deploy health endpoint or CLI. */
 export async function postgresReadiness(): Promise<{
   ready: boolean;
