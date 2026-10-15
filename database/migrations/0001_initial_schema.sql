@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS planora.catalog_revisions (
   document_name text NOT NULL CHECK (document_name IN ('semester.json', 'courses.json', 'majors.json', 'sch.json')),
   revision integer NOT NULL CHECK (revision > 0),
   state text NOT NULL CHECK (state IN ('published', 'draft')),
-  action text NOT NULL CHECK (action IN ('import', 'save_draft', 'publish', 'restore', 'sync_stage', 'sync_publish')),
+  action text NOT NULL CHECK (action IN ('import', 'save_draft', 'undo_draft', 'publish', 'save_live', 'undo_live', 'restore', 'sync_stage', 'sync_discard', 'sync_publish', 'sync_restore', 'sync_rejected', 'export_draft')),
   content jsonb NOT NULL,
   content_sha256 char(64) NOT NULL CHECK (content_sha256 ~ '^[0-9a-f]{64}$'),
   actor_id text,
