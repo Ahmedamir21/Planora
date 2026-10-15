@@ -297,7 +297,23 @@ export default async function handler(req: any, res: any) {
       return res.status(200).json({ authenticated: true, user: { id: candidate.id, name: candidate.name } });
     }
     if (!admin) return res.status(401).json({ error: 'Sign in again.' });
-    if (postgresMode && body.action === 'save_draft') return res.status(503).json({ error: 'Draft save migration is being completed; no changes were made.' });
+    if (postgresMode && body.action === 'save_draft') {
+      if (!allowedFile(body.file) || typeof body.content !== 'string' || typeof body.expectedRevision !== 'string') return res.status(400).json({ error: 'Invalid draft request.' });
+      const source = typeof body.source === 'string' ? body.source.trim().slice(0, 240) : '';
+      const error = validData(body.file, body.content);
+      if (error || !source) return res.status(400).json({ error: error || 'Add a source or reason for this change.' });
+      const snapshot = await readPostgresCatalogSnapshot();
+      const current = snapshot.drafts[body.file];
+      if ((current?.contentSha256 || '') !== body.expectedRevision) return res.status(409).json({ error: 'Another admin updated this draft. Reload it before saving.' });
+      const values: Record<string, any> = {};
+      for (const name of FILES) values[name.replace('.json', '')] = JSON.parse(name === body.file ? body.content : snapshot.drafts[name]?.content || snapshot.published[name].content);
+      const check = validateDataset(values);
+      if (check.errors.length) return res.status(400).json({ error: 'Fix semester validation errors before saving.', errors: check.errors.slice(0, 20) });
+      if (current?.content === body.content) return res.status(400).json({ error: 'There are no changes to save.' });
+      const result = await savePostgresDraft({ documentName: body.file, content: body.content, expectedHash: body.expectedRevision, actorId: admin.id, actorName: admin.name, reason: source });
+      if (!result.saved) return res.status(409).json({ error: 'Another admin updated this draft. Reload it before saving.' });
+      return res.status(200).json({ revision: result.contentSha256, entry: { at: new Date().toISOString(), adminId: admin.id, adminName: admin.name, action: 'save_draft', file: body.file, source } });
+    }
     if (postgresMode) return res.status(503).json({ error: 'PostgreSQL admin write action is not migrated. No changes were made.' });
     if (body.action === 'sync_stage') {
       const source = typeof body.source === 'string' ? body.source.trim().slice(0, 240) : '';
