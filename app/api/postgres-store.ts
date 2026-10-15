@@ -6,6 +6,7 @@
  * silently fall back to Redis when PostgreSQL is selected.
  */
 import { Pool, type PoolClient } from 'pg';
+import { createHash } from 'node:crypto';
 
 type PlanoraPool = Pool & { __planoraPool?: true };
 const globalPool = globalThis as typeof globalThis & { __planoraPostgresPool?: PlanoraPool };
@@ -103,6 +104,52 @@ export async function readCatalogDocument(
   if (typeof content !== 'string') throw new Error('Stored catalog document is not serializable JSON.');
   const updatedAt = row.updated_at instanceof Date ? row.updated_at : new Date(row.updated_at);
   return { content, revision: row.revision, contentSha256: row.content_sha256.trim(), updatedAt: updatedAt.toISOString() };
+}
+
+
+/**
+ * Saves a draft and its immutable revision/audit event atomically.
+ * expectedHash is the content_sha256 returned by readCatalogDocument, or '' if
+ * no draft exists. The caller remains responsible for authorization and dataset
+ * validation before calling this persistence primitive.
+ */
+export async function savePostgresDraft(args: {
+  documentName: 'semester.json' | 'courses.json' | 'majors.json' | 'sch.json';
+  content: string;
+  expectedHash: string;
+  actorId: string;
+  actorName: string;
+  reason?: string;
+}): Promise<{ saved: true; revision: number; contentSha256: string } | { saved: false }> {
+  let parsed: unknown;
+  try { parsed = JSON.parse(args.content); } catch { throw new Error('Draft content must be valid JSON.'); }
+  const contentSha256 = createHash('sha256').update(args.content).digest('hex');
+  return withPostgresTransaction(async client => {
+    const semesterKey = await activeSemesterKey(client);
+    const current = await client.query<{ revision: number; content_sha256: string }>(
+      "SELECT revision, content_sha256 FROM planora.catalog_documents WHERE semester_key=$1 AND document_name=$2 AND state='draft' FOR UPDATE",
+      [semesterKey, args.documentName],
+    );
+    const actualHash = current.rowCount ? current.rows[0].content_sha256.trim() : '';
+    if (actualHash !== args.expectedHash) return { saved: false as const };
+    const revision = current.rowCount ? current.rows[0].revision + 1 : 1;
+    await client.query(
+      "INSERT INTO planora.catalog_documents (semester_key, document_name, state, content, content_sha256, revision, updated_by) " +
+      "VALUES ($1,$2,'draft',$3::jsonb,$4,$5,$6) " +
+      "ON CONFLICT (semester_key, document_name, state) DO UPDATE SET content=EXCLUDED.content, content_sha256=EXCLUDED.content_sha256, revision=EXCLUDED.revision, updated_by=EXCLUDED.updated_by, updated_at=now()",
+      [semesterKey, args.documentName, JSON.stringify(parsed), contentSha256, revision, args.actorId],
+    );
+    await client.query(
+      "INSERT INTO planora.catalog_revisions (semester_key, document_name, revision, state, action, content, content_sha256, actor_id, actor_name, reason) " +
+      "VALUES ($1,$2,$3,'draft','save_draft',$4::jsonb,$5,$6,$7,$8)",
+      [semesterKey, args.documentName, revision, JSON.stringify(parsed), contentSha256, args.actorId, args.actorName, (args.reason || '').slice(0, 500)],
+    );
+    await client.query(
+      'INSERT INTO planora.admin_audit_events (actor_id, actor_name, action, metadata) VALUES ($1,$2,$3,$4::jsonb)',
+      [args.actorId, args.actorName, 'save_draft', JSON.stringify({ semesterKey, documentName: args.documentName, revision, contentSha256 })],
+    );
+    return { saved: true as const, revision, contentSha256 };
+  });
 }
 
 /** Parameterized, read-only diagnostic for a deploy health endpoint or CLI. */
