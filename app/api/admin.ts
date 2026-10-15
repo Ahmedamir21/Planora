@@ -174,8 +174,9 @@ export default async function handler(req: any, res: any) {
           const result = await listPostgresAuditEvents({ page, pageSize: 20 });
           return res.status(200).json({ entries: result.entries.map(row => ({
             id: `${row.createdAt}:${row.action}:${row.actorId || 'system'}`,
+            ...row.metadata,
             at: row.createdAt, adminId: row.actorId || 'system', adminName: row.actorName || 'System',
-            action: row.action, ...row.metadata,
+            action: row.action,
           })) });
         }
         if (action === 'draft' || action === 'live') {
@@ -203,7 +204,7 @@ export default async function handler(req: any, res: any) {
         }
         if (action === 'sync_backup') {
           const version = typeof req.query?.version === 'string' ? req.query.version : '';
-          if (!/^v\\d{4}-\\d{2}-\\d{2}-\\d{4}-\\d{2}(?:-\\d{2})?$/.test(version)) return res.status(400).json({ error: 'Invalid backup version.' });
+          if (!/^v\d{4}-\d{2}-\d{2}-\d{4}-\d{2}(?:-\d{2})?$/.test(version)) return res.status(400).json({ error: 'Invalid backup version.' });
           const backup = await readPostgresSyncBackup(version);
           if (!backup) return res.status(404).json({ error: 'Backup not found.' });
           return res.status(200).json({ backup });
