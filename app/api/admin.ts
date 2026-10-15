@@ -1,7 +1,7 @@
 import { createHash, createHmac, randomUUID, scryptSync, timingSafeEqual } from 'node:crypto';
 import { draftKey, liveKey, HISTORY_KEY, rateLimited, redis, saveWithHistory, saveLive, undoLive, undoWithHistory, storageConfigured } from './admin-store';
 import { postgresRuntimeSelected, readCatalogDocument, readPostgresCatalogSnapshot } from './postgres-store';
-import { listPostgresAuditEvents, listPostgresRevisions } from '../lib/postgres-history';
+import { listPostgresAuditEvents } from '../lib/postgres-history';
 import { listPostgresSyncBackups, readPostgresSyncBackup, readPostgresSyncDraft } from '../lib/postgres-sync-store';
 import { isCatalogFile } from './catalog';
 import { jsonRequest, sameOrigin } from './security';
