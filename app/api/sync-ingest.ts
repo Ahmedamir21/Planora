@@ -1,5 +1,6 @@
 import { createHash, randomUUID, timingSafeEqual } from 'node:crypto';
 import { jsonRequest } from './security';
+import { postgresRuntimeSelected } from './postgres-store';
 import { liveKey, HISTORY_KEY, rateLimited, redis, storageConfigured } from './admin-store';
 import { SYNC_DRAFT_KEY, SYNC_STATUS_KEY, stageSyncDraft } from './sync-store';
 import { validateDataset } from '../dataset-validation.cjs';
@@ -53,6 +54,8 @@ function history(source: string, changed: string[]) {
 
 export default async function handler(req: any, res: any) {
   res.setHeader('Cache-Control', 'no-store');
+  // The self-service ingest must use the same transactional backend as the catalog.
+  if (postgresRuntimeSelected()) return res.status(503).json({ error: 'PostgreSQL sync ingest is not enabled until draft staging, review, publish, and restore are migrated together.' });
   if (req.method !== 'POST') { res.setHeader('Allow', 'POST'); return res.status(405).json({ error: 'Method not allowed.' }); }
   if (!jsonRequest(req, 2_000_000)) return res.status(415).json({ error: 'Expected JSON payload up to 2 MB.' });
   const secret = process.env.PLANORA_SYNC_INGEST_SECRET || '';
