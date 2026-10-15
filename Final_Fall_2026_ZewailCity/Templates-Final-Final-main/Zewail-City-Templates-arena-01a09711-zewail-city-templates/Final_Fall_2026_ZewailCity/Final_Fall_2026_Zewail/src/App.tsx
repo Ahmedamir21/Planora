@@ -36,6 +36,7 @@ import { readScheduleFromLocation, type ShareExtras } from './lib/share';
 import { downloadCalendarIcs } from './lib/calendar';
 import { ReportIssueDialog } from './components/ReportIssueDialog';
 import { FeedbackDialog } from './components/FeedbackDialog';
+import { Creators } from './components/Creators';
 import { loadPreferences, type SchedulePreferences } from './lib/preferences';
 import { effectiveCreditCap, loadAppState, saveAppState, wouldExceedCap, type CreditCap } from './lib/appState';
 import { computeFreeTime, WINDOW_END, WINDOW_START } from './lib/freeTime';
@@ -62,7 +63,7 @@ import { ShareScheduleImage } from './components/ShareScheduleImage';
 import { InstallAppButton } from './components/InstallAppButton';
 import { AppStatus } from './components/AppStatus';
 import { COURSE_DATA_LAST_VERIFIED } from './data/meta';
-import { CREATOR_CREDIT, DOCUMENT_DESCRIPTION, DOCUMENT_TITLE, LEGACY_UNTAGGED_SEMESTER_KEY, SEMESTER_CONFIG, TERM_SESSION_LABEL, TERM_SESSION_PAREN_LABEL } from './config/semester';
+import { DOCUMENT_DESCRIPTION, DOCUMENT_TITLE, LEGACY_UNTAGGED_SEMESTER_KEY, SEMESTER_CONFIG, TERM_SESSION_LABEL, TERM_SESSION_PAREN_LABEL } from './config/semester';
 import {
   isComponentLocked,
   isCourseLocked,
@@ -1992,12 +1993,9 @@ export default function App() {
           <button type="button" className="underline decoration-dotted underline-offset-2" onClick={() => setFeedbackOpen(true)}>Feedback</button>
         </footer>
 
-        <p
-          className="mt-2 text-center text-[10px] font-bold uppercase tracking-[0.14em]"
-          style={{ color: 'var(--accent)' }}
-        >
-          {CREATOR_CREDIT}
-        </p>
+        <div className="mt-2">
+          <Creators />
+        </div>
       </div>
 
       {/* Mobile quick-action bar: the primary workflow (generate → preferences → share) stays

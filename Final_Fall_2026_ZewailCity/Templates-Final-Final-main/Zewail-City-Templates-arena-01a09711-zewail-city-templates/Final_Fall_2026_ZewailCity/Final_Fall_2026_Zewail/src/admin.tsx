@@ -6,7 +6,7 @@ import courses from './semester/courses.json';
 import sch from './semester/sch.json';
 import majors from './semester/majors.json';
 import semester from './semester/semester.json';
-import { CREATOR_CREDIT } from './config/semester';
+import { Creators } from './components/Creators';
 import { ENGLISH_LEVEL_CODES } from './data/courses';
 import { AdminFeedback } from './components/AdminFeedback';
 import { AdminCourseEditor } from './components/AdminCourseEditor';
@@ -239,7 +239,7 @@ function Admin() {
       {tab === 'history' && <section className="panel p-5"><h2 className="text-lg font-bold">Activity history</h2><p className="mb-3 text-sm" style={{ color: 'var(--muted)' }}>The server stores this history outside the deployment. Each saved change includes before and after snapshots.</p>{entries.map(entry => <article className="panel-soft mb-2 p-3" key={entry.id}><p className="text-sm font-semibold">{entry.adminName} · {entry.action.replace(/_/g, ' ')}{entry.file && ` · ${entry.file}`}</p><p className="text-xs" style={{ color: 'var(--muted)' }}>{new Date(entry.at).toLocaleString()}{entry.changed?.length ? ` · Changed: ${entry.changed.join(', ')}` : ''}{entry.method ? ` · Via: ${entry.method}` : ''}{entry.source ? ` · Source: ${entry.source}` : ''}</p>{entry.before !== undefined && <details className="mt-2 text-xs"><summary className="cursor-pointer">Show exact before / after JSON</summary><div className="mt-2 grid gap-2 lg:grid-cols-2"><div><b>Before</b><pre className="max-h-60 overflow-auto whitespace-pre-wrap break-all">{entry.before || '(no previous draft)'}</pre></div><div><b>After</b><pre className="max-h-60 overflow-auto whitespace-pre-wrap break-all">{entry.after}</pre></div></div></details>}</article>)}{entries.length === 0 && <p className="text-sm">No activity on this page yet.</p>}<div className="mt-3 flex gap-2"><button className="btn px-3 py-2" disabled={busy || page === 0} onClick={() => void nextPage(page - 1)}>Newer</button><span className="pill">Page {page + 1}</span><button className="btn px-3 py-2" disabled={busy || entries.length < 20} onClick={() => void nextPage(page + 1)}>Older</button></div></section>}
       {message && <p role="status" className="panel p-3 text-sm">{message}</p>}
     </div>}
-    <footer className="mt-8 text-center text-sm font-semibold" style={{ color: 'var(--accent)' }}>{CREATOR_CREDIT}</footer>
+    <footer className="mt-8"><Creators /></footer>
   </main>;
 }
 
