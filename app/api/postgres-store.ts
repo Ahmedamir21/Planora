@@ -158,6 +158,67 @@ export async function savePostgresDraft(args: {
   });
 }
 
+
+/**
+ * Publishes a reviewed draft only if both the draft and current published
+ * snapshot still match the editor's observed hashes. Call only after the route
+ * has authenticated the admin and validated the complete combined dataset.
+ */
+export async function publishPostgresDraft(args: {
+  documentName: 'semester.json' | 'courses.json' | 'majors.json' | 'sch.json';
+  expectedDraftHash: string;
+  expectedPublishedHash: string;
+  actorId: string;
+  actorName: string;
+  reason?: string;
+}): Promise<{ published: true; revision: number; contentSha256: string } | { published: false }> {
+  return withPostgresTransaction(async client => {
+    const active = await client.query<{ semester_key: string }>(
+      'SELECT semester_key FROM planora.semesters WHERE is_active = true FOR UPDATE'
+    );
+    if (active.rowCount !== 1) throw new Error('PostgreSQL must contain exactly one active Planora semester.');
+    const semesterKey = active.rows[0].semester_key;
+    const docs = await client.query<{
+      state: 'draft' | 'published';
+      content: unknown;
+      revision: number;
+      content_sha256: string;
+    }>(
+      "SELECT state, content, revision, content_sha256 FROM planora.catalog_documents " +
+      "WHERE semester_key=$1 AND document_name=$2 AND state IN ('draft','published') FOR UPDATE",
+      [semesterKey, args.documentName],
+    );
+    const draft = docs.rows.find(row => row.state === 'draft');
+    const published = docs.rows.find(row => row.state === 'published');
+    if (!draft || !published ||
+        draft.content_sha256.trim() !== args.expectedDraftHash ||
+        published.content_sha256.trim() !== args.expectedPublishedHash) return { published: false as const };
+
+    const content = JSON.stringify(draft.content);
+    const contentSha256 = draft.content_sha256.trim();
+    const revision = published.revision + 1;
+    await client.query(
+      "UPDATE planora.catalog_documents SET content=$3::jsonb, content_sha256=$4, revision=$5, updated_by=$6, updated_at=now() " +
+      "WHERE semester_key=$1 AND document_name=$2 AND state='published'",
+      [semesterKey, args.documentName, content, contentSha256, revision, args.actorId],
+    );
+    await client.query(
+      "INSERT INTO planora.catalog_revisions (semester_key, document_name, revision, state, action, content, content_sha256, actor_id, actor_name, reason) " +
+      "VALUES ($1,$2,$3,'published','publish',$4::jsonb,$5,$6,$7,$8)",
+      [semesterKey, args.documentName, revision, content, contentSha256, args.actorId, args.actorName, (args.reason || '').slice(0, 500)],
+    );
+    await client.query(
+      'DELETE FROM planora.catalog_documents WHERE semester_key=$1 AND document_name=$2 AND state=\'draft\' AND content_sha256=$3',
+      [semesterKey, args.documentName, contentSha256],
+    );
+    await client.query(
+      'INSERT INTO planora.admin_audit_events (actor_id, actor_name, action, metadata) VALUES ($1,$2,$3,$4::jsonb)',
+      [args.actorId, args.actorName, 'publish', JSON.stringify({ semesterKey, documentName: args.documentName, revision, contentSha256 })],
+    );
+    return { published: true as const, revision, contentSha256 };
+  });
+}
+
 /** Parameterized, read-only diagnostic for a deploy health endpoint or CLI. */
 export async function postgresReadiness(): Promise<{
   ready: boolean;
