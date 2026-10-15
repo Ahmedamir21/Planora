@@ -11,6 +11,7 @@
   --ink: #f8fafc;
   --muted: #9ba7c0;
   --muted-2: #6f7b96;
+  --bg-glow: radial-gradient(ellipse 90% 60% at 50% -12%, rgba(0, 51, 133, 0.6), transparent 72%);
   --accent: #003385;
   --accent-fill: #003385;
   --accent-ink: #ffffff;
@@ -51,6 +52,7 @@
   --ink: #12172a;
   --muted: #667085;
   --muted-2: #8b94a8;
+  --bg-glow: radial-gradient(ellipse 90% 60% at 50% -12%, rgba(0, 51, 133, 0.1), transparent 72%);
   --accent: #315b92;
   --accent-fill: #003385;
   --accent-ink: #ffffff;
@@ -91,7 +93,8 @@ html {
 
 body {
   margin: 0;
-  background: var(--bg);
+  background: var(--bg-glow), var(--bg);
+  background-attachment: fixed;
   color: var(--ink);
   font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
   font-feature-settings: 'cv11', 'ss01';

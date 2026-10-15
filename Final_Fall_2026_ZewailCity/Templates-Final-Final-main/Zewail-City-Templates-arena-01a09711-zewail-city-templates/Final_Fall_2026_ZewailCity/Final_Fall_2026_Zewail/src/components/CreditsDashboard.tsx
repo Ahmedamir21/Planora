@@ -1,5 +1,6 @@
 import type { DayFreeTime } from '../lib/freeTime';
 import { DAY_LABEL, formatDuration, to12h } from '../lib/time';
+import { Icon } from './Icon';
 
 interface Props {
   selectedCount: number;
@@ -124,12 +125,12 @@ export function CreditsDashboard({
           )}
           {onOpenPreferences && (
             <button type="button" className="btn btn-tap px-2.5 py-1.5 text-[11px]" onClick={onOpenPreferences}>
-              ⚙ Preferences
+              <Icon name="sliders" /> Preferences
             </button>
           )}
           {onOpenBestSchedule && (
             <button type="button" className="btn btn-accent btn-tap px-2.5 py-1.5 text-[11px]" onClick={onOpenBestSchedule}>
-              ✦ Best Schedule
+              <Icon name="sparkles" /> Best Schedule
             </button>
           )}
         </div>

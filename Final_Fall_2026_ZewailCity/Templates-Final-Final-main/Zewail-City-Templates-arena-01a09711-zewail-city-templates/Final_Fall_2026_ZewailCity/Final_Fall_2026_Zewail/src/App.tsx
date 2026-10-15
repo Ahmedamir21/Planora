@@ -1,4 +1,3 @@
-import AnimatedBackground from "./components/AnimatedBackground";
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { COURSE_BY_ID } from './data/courses';
 import {
@@ -73,6 +72,7 @@ import {
   savePlannerLocks,
   type PlannerLocks,
 } from './lib/assistantControls';
+import { Icon } from './components/Icon';
 
 function isAboutHash(): boolean {
   return typeof window !== 'undefined' && (window.location.hash ?? '').replace('#', '') === 'about';
@@ -1403,7 +1403,6 @@ export default function App() {
 
   return (
     <div className="min-h-screen pb-14">
-      <AnimatedBackground />
       <AppStatus />
       <div className="mx-auto max-w-[1560px] px-3 py-4 sm:px-6 sm:py-6">
         <header className="panel mb-3 flex flex-col gap-4 p-4 sm:flex-row sm:items-start sm:justify-between sm:p-5">
@@ -1452,11 +1451,11 @@ export default function App() {
             </button>
 
             <a className="btn btn-tap" href="/admin.html" aria-label="Open Planora admin panel">
-              🔒 Admin
+              <Icon name="lock" /> Admin
             </a>
 
             <button type="button" className="btn btn-accent btn-tap" onClick={() => setFeedbackOpen(true)}>
-              💬 Feedback
+              <Icon name="message" /> Feedback
             </button>
 
             {major && !showAbout && (
@@ -2013,7 +2012,7 @@ export default function App() {
             className="btn btn-accent btn-tap flex-1"
             onClick={scrollToBestSchedule}
           >
-            ✦ Best
+            <Icon name="sparkles" /> Best
           </button>
 
           <button
@@ -2030,7 +2029,7 @@ export default function App() {
             className="btn btn-tap flex-1"
             onClick={() => setPrefsOpen(true)}
           >
-            ⚙ Preferences
+            <Icon name="sliders" /> Preferences
           </button>
         </nav>
       )}

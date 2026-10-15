@@ -1,4 +1,5 @@
 import type { Course, MeetingType } from '../types';
+import { Icon } from './Icon';
 
 export type TypeFilter = 'All' | MeetingType;
 
@@ -57,7 +58,7 @@ export function CombinationNav({
             </span>
           )}
           <button type="button" className="btn btn-accent" onClick={onSuggest} disabled={disabled}>
-            ✦ Suggest Best Combination
+            <Icon name="sparkles" /> Suggest Best Combination
           </button>
         </div>
       </div>

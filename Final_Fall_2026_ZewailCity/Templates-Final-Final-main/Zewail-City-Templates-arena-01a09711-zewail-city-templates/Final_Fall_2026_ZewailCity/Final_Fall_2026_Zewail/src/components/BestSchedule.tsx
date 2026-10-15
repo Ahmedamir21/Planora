@@ -17,6 +17,7 @@ import { CompareSchedules } from './CompareSchedules';
 import { ShareSchedule } from './ShareSchedule';
 import { EmptyState } from './EmptyState';
 import { TERM_LABEL } from '../config/semester';
+import { Icon } from './Icon';
 
 interface Props {
   courses: Course[];
@@ -96,7 +97,7 @@ export function BestSchedule({
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 id="best-schedule-heading" className="flex items-center gap-1.5 text-[13px] font-bold tracking-tight">
-            <span aria-hidden>✦</span> Best Schedule
+            <Icon name="sparkles" /> Best Schedule
           </h2>
           <p className="mt-1 max-w-[56ch] text-[12px] leading-relaxed" style={{ color: 'var(--muted)' }}>
             Searches every instructor and section for your ticked courses, rejects anything with a time conflict, and
@@ -105,10 +106,10 @@ export function BestSchedule({
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <button type="button" className="btn btn-tap" onClick={() => onPrefsOpenChange(true)}>
-            ⚙ Schedule Preferences
+            <Icon name="sliders" /> Schedule Preferences
           </button>
           <button type="button" className="btn btn-accent btn-tap" onClick={() => generate()} disabled={courses.length === 0}>
-            ✦ Generate Best Schedules
+            <Icon name="sparkles" /> Generate Best Schedules
           </button>
         </div>
       </div>
