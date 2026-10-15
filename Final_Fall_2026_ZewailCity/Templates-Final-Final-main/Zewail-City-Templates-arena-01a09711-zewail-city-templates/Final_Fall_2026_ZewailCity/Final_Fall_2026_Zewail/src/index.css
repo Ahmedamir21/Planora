@@ -1168,3 +1168,174 @@ body {
   background: color-mix(in srgb, var(--accent) 14%, var(--paper));
   color: var(--ink);
 }
+
+
+/* -------------------------------------------------------------------------- */
+/* Planora visual refinement — royal navy, restrained glass, consistent icons */
+/* UI-only overrides: scheduling logic, state, routes and data remain intact.  */
+/* -------------------------------------------------------------------------- */
+:root,
+[data-theme='dark'] {
+  --bg: #070d1b;
+  --paper: #0d1730;
+  --surface: #111f3d;
+  --surface-2: #192b50;
+  --line: #2b416d;
+  --line-soft: #1d3155;
+  --ink: #f4f7ff;
+  --muted: #a9b8d5;
+  --muted-2: #7f91b5;
+  --accent: #4169e1;
+  --accent-ink: #ffffff;
+  --brand-soft: #7397ff;
+  --brand-blue: #4169e1;
+  --brand-warm: #e6b866;
+  --grid-line: #203153;
+  --shadow: 0 20px 48px -30px rgba(0, 0, 0, 0.86);
+  color-scheme: dark;
+}
+
+[data-theme='light'] {
+  --bg: #f3f6fc;
+  --paper: #ffffff;
+  --surface: #f7f9ff;
+  --surface-2: #eaf0ff;
+  --line: #d7e0f2;
+  --line-soft: #e6ecf8;
+  --ink: #14213d;
+  --muted: #5d6d8a;
+  --muted-2: #7d8ba5;
+  --accent: #294fbb;
+  --accent-ink: #ffffff;
+  --brand-soft: #4169e1;
+  --brand-blue: #294fbb;
+  --brand-warm: #a86f16;
+  --grid-line: #e0e7f4;
+  --shadow: 0 18px 42px -30px rgba(25, 48, 92, 0.3);
+  color-scheme: light;
+}
+
+body {
+  background:
+    radial-gradient(ellipse at 8% -8%, color-mix(in srgb, var(--accent) 13%, transparent), transparent 36rem),
+    radial-gradient(ellipse at 96% 10%, color-mix(in srgb, var(--brand-blue) 8%, transparent), transparent 30rem),
+    var(--bg);
+}
+
+.panel {
+  background: color-mix(in srgb, var(--paper) 91%, transparent);
+  border-color: color-mix(in srgb, var(--line) 82%, transparent);
+  box-shadow: 0 16px 42px -30px rgba(0, 0, 0, 0.48), inset 0 1px 0 color-mix(in srgb, white 4%, transparent);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.panel-soft {
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  border-color: color-mix(in srgb, var(--line-soft) 85%, transparent);
+}
+
+.btn {
+  border-color: color-mix(in srgb, var(--line) 88%, transparent);
+  box-shadow: 0 2px 8px -7px rgba(0, 0, 0, 0.5);
+  transition: border-color 180ms ease, background 180ms ease, box-shadow 180ms ease, transform 180ms ease, filter 180ms ease;
+}
+
+.btn:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--accent) 52%, var(--line));
+  box-shadow: 0 7px 18px -14px color-mix(in srgb, var(--accent) 75%, transparent);
+}
+
+.btn-accent {
+  background: linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 70%, #8fb3ff));
+  box-shadow: 0 8px 20px -13px color-mix(in srgb, var(--accent) 82%, transparent);
+}
+
+.btn-accent:hover:not(:disabled) {
+  filter: brightness(1.08);
+  box-shadow: 0 10px 24px -13px color-mix(in srgb, var(--accent) 85%, transparent);
+}
+
+.course-card {
+  background: color-mix(in srgb, var(--paper) 94%, transparent);
+  border-color: color-mix(in srgb, var(--line) 85%, transparent);
+  box-shadow: 0 5px 18px -16px rgba(0, 0, 0, 0.45);
+  transition: border-color 180ms ease, box-shadow 180ms ease, background 180ms ease, transform 180ms ease;
+}
+
+.course-card[data-state='selected'] {
+  border-color: color-mix(in srgb, var(--accent) 75%, var(--line));
+  box-shadow: inset 3px 0 0 var(--accent), 0 10px 28px -22px color-mix(in srgb, var(--accent) 65%, transparent);
+}
+
+.select,
+.course-search-wrap {
+  border-color: color-mix(in srgb, var(--line) 90%, transparent);
+}
+
+.select:focus-visible,
+.course-search-wrap:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
+}
+
+.pill {
+  border-color: color-mix(in srgb, var(--line) 85%, transparent);
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+}
+
+.event-card {
+  box-shadow: 0 4px 14px -10px rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+}
+
+.command-palette,
+.toast-card {
+  border-color: color-mix(in srgb, var(--line) 82%, transparent);
+  box-shadow: 0 24px 64px -30px rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+/* Make the existing SVG iconography feel like one intentional icon system. */
+button svg,
+a svg,
+.command-row svg,
+.course-search-wrap svg,
+.toast-card svg {
+  display: inline-block;
+  flex: none;
+  width: 1.05em;
+  height: 1.05em;
+  vertical-align: -0.16em;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+button:has(> svg),
+a:has(> svg) {
+  gap: 0.55rem;
+}
+
+button[aria-pressed='true'] {
+  border-color: color-mix(in srgb, var(--accent) 65%, var(--line));
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .course-card:hover {
+    transform: translateY(-1px);
+    border-color: color-mix(in srgb, var(--accent) 38%, var(--line));
+    box-shadow: 0 12px 28px -24px color-mix(in srgb, var(--accent) 55%, transparent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
