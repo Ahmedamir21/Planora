@@ -79,21 +79,22 @@ export async function activeSemesterKey(client?: PoolClient): Promise<string> {
 }
 
 /**
- * Returns the JSON document as a serialized string to preserve the existing
- * API's string-based editor contract. The caller should hash this exact string
- * for its optimistic-concurrency token rather than trusting a JSONB text hash.
+ * Returns the JSON document plus its database-managed content hash. Because JSONB
+ * normalizes representation, callers must use contentSha256 (not hash(content))
+ * as the PostgreSQL optimistic-concurrency token.
  */
 export async function readCatalogDocument(
   documentName: 'semester.json' | 'courses.json' | 'majors.json' | 'sch.json',
   state: 'published' | 'draft' = 'published',
-): Promise<{ content: string; revision: number; updatedAt: string } | null> {
+): Promise<{ content: string; revision: number; contentSha256: string; updatedAt: string } | null> {
   const semesterKey = await activeSemesterKey();
   const result = await postgresPool().query<{
     content: unknown;
     revision: number;
+    content_sha256: string;
     updated_at: Date | string;
   }>(
-    'SELECT content, revision, updated_at FROM planora.catalog_documents WHERE semester_key = $1 AND document_name = $2 AND state = $3',
+    'SELECT content, revision, content_sha256, updated_at FROM planora.catalog_documents WHERE semester_key = $1 AND document_name = $2 AND state = $3',
     [semesterKey, documentName, state],
   );
   if (result.rowCount === 0) return null;
@@ -101,7 +102,7 @@ export async function readCatalogDocument(
   const content = JSON.stringify(row.content);
   if (typeof content !== 'string') throw new Error('Stored catalog document is not serializable JSON.');
   const updatedAt = row.updated_at instanceof Date ? row.updated_at : new Date(row.updated_at);
-  return { content, revision: row.revision, updatedAt: updatedAt.toISOString() };
+  return { content, revision: row.revision, contentSha256: row.content_sha256.trim(), updatedAt: updatedAt.toISOString() };
 }
 
 /** Parameterized, read-only diagnostic for a deploy health endpoint or CLI. */
