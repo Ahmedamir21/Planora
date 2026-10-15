@@ -1,6 +1,6 @@
 import { createHash, createHmac, randomUUID, scryptSync, timingSafeEqual } from 'node:crypto';
 import { draftKey, liveKey, HISTORY_KEY, rateLimited, redis, saveWithHistory, saveLive, undoLive, undoWithHistory, storageConfigured } from './admin-store';
-import { postgresRuntimeSelected, readCatalogDocument, readPostgresCatalogSnapshot, savePostgresDraft, publishPostgresDraft, undoPostgresDraft } from './postgres-store';
+import { postgresRuntimeSelected, readCatalogDocument, readPostgresCatalogSnapshot, savePostgresDraft, publishPostgresDraft, restorePostgresRevision, undoPostgresDraft } from './postgres-store';
 import { listPostgresAuditEvents } from '../lib/postgres-history';
 import { listPostgresSyncBackups, readPostgresSyncBackup, readPostgresSyncDraft } from '../lib/postgres-sync-store';
 import { isCatalogFile } from './catalog';
@@ -352,6 +352,46 @@ export default async function handler(req: any, res: any) {
         revision: result.contentSha256,
         liveRevision: result.contentSha256,
         entry: { at: new Date().toISOString(), adminId: admin.id, adminName: admin.name, action: 'publish', file: body.file, source: reason, revision: result.revision },
+      });
+    }
+    if (postgresMode && body.action === 'restore_revision') {
+      if (!allowedFile(body.file) || typeof body.expectedLiveRevision !== 'string' ||
+          !Number.isSafeInteger(body.revision) || body.revision < 1) {
+        return res.status(400).json({ error: 'Choose a file, a positive historical revision, and the current published revision.' });
+      }
+      const reason = typeof body.source === 'string' ? body.source.trim().slice(0, 240) : '';
+      if (!reason) return res.status(400).json({ error: 'Add a reason for restoring this revision.' });
+      const snapshot = await readPostgresCatalogSnapshot();
+      if (snapshot.published[body.file].contentSha256 !== body.expectedLiveRevision) {
+        return res.status(409).json({ error: 'The published catalog changed. Reload before restoring a revision.' });
+      }
+      const { listPostgresRevisions } = await import('../lib/postgres-history');
+      const historical = await listPostgresRevisions({ documentName: body.file, state: 'published', page: 0, pageSize: 100 });
+      const selected = historical.entries.find((entry: any) => entry.revision === body.revision);
+      if (!selected) return res.status(404).json({ error: 'Published revision not found in the latest 100 history entries.' });
+      const values: Record<string, any> = {};
+      for (const name of FILES) {
+        const raw = name === body.file ? JSON.stringify(selected.content) : snapshot.drafts[name]?.content || snapshot.published[name].content;
+        values[name.replace('.json', '')] = JSON.parse(raw);
+      }
+      const check = validateDataset(values);
+      if (check.errors.length) {
+        return res.status(400).json({ error: 'This historical revision is incompatible with the current semester data.', errors: check.errors.slice(0, 20) });
+      }
+      const result = await restorePostgresRevision({
+        documentName: body.file,
+        sourceRevision: body.revision,
+        expectedPublishedHash: body.expectedLiveRevision,
+        actorId: admin.id,
+        actorName: admin.name,
+        reason,
+      });
+      if (!result.restored) return res.status(409).json({ error: 'The published catalog changed. Nothing was restored; reload and retry.' });
+      return res.status(200).json({
+        restored: true,
+        revision: result.contentSha256,
+        liveRevision: result.contentSha256,
+        entry: { at: new Date().toISOString(), adminId: admin.id, adminName: admin.name, action: 'restore', file: body.file, source: reason, revision: result.revision },
       });
     }
     if (postgresMode && body.action === 'undo') {
