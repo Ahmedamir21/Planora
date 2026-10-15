@@ -1,7 +1,7 @@
 import { createHash, createHmac, randomUUID, scryptSync, timingSafeEqual } from 'node:crypto';
 import { draftKey, liveKey, HISTORY_KEY, rateLimited, redis, saveWithHistory, saveLive, undoLive, undoWithHistory, storageConfigured } from './admin-store';
 import { postgresRuntimeSelected, readCatalogDocument, readPostgresCatalogSnapshot, savePostgresDraft, publishPostgresDraft, restorePostgresRevision, undoPostgresDraft } from './postgres-store';
-import { listPostgresAuditEvents } from '../lib/postgres-history';
+import { listPostgresAuditEvents, listPostgresRevisions, readPostgresRevisionContent } from '../lib/postgres-history';
 import { listPostgresSyncBackups, readPostgresSyncBackup, readPostgresSyncDraft } from '../lib/postgres-sync-store';
 import { isCatalogFile } from './catalog';
 import { jsonRequest, sameOrigin } from './security';
@@ -365,13 +365,15 @@ export default async function handler(req: any, res: any) {
       if (snapshot.published[body.file].contentSha256 !== body.expectedLiveRevision) {
         return res.status(409).json({ error: 'The published catalog changed. Reload before restoring a revision.' });
       }
-      const { listPostgresRevisions } = await import('../lib/postgres-history');
       const historical = await listPostgresRevisions({ documentName: body.file, state: 'published', page: 0, pageSize: 100 });
-      const selected = historical.entries.find((entry: any) => entry.revision === body.revision);
-      if (!selected) return res.status(404).json({ error: 'Published revision not found in the latest 100 history entries.' });
+      if (!historical.entries.some(entry => entry.revision === body.revision)) {
+        return res.status(404).json({ error: 'Published revision not found in the latest 100 history entries.' });
+      }
+      const historicalContent = await readPostgresRevisionContent({ documentName: body.file, state: 'published', revision: body.revision });
+      if (historicalContent === null) return res.status(404).json({ error: 'Published revision content not found.' });
       const values: Record<string, any> = {};
       for (const name of FILES) {
-        const raw = name === body.file ? JSON.stringify(selected.content) : snapshot.drafts[name]?.content || snapshot.published[name].content;
+        const raw = name === body.file ? historicalContent : snapshot.drafts[name]?.content || snapshot.published[name].content;
         values[name.replace('.json', '')] = JSON.parse(raw);
       }
       const check = validateDataset(values);
