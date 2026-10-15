@@ -100,7 +100,8 @@ export async function readCatalogDocument(
   const row = result.rows[0];
   const content = JSON.stringify(row.content);
   if (typeof content !== 'string') throw new Error('Stored catalog document is not serializable JSON.');
-  return { content, revision: row.revision, updatedAt: new Date(row.updated_at).toISOString() };
+  const updatedAt = row.updated_at instanceof Date ? row.updated_at : new Date(row.updated_at);
+  return { content, revision: row.revision, updatedAt: updatedAt.toISOString() };
 }
 
 /** Parameterized, read-only diagnostic for a deploy health endpoint or CLI. */
