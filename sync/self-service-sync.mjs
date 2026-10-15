@@ -131,7 +131,7 @@ async function searchCourse(page, code) {
   if (await source.count() === 0 || !(await source.isVisible().catch(() => false))) {
     throw new Error('Configured course-results selector was not found or visible. Refusing to inspect the personal/right-side schedule.');
   }
-  const search = source.locator(SEARCH_SELECTOR).first();
+  const search = page.locator(SEARCH_SELECTOR).first();
   if (await search.count() === 0 || !(await search.isVisible().catch(() => false))) {
     throw new Error('Configured search selector was not found inside the course-results pane. Nothing was clicked.');
   }
