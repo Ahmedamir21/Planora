@@ -207,6 +207,7 @@ body {
   border: 1px solid var(--line);
   background: var(--surface);
   color: var(--muted);
+  white-space: nowrap;
 }
 
 .course-card {

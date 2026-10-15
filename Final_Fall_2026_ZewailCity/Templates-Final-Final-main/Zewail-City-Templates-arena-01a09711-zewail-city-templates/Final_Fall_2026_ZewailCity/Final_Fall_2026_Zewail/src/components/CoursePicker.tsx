@@ -371,7 +371,7 @@ function CourseCard({
         if (!e.currentTarget.contains(e.relatedTarget as Node | null)) onHoverCourse?.(null);
       }}
     >
-      <header className="flex items-start gap-3">
+      <header className="flex flex-wrap items-start gap-x-3 gap-y-2">
         <input
           type="checkbox"
           id={`take-${course.id}`}
@@ -380,7 +380,7 @@ function CourseCard({
           onChange={(e) => onToggle(e.target.checked)}
           aria-label={`Register ${course.code}`}
         />
-        <label htmlFor={`take-${course.id}`} className="min-w-0 flex-1 cursor-pointer py-0.5">
+        <label htmlFor={`take-${course.id}`} className="min-w-0 flex-1 basis-[12rem] cursor-pointer py-0.5">
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
             <span className="h-2.5 w-2.5 rounded-[3px]" style={{ background: `var(--c${course.c})` }} aria-hidden />
             <span className="mono text-[13.5px] font-bold tracking-tight" style={{ color: `var(--c${course.c})` }}>
@@ -421,7 +421,7 @@ function CourseCard({
             {course.name}
           </p>
         </label>
-        <div className="flex flex-none flex-wrap items-center justify-end gap-1.5">
+        <div className="ml-auto flex flex-none flex-wrap items-center justify-end gap-1.5 max-[560px]:ml-0 max-[560px]:basis-full max-[560px]:justify-start max-[560px]:pl-[30px]">
           <button
             type="button"
             className="btn btn-tap px-2.5 py-1.5 text-[11px]"
