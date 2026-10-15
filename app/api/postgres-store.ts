@@ -209,6 +209,10 @@ export async function savePostgresDraft(args: {
     );
     if (active.rowCount !== 1) throw new Error('PostgreSQL must contain exactly one active Planora semester.');
     const semesterKey = active.rows[0].semester_key;
+    if (args.documentName === 'semester.json' &&
+        (!parsed || typeof parsed !== 'object' || (parsed as { key?: unknown }).key !== semesterKey)) {
+      throw new Error('The semester key cannot be changed by a catalog draft; initialize a separate semester explicitly.');
+    }
     const current = await client.query<{ revision: number; content_sha256: string }>(
       "SELECT revision, content_sha256 FROM planora.catalog_documents WHERE semester_key=$1 AND document_name=$2 AND state='draft' FOR UPDATE",
       [semesterKey, args.documentName],
@@ -271,6 +275,11 @@ export async function publishPostgresDraft(args: {
         draft.content_sha256.trim() !== args.expectedDraftHash ||
         published.content_sha256.trim() !== args.expectedPublishedHash) return { published: false as const };
 
+    if (args.documentName === 'semester.json' &&
+        (!draft.content || typeof draft.content !== 'object' ||
+          (draft.content as { key?: unknown }).key !== semesterKey)) {
+      throw new Error('The semester draft key does not match the active semester.');
+    }
     const content = JSON.stringify(draft.content);
     const contentSha256 = draft.content_sha256.trim();
     const revision = published.revision + 1;
