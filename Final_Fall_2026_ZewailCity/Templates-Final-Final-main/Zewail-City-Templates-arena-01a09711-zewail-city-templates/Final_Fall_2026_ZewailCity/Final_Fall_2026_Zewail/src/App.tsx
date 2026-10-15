@@ -1452,11 +1452,11 @@ export default function App() {
             </button>
 
             <a className="btn btn-tap" href="/admin.html" aria-label="Open Planora admin panel">
-              <Icon name="lock" /> Admin
+              <Icon name="lock" size="md" /> Admin
             </a>
 
             <button type="button" className="btn btn-accent btn-tap" onClick={() => setFeedbackOpen(true)}>
-              <Icon name="message" /> Feedback
+              <Icon name="message" size="md" /> Feedback
             </button>
 
             {major && !showAbout && (

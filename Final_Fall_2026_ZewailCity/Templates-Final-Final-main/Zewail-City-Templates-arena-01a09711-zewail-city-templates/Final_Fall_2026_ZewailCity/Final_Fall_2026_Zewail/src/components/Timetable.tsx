@@ -88,7 +88,7 @@ export function Timetable({
               className="pill"
               style={{ color: 'var(--accent)', borderColor: 'color-mix(in srgb, var(--accent) 45%, var(--line))' }}
             >
-              <Icon name="sparkles" /> {bestLabel}
+              <Icon name="sparkles" size="xs" /> {bestLabel}
             </span>
           )}
           {overlapCount > 0 && (

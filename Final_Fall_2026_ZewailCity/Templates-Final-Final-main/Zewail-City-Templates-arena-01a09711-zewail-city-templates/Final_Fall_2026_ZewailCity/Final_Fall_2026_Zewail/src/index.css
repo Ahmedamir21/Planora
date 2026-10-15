@@ -1278,41 +1278,29 @@ a .glass-icon {
 }
 
 
-/* Hard guard against component/utility styles expanding the glass icon tile. */
+/* Chip size comes from --chip and --glyph (set by the size classes in the glass block below). */
 .glass-icon {
   box-sizing: border-box !important;
-  flex: 0 0 40px !important;
-  width: 40px !important;
-  min-width: 40px !important;
-  max-width: 40px !important;
-  height: 40px !important;
-  min-height: 40px !important;
-  max-height: 40px !important;
+  flex: 0 0 var(--chip, 28px) !important;
+  width: var(--chip, 28px) !important;
+  min-width: var(--chip, 28px) !important;
+  max-width: var(--chip, 28px) !important;
+  height: var(--chip, 28px) !important;
+  min-height: var(--chip, 28px) !important;
+  max-height: var(--chip, 28px) !important;
   padding: 0 !important;
   align-self: center;
 }
 
 .glass-icon > svg {
   box-sizing: border-box;
-  width: 20px !important;
-  min-width: 20px !important;
-  max-width: 20px !important;
-  height: 20px !important;
-  min-height: 20px !important;
-  max-height: 20px !important;
-  flex: 0 0 20px !important;
-}
-
-@media (max-width: 480px) {
-  .glass-icon {
-    flex-basis: 36px !important;
-    width: 36px !important;
-    min-width: 36px !important;
-    max-width: 36px !important;
-    height: 36px !important;
-    min-height: 36px !important;
-    max-height: 36px !important;
-  }
+  width: var(--glyph, 16px) !important;
+  min-width: var(--glyph, 16px) !important;
+  max-width: var(--glyph, 16px) !important;
+  height: var(--glyph, 16px) !important;
+  min-height: var(--glyph, 16px) !important;
+  max-height: var(--glyph, 16px) !important;
+  flex: 0 0 var(--glyph, 16px) !important;
 }
 
 
@@ -1337,6 +1325,32 @@ a .glass-icon {
   background: rgba(0, 51, 133, 0.78);
   border-color: rgba(255, 255, 255, 0.34);
   filter: none;
+}
+
+.glass-icon {
+  --chip: 28px;
+  --glyph: 16px;
+  margin-right: 8px;
+  border-radius: 9px;
+}
+.glass-icon-xs {
+  --chip: 22px;
+  --glyph: 13px;
+  margin-right: 6px;
+  border-radius: 7px;
+}
+.glass-icon-md {
+  --chip: 32px;
+  --glyph: 18px;
+  margin-right: 9px;
+  border-radius: 10px;
+}
+
+/* Buttons with a chip: tighter padding so the chip doesn't make them tall. */
+.btn:has(> .glass-icon:not(.glass-icon-bare)) {
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
 }
 
 .glass-icon {
@@ -1446,4 +1460,20 @@ a .glass-icon {
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
   }
+}
+
+/* Bare icon: no chip, just the glyph. */
+.glass-icon.glass-icon-bare {
+  --chip: 20px;
+  --glyph: 15px;
+  margin-right: 0;
+  color: inherit !important;
+  background: none !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+.glass-icon-bare::before {
+  display: none !important;
 }

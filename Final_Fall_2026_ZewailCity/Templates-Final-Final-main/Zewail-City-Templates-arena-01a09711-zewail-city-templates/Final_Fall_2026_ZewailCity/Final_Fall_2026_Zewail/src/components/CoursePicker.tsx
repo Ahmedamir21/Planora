@@ -440,7 +440,7 @@ function CourseCard({
                 title={fullyLocked ? 'Unlock this course for AI and Best Schedule' : 'Keep this course unchanged by AI and Best Schedule'}
                 style={fullyLocked ? { color: 'var(--accent)', borderColor: 'var(--accent)' } : undefined}
               >
-                <Icon name={fullyLocked ? 'lock' : 'unlock'} /> {fullyLocked ? 'Locked' : 'Lock'}
+                <Icon name={fullyLocked ? 'lock' : 'unlock'} size="xs" /> {fullyLocked ? 'Locked' : 'Lock'}
               </button>
               <button
                 type="button"
@@ -682,14 +682,13 @@ function OptionRow({
       {active && onToggleLock && (
         <button
           type="button"
-          className="btn-tap flex-none rounded-lg px-2 py-1 text-[10px] font-bold"
+          className="btn-tap flex-none rounded-lg px-1.5 py-1 text-[10px] font-bold hover:bg-(--surface-2)"
           onClick={onToggleLock}
           aria-pressed={Boolean(locked)}
           title={locked ? 'Unlock this section for AI and Best Schedule' : 'Keep this section unchanged by AI and Best Schedule'}
           style={{
-            border: `1px solid ${locked ? 'var(--accent)' : 'var(--line)'}`,
+            border: '1px solid transparent',
             color: locked ? 'var(--accent)' : 'var(--muted)',
-            background: 'var(--surface)',
           }}
         >
           <Icon name={locked ? 'lock' : 'unlock'} bare />

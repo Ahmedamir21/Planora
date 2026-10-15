@@ -97,7 +97,7 @@ export function BestSchedule({
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 id="best-schedule-heading" className="flex items-center gap-1.5 text-[13px] font-bold tracking-tight">
-            <Icon name="sparkles" /> Best Schedule
+            <Icon name="sparkles" size="xs" /> Best Schedule
           </h2>
           <p className="mt-1 max-w-[56ch] text-[12px] leading-relaxed" style={{ color: 'var(--muted)' }}>
             Searches every instructor and section for your ticked courses, rejects anything with a time conflict, and

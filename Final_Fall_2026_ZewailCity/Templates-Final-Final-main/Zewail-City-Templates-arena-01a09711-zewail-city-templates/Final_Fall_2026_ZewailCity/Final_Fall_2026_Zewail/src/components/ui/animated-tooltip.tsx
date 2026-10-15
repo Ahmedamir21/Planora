@@ -1,11 +1,5 @@
-import { useState, type MouseEvent } from 'react';
-import {
-  motion,
-  useTransform,
-  AnimatePresence,
-  useMotionValue,
-  useSpring,
-} from 'framer-motion';
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '../../utils/cn';
 
 export interface TooltipPerson {
@@ -15,7 +9,7 @@ export interface TooltipPerson {
   image: string;
 }
 
-// Avatars with a tooltip that tilts and follows the mouse (from 21st.dev, adapted to plain React).
+// Avatars with a tooltip that pops up right above the hovered person (from 21st.dev, adapted to plain React).
 export const AnimatedTooltip = ({
   items,
   className,
@@ -24,15 +18,6 @@ export const AnimatedTooltip = ({
   className?: string;
 }) => {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
-  const springConfig = { stiffness: 100, damping: 5 };
-  const x = useMotionValue(0);
-  const rotate = useSpring(useTransform(x, [-100, 100], [-45, 45]), springConfig);
-  const translateX = useSpring(useTransform(x, [-100, 100], [-50, 50]), springConfig);
-
-  const handleMouseMove = (event: MouseEvent<HTMLImageElement>) => {
-    const halfWidth = event.currentTarget.offsetWidth / 2;
-    x.set(event.nativeEvent.offsetX - halfWidth);
-  };
 
   return (
     <div className={cn('flex items-center gap-2', className)}>
@@ -46,47 +31,43 @@ export const AnimatedTooltip = ({
           onFocus={() => setHoveredIndex(item.id)}
           onBlur={() => setHoveredIndex(null)}
         >
-          <AnimatePresence mode="popLayout">
+          <AnimatePresence>
             {hoveredIndex === item.id && (
               <motion.div
-                initial={{ opacity: 0, y: 20, scale: 0.6 }}
+                initial={{ opacity: 0, y: 10, scale: 0.85 }}
                 animate={{
                   opacity: 1,
                   y: 0,
                   scale: 1,
-                  transition: { type: 'spring', stiffness: 260, damping: 10 },
+                  transition: { type: 'spring', stiffness: 300, damping: 20 },
                 }}
-                exit={{ opacity: 0, y: 20, scale: 0.6 }}
+                exit={{ opacity: 0, y: 10, scale: 0.85 }}
                 style={{
-                  translateX,
-                  rotate,
+                  x: '-50%',
                   whiteSpace: 'nowrap',
-                  background: 'color-mix(in srgb, var(--surface-2) 88%, transparent)',
+                  background: 'var(--surface-2)',
                   border: '1px solid var(--line)',
-                  WebkitBackdropFilter: 'blur(10px)',
-                  backdropFilter: 'blur(10px)',
                 }}
-                className="absolute -top-16 -left-1/2 translate-x-1/2 flex text-xs flex-col items-center justify-center rounded-md z-50 shadow-xl px-4 py-2"
+                className="pointer-events-none absolute bottom-full left-1/2 z-50 mb-3 flex flex-col items-center justify-center rounded-md px-4 py-2 text-xs shadow-xl"
               >
                 <div
-                  className="absolute inset-x-10 z-30 w-[20%] -bottom-px h-px"
-                  style={{ background: 'linear-gradient(to right, transparent, #10b981, transparent)' }}
+                  className="absolute left-1/2 -bottom-[6px] h-2.5 w-2.5 -translate-x-1/2 rotate-45"
+                  style={{
+                    background: 'var(--surface-2)',
+                    borderRight: '1px solid var(--line)',
+                    borderBottom: '1px solid var(--line)',
+                  }}
                 />
-                <div
-                  className="absolute left-10 w-[40%] z-30 -bottom-px h-px"
-                  style={{ background: 'linear-gradient(to right, transparent, #0ea5e9, transparent)' }}
-                />
-                <div className="font-bold relative z-30 text-base" style={{ color: 'var(--ink)' }}>
+                <div className="relative z-30 text-base font-bold" style={{ color: 'var(--ink)' }}>
                   {item.name}
                 </div>
-                <div className="text-xs" style={{ color: 'var(--muted)' }}>
+                <div className="relative z-30 text-xs" style={{ color: 'var(--muted)' }}>
                   {item.designation}
                 </div>
               </motion.div>
             )}
           </AnimatePresence>
           <img
-            onMouseMove={handleMouseMove}
             height={100}
             width={100}
             src={item.image}

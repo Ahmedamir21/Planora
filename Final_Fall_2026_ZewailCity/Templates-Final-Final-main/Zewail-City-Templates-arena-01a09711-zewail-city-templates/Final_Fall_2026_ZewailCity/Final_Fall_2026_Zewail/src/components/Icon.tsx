@@ -34,27 +34,15 @@ const PATHS: Record<IconName, ReactElement> = {
   ),
 };
 
-/** Small line icon that follows the text colour. Set `bare` when there is no label next to it. */
-export function Icon({ name, bare }: { name: IconName; bare?: boolean }) {
+type IconSize = 'xs' | 'sm' | 'md';
+
+/**
+ * Small line icon on a glass chip. `size` picks the chip (xs for compact buttons, pills and headings,
+ * md for the header buttons). `bare` drops the chip and shows just the icon.
+ */
+export function Icon({ name, bare, size = 'sm' }: { name: IconName; bare?: boolean; size?: IconSize }) {
   return (
-    <span
-      className={`glass-icon${bare ? ' glass-icon-bare' : ''}`}
-      aria-hidden="true"
-      style={{
-        boxSizing: 'border-box',
-        display: 'inline-flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        flex: '0 0 40px',
-        width: 40,
-        minWidth: 40,
-        maxWidth: 40,
-        height: 40,
-        minHeight: 40,
-        maxHeight: 40,
-        flexShrink: 0,
-      }}
-    >
+    <span className={`glass-icon glass-icon-${size}${bare ? ' glass-icon-bare' : ''}`} aria-hidden="true">
       <svg
         viewBox="0 0 24 24"
         width="1em"

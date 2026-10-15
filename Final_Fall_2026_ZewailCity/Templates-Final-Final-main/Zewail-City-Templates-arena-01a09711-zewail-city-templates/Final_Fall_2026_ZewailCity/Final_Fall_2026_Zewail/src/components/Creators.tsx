@@ -21,7 +21,7 @@ export function Creators({ align = 'center' }: { align?: 'center' | 'start' }) {
   const start = align === 'start';
   return (
     <div className={`flex flex-col gap-2 ${start ? 'items-start' : 'items-center'}`}>
-      <div className={`flex w-full ${start ? 'justify-start pl-1' : 'justify-center'} pt-10`}>
+      <div className={`flex w-full ${start ? 'justify-start pl-4' : 'justify-center'} pt-10`}>
         <AnimatedTooltip items={CREATORS} />
       </div>
       <p
