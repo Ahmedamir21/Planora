@@ -18,3 +18,15 @@ The verifier is read-only. It checks that:
 The importer intentionally refuses to overwrite an existing catalog and refuses stale/undated source data unless a deliberate one-off override is supplied. Use an empty disposable database for the first test. Do not use production credentials for migration testing.
 
 **Important:** these checks do not mean the runtime API has migrated. The existing catalog/admin/sync handlers still use Redis for live overrides, drafts, and history. Keep this pull request unmerged and do not enable a PostgreSQL runtime flag until catalog reads, admin writes, sync staging/publishing, history, and restore all use one consistent transactional backend and pass end-to-end tests.
+
+## PostgreSQL runtime primitives (not yet connected to HTTP routes)
+
+The staged `app/api/postgres-store.ts` module now includes:
+- an explicit `PLANORA_STORAGE_BACKEND=postgres` opt-in guard (unset by default);
+- a small server-side connection pool and bounded transaction timeouts;
+- draft save with content-hash compare-and-set, immutable revision, and audit event in one transaction;
+- publish with both draft and published hashes checked, then revision/audit written atomically;
+- restore from an immutable published revision as a new revision, with optimistic concurrency;
+- a readiness query for the active semester and published document count.
+
+These are persistence primitives, not a completed cutover. Current `admin.ts`, `catalog.ts`, and `sync-ingest.ts` still use Redis. Do not enable the flag or deploy this module as the live source until route integration, combined-dataset validation, sync draft/publish/backup/restore parity, authorization review, and end-to-end tests are complete. The primitives have not yet been exercised against a real PostgreSQL server in this environment.
