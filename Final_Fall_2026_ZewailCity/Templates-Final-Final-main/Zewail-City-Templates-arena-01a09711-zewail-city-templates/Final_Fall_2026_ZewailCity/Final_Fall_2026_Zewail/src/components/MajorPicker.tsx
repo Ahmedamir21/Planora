@@ -70,7 +70,7 @@ function MajorCard({
           className="mt-0.5 flex h-4 w-4 flex-none items-center justify-center rounded-full border transition-colors"
           style={{
             borderColor: selected ? 'var(--accent)' : 'var(--line)',
-            background: selected ? 'var(--accent)' : 'transparent',
+            background: selected ? 'var(--accent-fill)' : 'transparent',
           }}
           aria-hidden
         >

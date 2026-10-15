@@ -11,10 +11,12 @@
   --ink: #f8fafc;
   --muted: #9ba7c0;
   --muted-2: #6f7b96;
-  --accent: #668bcc;
-  --accent-ink: #10132b;
-  --brand-soft: #668bcc;
-  --brand-blue: #668bcc;
+  --bg-glow: radial-gradient(ellipse 90% 60% at 50% -12%, rgba(0, 51, 133, 0.6), transparent 72%);
+  --accent: #003385;
+  --accent-fill: #003385;
+  --accent-ink: #ffffff;
+  --brand-soft: #003385;
+  --brand-blue: #003385;
   --brand-warm: #f59e0b;
   --ok: #6fd9a6;
   --warn: #f2879a;
@@ -50,7 +52,9 @@
   --ink: #12172a;
   --muted: #667085;
   --muted-2: #8b94a8;
+  --bg-glow: radial-gradient(ellipse 90% 60% at 50% -12%, rgba(0, 51, 133, 0.1), transparent 72%);
   --accent: #315b92;
+  --accent-fill: #003385;
   --accent-ink: #ffffff;
   --brand-soft: #315b92;
   --brand-blue: #315b92;
@@ -89,7 +93,8 @@ html {
 
 body {
   margin: 0;
-  background: var(--bg);
+  background: var(--bg-glow), var(--bg);
+  background-attachment: fixed;
   color: var(--ink);
   font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
   font-feature-settings: 'cv11', 'ss01';
@@ -178,14 +183,14 @@ body {
   cursor: not-allowed;
 }
 .btn-accent {
-  background: var(--accent);
+  background: var(--accent-fill);
   color: var(--accent-ink);
   border-color: transparent;
   font-weight: 700;
 }
 .btn-accent:hover:not(:disabled) {
   filter: brightness(1.06);
-  background: var(--accent);
+  background: var(--accent-fill);
   border-color: transparent;
 }
 
@@ -389,7 +394,7 @@ body {
   width: 8px;
   height: 8px;
   border-radius: 999px;
-  background: var(--accent);
+  background: var(--accent-fill);
   display: inline-block;
   flex: none;
   animation: livePulse 1.6s ease-in-out infinite;
@@ -799,7 +804,7 @@ body {
 .assistant-message.user {
   margin-left: auto;
   border-bottom-right-radius: 5px;
-  background: var(--accent);
+  background: var(--accent-fill);
   color: var(--accent-ink);
 }
 .assistant-message.assistant {
@@ -854,7 +859,7 @@ body {
   flex: none;
   border: 0;
   border-radius: 12px;
-  background: var(--accent);
+  background: var(--accent-fill);
   color: var(--accent-ink);
   cursor: pointer;
   font-size: 18px;

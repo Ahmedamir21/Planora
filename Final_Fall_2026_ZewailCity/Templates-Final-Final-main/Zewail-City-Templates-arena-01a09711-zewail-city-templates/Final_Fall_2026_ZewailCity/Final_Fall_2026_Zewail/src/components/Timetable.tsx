@@ -3,6 +3,7 @@ import type { Course, Meeting } from '../types';
 import { DAYS, DAY_LABEL, formatRange, packLanes, to12h } from '../lib/time';
 import { uid } from '../lib/picks';
 import { SEMESTER_CONFIG, TERM_SESSION_LABEL } from '../config/semester';
+import { Icon } from './Icon';
 
 export interface TimetableEvent {
   meeting: Meeting;
@@ -87,7 +88,7 @@ export function Timetable({
               className="pill"
               style={{ color: 'var(--accent)', borderColor: 'color-mix(in srgb, var(--accent) 45%, var(--line))' }}
             >
-              ✦ {bestLabel}
+              <Icon name="sparkles" /> {bestLabel}
             </span>
           )}
           {overlapCount > 0 && (

@@ -14,6 +14,7 @@ import {
 } from '../lib/picks';
 import type { SchedulePreferences } from '../lib/preferences';
 import { isComponentLocked, isFullyLocked, type PlannerLocks } from '../lib/assistantControls';
+import { Icon } from './Icon';
 
 interface Props {
   courses: Course[];
@@ -439,7 +440,7 @@ function CourseCard({
                 title={fullyLocked ? 'Unlock this course for AI and Best Schedule' : 'Keep this course unchanged by AI and Best Schedule'}
                 style={fullyLocked ? { color: 'var(--accent)', borderColor: 'var(--accent)' } : undefined}
               >
-                {fullyLocked ? '🔒 Locked' : '🔓 Lock'}
+                <Icon name={fullyLocked ? 'lock' : 'unlock'} /> {fullyLocked ? 'Locked' : 'Lock'}
               </button>
               <button
                 type="button"
@@ -691,7 +692,7 @@ function OptionRow({
             background: 'var(--surface)',
           }}
         >
-          {locked ? '🔒' : '🔓'}
+          <Icon name={locked ? 'lock' : 'unlock'} bare />
         </button>
       )}
     </div>
