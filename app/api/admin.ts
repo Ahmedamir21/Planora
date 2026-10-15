@@ -1,6 +1,6 @@
 import { createHash, createHmac, randomUUID, scryptSync, timingSafeEqual } from 'node:crypto';
 import { draftKey, liveKey, HISTORY_KEY, rateLimited, redis, saveWithHistory, saveLive, undoLive, undoWithHistory, storageConfigured } from './admin-store';
-import { postgresRuntimeSelected, readCatalogDocument, readPostgresCatalogSnapshot, savePostgresDraft } from './postgres-store';
+import { postgresRuntimeSelected, readCatalogDocument, readPostgresCatalogSnapshot, savePostgresDraft, undoPostgresDraft } from './postgres-store';
 import { listPostgresAuditEvents } from '../lib/postgres-history';
 import { listPostgresSyncBackups, readPostgresSyncBackup, readPostgresSyncDraft } from '../lib/postgres-sync-store';
 import { isCatalogFile } from './catalog';
@@ -313,6 +313,14 @@ export default async function handler(req: any, res: any) {
       const result = await savePostgresDraft({ documentName: body.file, content: body.content, expectedHash: body.expectedRevision, actorId: admin.id, actorName: admin.name, reason: source });
       if (!result.saved) return res.status(409).json({ error: 'Another admin updated this draft. Reload it before saving.' });
       return res.status(200).json({ revision: result.contentSha256, entry: { at: new Date().toISOString(), adminId: admin.id, adminName: admin.name, action: 'save_draft', file: body.file, source } });
+    }
+    if (postgresMode && body.action === 'undo') {
+      if (!allowedFile(body.file) || typeof body.expectedRevision !== 'string') return res.status(400).json({ error: 'Choose a draft and its current revision.' });
+      const source = typeof body.source === 'string' ? body.source.trim().slice(0, 240) : '';
+      if (!source) return res.status(400).json({ error: 'Add a reason for undoing this draft.' });
+      const result = await undoPostgresDraft({ documentName: body.file, expectedHash: body.expectedRevision, actorId: admin.id, actorName: admin.name, reason: source });
+      if (!result.undone) return res.status(409).json({ error: 'The draft changed or no longer exists. Reload before undoing.' });
+      return res.status(200).json({ revision: result.contentSha256, entry: { at: new Date().toISOString(), adminId: admin.id, adminName: admin.name, action: 'undo_draft', file: body.file, source, revision: result.revision } });
     }
     if (postgresMode) return res.status(503).json({ error: 'PostgreSQL admin write action is not migrated. No changes were made.' });
     if (body.action === 'sync_stage') {
