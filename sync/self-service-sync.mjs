@@ -139,7 +139,7 @@ async function searchCourse(page, code) {
   await page.waitForLoadState('domcontentloaded', { timeout: 12_000 }).catch(() => {});
   await sleep(650);
 
-  const escapedCode = code.replace(/[.*+?^\$\{\}()|[\\]\\]/g, '\\$&');
+  const escapedCode = code; // validated catalog course codes contain letters, digits and spaces
   const titlePattern = new RegExp('^\\s*' + escapedCode + '\\s*:\\s*\\S', 'i');
   const linkTexts = await source.locator('a').allInnerTexts();
   const courseTitle = linkTexts.map(value => value.trim()).find(value => titlePattern.test(value)) || '';
