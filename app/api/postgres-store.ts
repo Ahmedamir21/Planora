@@ -5,7 +5,7 @@
  * move together before PLANORA_STORAGE_BACKEND=postgres can be enabled. Never
  * silently fall back to Redis when PostgreSQL is selected.
  */
-import { Pool, type PoolClient, type QueryResultRow } from 'pg';
+import { Pool, type PoolClient } from 'pg';
 
 type PlanoraPool = Pool & { __planoraPool?: true };
 const globalPool = globalThis as typeof globalThis & { __planoraPostgresPool?: PlanoraPool };
@@ -130,7 +130,3 @@ export async function postgresReadiness(): Promise<{
     draftDocuments: row.draft_documents,
   };
 }
-
-/** Keep unused generic type imports out of emitted JS while documenting row intent. */
-type _RowShape = QueryResultRow;
-void (0 as unknown as _RowShape);
