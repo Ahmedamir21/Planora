@@ -297,7 +297,8 @@ export default async function handler(req: any, res: any) {
       return res.status(200).json({ authenticated: true, user: { id: candidate.id, name: candidate.name } });
     }
     if (!admin) return res.status(401).json({ error: 'Sign in again.' });
-    if (postgresMode) return res.status(503).json({ error: 'PostgreSQL read-only admin views are enabled, but write actions are not yet migrated. No changes were made.' });
+    if (postgresMode && body.action === 'save_draft') return res.status(503).json({ error: 'Draft save migration is being completed; no changes were made.' });
+    if (postgresMode) return res.status(503).json({ error: 'PostgreSQL admin write action is not migrated. No changes were made.' });
     if (body.action === 'sync_stage') {
       const source = typeof body.source === 'string' ? body.source.trim().slice(0, 240) : '';
       const expectedRevision = typeof body.expectedSyncRevision === 'string' ? body.expectedSyncRevision : '';
