@@ -1181,12 +1181,15 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  flex: 0 0 1.85em;
-  width: 1.85em;
-  height: 1.85em;
-  margin-right: 0.42em;
+  /* Keep the glass tile independent of surrounding heading/font size. */
+  box-sizing: border-box;
+  flex: 0 0 40px;
+  width: 40px;
+  min-width: 40px;
+  height: 40px;
+  margin-right: 10px;
   overflow: hidden;
-  vertical-align: -0.42em;
+  vertical-align: middle;
   border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--line));
   border-radius: 0.68em;
   color: var(--accent);
@@ -1223,13 +1226,37 @@ body {
   position: relative;
   z-index: 1;
   display: block;
-  width: 1em;
-  height: 1em;
+  width: 20px;
+  height: 20px;
+  flex: 0 0 20px;
   filter: drop-shadow(0 1px 1px color-mix(in srgb, var(--bg) 15%, transparent));
 }
 
 .glass-icon-bare {
   margin-right: 0;
+}
+
+/* Compact contexts should never let icons grow with oversized text. */
+button .glass-icon,
+a .glass-icon {
+  flex-shrink: 0;
+}
+
+@media (max-width: 480px) {
+  .glass-icon {
+    flex-basis: 36px;
+    width: 36px;
+    min-width: 36px;
+    height: 36px;
+    margin-right: 8px;
+    border-radius: 11px;
+  }
+
+  .glass-icon svg {
+    width: 18px;
+    height: 18px;
+    flex-basis: 18px;
+  }
 }
 
 @media (hover: hover) {
