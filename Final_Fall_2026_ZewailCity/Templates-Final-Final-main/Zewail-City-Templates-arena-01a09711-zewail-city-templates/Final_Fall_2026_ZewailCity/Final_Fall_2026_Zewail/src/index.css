@@ -1478,3 +1478,150 @@ a .glass-icon {
 .glass-icon-bare::before {
   display: none !important;
 }
+
+
+/* ================================================================== */
+/* Glass skin: translucent panels over soft violet / cyan light.       */
+/* Screen only. Print keeps its own clean light timetable.             */
+/* Remove this whole block to go back to the previous look.            */
+/* ================================================================== */
+@media screen {
+  :root,
+  [data-theme='dark'] {
+    --glass-fill: rgba(255, 255, 255, 0.07);
+    --glass-fill-strong: rgba(255, 255, 255, 0.11);
+    --glass-edge: rgba(255, 255, 255, 0.16);
+    --glass-shine: rgba(255, 255, 255, 0.22);
+    --glass-blur: 18px;
+    --orb-a: rgba(109, 91, 255, 0.5);
+    --orb-b: rgba(34, 211, 238, 0.42);
+    --c1-bg: rgba(127, 178, 255, 0.2);
+    --c2-bg: rgba(95, 220, 178, 0.2);
+    --c3-bg: rgba(240, 172, 99, 0.2);
+    --c4-bg: rgba(193, 162, 245, 0.22);
+    --c5-bg: rgba(242, 138, 166, 0.2);
+    --c6-bg: rgba(95, 212, 232, 0.2);
+    --c7-bg: rgba(201, 224, 95, 0.2);
+  }
+  [data-theme='light'] {
+    --glass-fill: rgba(255, 255, 255, 0.62);
+    --glass-fill-strong: rgba(255, 255, 255, 0.8);
+    --glass-edge: rgba(255, 255, 255, 0.9);
+    --glass-shine: rgba(255, 255, 255, 1);
+    --orb-a: rgba(124, 92, 255, 0.28);
+    --orb-b: rgba(34, 211, 238, 0.28);
+    --c1-bg: rgba(46, 94, 170, 0.14);
+    --c2-bg: rgba(31, 138, 112, 0.14);
+    --c3-bg: rgba(181, 101, 29, 0.14);
+    --c4-bg: rgba(107, 76, 154, 0.14);
+    --c5-bg: rgba(192, 57, 43, 0.14);
+    --c6-bg: rgba(14, 116, 144, 0.14);
+    --c7-bg: rgba(95, 122, 18, 0.14);
+  }
+
+  body { background: var(--bg); }
+  body::before,
+  body::after {
+    content: '';
+    position: fixed;
+    z-index: -1;
+    width: 340px;
+    height: 340px;
+    border-radius: 50%;
+    pointer-events: none;
+    filter: blur(80px);
+    will-change: transform;
+  }
+  body::before {
+    left: -110px;
+    top: 90px;
+    background: var(--orb-a);
+    animation: glassDriftA 26s ease-in-out infinite;
+  }
+  body::after {
+    right: -120px;
+    bottom: 40px;
+    background: var(--orb-b);
+    animation: glassDriftB 32s ease-in-out infinite;
+  }
+  @keyframes glassDriftA {
+    0%, 100% { transform: translate(0, 0); }
+    50% { transform: translate(120px, 60px); }
+  }
+  @keyframes glassDriftB {
+    0%, 100% { transform: translate(0, 0); }
+    50% { transform: translate(-120px, -70px); }
+  }
+
+  .panel,
+  .panel-soft {
+    background: var(--glass-fill);
+    border: 1px solid var(--glass-edge);
+    border-radius: 20px;
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+    backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+    box-shadow: inset 0 1px 0 var(--glass-shine), var(--shadow);
+  }
+  .panel-soft {
+    border-radius: 16px;
+    background: color-mix(in srgb, var(--glass-fill) 70%, transparent);
+  }
+  .course-card {
+    background: var(--glass-fill);
+    border-color: var(--glass-edge);
+    border-radius: 18px;
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+  }
+  .course-card[data-state='warning'] {
+    border-color: var(--warn-line);
+    background: color-mix(in srgb, var(--warn-bg) 55%, transparent);
+  }
+  .btn,
+  .pill,
+  .select,
+  .course-search-wrap {
+    background: var(--glass-fill);
+    border-color: var(--glass-edge);
+  }
+  .btn:hover:not(:disabled) { background: var(--glass-fill-strong); }
+  .btn-accent {
+    background: var(--accent-fill);
+    border-color: transparent;
+  }
+  .btn-accent:hover:not(:disabled) { background: var(--accent-fill); }
+
+  .event-card {
+    -webkit-backdrop-filter: blur(6px) saturate(150%);
+    backdrop-filter: blur(6px) saturate(150%);
+    border-color: color-mix(in srgb, currentColor 28%, transparent);
+    box-shadow: inset 0 1px 0 var(--glass-shine);
+  }
+  .event-card[data-clash='true'] {
+    border-color: var(--warn);
+    box-shadow: 0 0 0 1px var(--warn), inset 0 1px 0 var(--glass-shine);
+  }
+}
+
+@media screen and (max-width: 640px) {
+  :root,
+  [data-theme='dark'],
+  [data-theme='light'] { --glass-blur: 12px; }
+  body::before,
+  body::after {
+    width: 240px;
+    height: 240px;
+    filter: blur(60px);
+  }
+}
+@media screen and (prefers-reduced-motion: reduce) {
+  body::before,
+  body::after { animation: none; }
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  @media screen {
+    .panel,
+    .panel-soft,
+    .course-card { background: var(--paper); }
+  }
+}
