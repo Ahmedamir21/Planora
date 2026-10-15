@@ -42,21 +42,21 @@ export async function stagePostgresSyncDraft(args: {
       [semesterKey],
     );
     if ((current.rows[0]?.content_sha256.trim() || '') !== args.expectedDraftHash) return { staged: false as const };
-    await client.query(
-      'INSERT INTO planora.sync_drafts (semester_key, content, content_sha256, status, source, updated_by) ' +
-      'VALUES ($1,$2::jsonb,$3,$4::jsonb,$5,$6) ' +
-      'ON CONFLICT (semester_key) DO UPDATE SET content=EXCLUDED.content, content_sha256=EXCLUDED.content_sha256, ' +
-      'status=EXCLUDED.status, source=EXCLUDED.source, updated_by=EXCLUDED.updated_by, updated_at=now()',
-      [semesterKey, content, contentSha256, JSON.stringify(args.status), args.draft.source.trim().slice(0, 240), args.actorId],
-    );
-    await client.query(
+    const run = await client.query<{ run_id: string }>(
       "INSERT INTO planora.sync_runs (source, status, phase, counts, warnings, started_at, completed_at) " +
-      "VALUES ($1,'validated','draft_ready',$2::jsonb,$3::jsonb,now(),now())",
+      "VALUES ($1,'validated','draft_ready',$2::jsonb,$3::jsonb,now(),now()) RETURNING run_id",
       [
         args.draft.source.trim().slice(0, 240),
         JSON.stringify({ courses: args.draft.courses.length + args.draft.sch.length }),
         JSON.stringify((args.draft.validation as { warnings?: unknown[] } | undefined)?.warnings || []),
       ],
+    );
+    await client.query(
+      'INSERT INTO planora.sync_drafts (semester_key, content, content_sha256, status, source, updated_by, run_id) ' +
+      'VALUES ($1,$2::jsonb,$3,$4::jsonb,$5,$6,$7) ' +
+      'ON CONFLICT (semester_key) DO UPDATE SET content=EXCLUDED.content, content_sha256=EXCLUDED.content_sha256, ' +
+      'status=EXCLUDED.status, source=EXCLUDED.source, updated_by=EXCLUDED.updated_by, run_id=EXCLUDED.run_id, updated_at=now()',
+      [semesterKey, content, contentSha256, JSON.stringify(args.status), args.draft.source.trim().slice(0, 240), args.actorId, run.rows[0].run_id],
     );
     await client.query(
       'INSERT INTO planora.admin_audit_events (actor_id, actor_name, action, metadata) VALUES ($1,$2,$3,$4::jsonb)',
@@ -108,8 +108,8 @@ export async function publishPostgresSyncDraft(args: {
     );
     if (active.rowCount !== 1) throw new Error('PostgreSQL must contain exactly one active semester.');
     const semesterKey = active.rows[0].semester_key;
-    const draftResult = await client.query<{ content: PostgresSyncDraft; content_sha256: string }>(
-      'SELECT content, content_sha256 FROM planora.sync_drafts WHERE semester_key=$1 FOR UPDATE',
+    const draftResult = await client.query<{ content: PostgresSyncDraft; content_sha256: string; run_id: string | null }>(
+      'SELECT content, content_sha256, run_id FROM planora.sync_drafts WHERE semester_key=$1 FOR UPDATE',
       [semesterKey],
     );
     const draft = draftResult.rows[0];
@@ -158,11 +158,12 @@ export async function publishPostgresSyncDraft(args: {
       );
     }
     await client.query('DELETE FROM planora.sync_drafts WHERE semester_key=$1 AND content_sha256=$2', [semesterKey, args.expectedDraftHash]);
-    await client.query(
-      "UPDATE planora.sync_runs SET status='published', phase='published', completed_at=now() WHERE run_id = " +
-      '(SELECT run_id FROM planora.sync_runs WHERE source=$1 ORDER BY started_at DESC LIMIT 1)',
-      [draft.content.source],
-    );
+    if (draft.run_id) {
+      await client.query(
+        "UPDATE planora.sync_runs SET status='published', phase='published', completed_at=now() WHERE run_id=$1",
+        [draft.run_id],
+      );
+    }
     await client.query(
       'INSERT INTO planora.admin_audit_events (actor_id, actor_name, action, metadata) VALUES ($1,$2,$3,$4::jsonb)',
       [args.actorId, args.actorName, 'sync_publish', JSON.stringify({ semesterKey, version: args.version, coursesHash, schHash, reason: args.reason })],
@@ -258,8 +259,8 @@ export async function discardPostgresSyncDraft(args: {
     );
     if (active.rowCount !== 1) throw new Error('PostgreSQL must contain exactly one active semester.');
     const semesterKey = active.rows[0].semester_key;
-    const current = await client.query<{ content_sha256: string; source: string }>(
-      'SELECT content_sha256, source FROM planora.sync_drafts WHERE semester_key=$1 FOR UPDATE',
+    const current = await client.query<{ content_sha256: string; source: string; run_id: string | null }>(
+      'SELECT content_sha256, source, run_id FROM planora.sync_drafts WHERE semester_key=$1 FOR UPDATE',
       [semesterKey],
     );
     if (current.rowCount !== 1 || current.rows[0].content_sha256.trim() !== args.expectedDraftHash) {
@@ -268,11 +269,18 @@ export async function discardPostgresSyncDraft(args: {
     await client.query('DELETE FROM planora.sync_drafts WHERE semester_key=$1 AND content_sha256=$2', [
       semesterKey, args.expectedDraftHash,
     ]);
-    await client.query(
-      "INSERT INTO planora.sync_runs (source, status, phase, counts, warnings, error_summary, started_at, completed_at) " +
-      "VALUES ($1,'rejected','draft_discarded','{}'::jsonb,'[]'::jsonb,$2,now(),now())",
-      [current.rows[0].source, args.reason.trim().slice(0, 500)],
-    );
+    if (current.rows[0].run_id) {
+      await client.query(
+        "UPDATE planora.sync_runs SET status='rejected', phase='draft_discarded', error_summary=$2, completed_at=now() WHERE run_id=$1",
+        [current.rows[0].run_id, args.reason.trim().slice(0, 500)],
+      );
+    } else {
+      await client.query(
+        "INSERT INTO planora.sync_runs (source, status, phase, counts, warnings, error_summary, started_at, completed_at) " +
+        "VALUES ($1,'rejected','draft_discarded','{}'::jsonb,'[]'::jsonb,$2,now(),now())",
+        [current.rows[0].source, args.reason.trim().slice(0, 500)],
+      );
+    }
     await client.query(
       'INSERT INTO planora.admin_audit_events (actor_id, actor_name, action, metadata) VALUES ($1,$2,$3,$4::jsonb)',
       [args.actorId, args.actorName, 'sync_discard', JSON.stringify({
