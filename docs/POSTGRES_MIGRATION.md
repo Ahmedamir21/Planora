@@ -35,11 +35,11 @@ The exact document payload and SHA-256 hash are preserved alongside normalized r
 4. Set DATABASE_URL privately in your local shell. Never commit it or paste it into issues.
 5. Run the one-time importer from the repository root after the importer is added and reviewed.
 
-The importer will be intentionally one-time and transactional: it will refuse to overwrite an existing catalog, validate source documents, write exact documents plus normalized rows and revision-1 snapshots in one transaction, and roll everything back if any row fails.
+The one-time importer is available as `app/scripts/import-json-to-postgres.mjs`. From the repository root, after applying the schema and setting `DATABASE_URL` in the shell, run `cd app && npm run db:import-json`. It refuses to overwrite an existing catalog, validates source documents, writes exact documents plus normalized rows and revision-1 snapshots in one transaction, and rolls everything back if any row fails. It prints row counts after a successful commit.
 
 ## Backup and restore
 
-- A dedicated script will produce a timestamped compressed SQL dump using pg_dump.
+- Run `app/scripts/backup-postgres.sh` with `DATABASE_URL` set privately in the shell to produce a timestamped compressed SQL dump using `pg_dump`.
 - Store backup files outside the repository (for example, on a separate local drive); never commit database dumps or secrets.
 - Periodically test restore into a separate empty database before trusting the backup.
 - A SQL schema/migration file alone is not a data backup. The dump must include table data.
