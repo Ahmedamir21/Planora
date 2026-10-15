@@ -90,6 +90,7 @@ async function login(page) {
   if (/incorrect|invalid|unable to sign|support ID|rejected/i.test(await page.locator('body').innerText().catch(()=>''))) throw new Error('Self-Service login failed or was rejected.');
 }
 async function openCoursesPage(page) {
+  if (/\/Registration\/Courses(?:[/?#]|$)/i.test(page.url())) return;
   // Try the portal's own navigation first; the authenticated session can reject
   // direct deep links in some environments.
   const nav = page.locator('a[href*="Registration/Courses"]').first();
