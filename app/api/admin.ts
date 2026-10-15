@@ -1,5 +1,6 @@
 import { createHash, createHmac, randomUUID, scryptSync, timingSafeEqual } from 'node:crypto';
 import { draftKey, liveKey, HISTORY_KEY, rateLimited, redis, saveWithHistory, saveLive, undoLive, undoWithHistory, storageConfigured } from './admin-store';
+import { postgresRuntimeSelected } from './postgres-store';
 import { isCatalogFile } from './catalog';
 import { jsonRequest, sameOrigin } from './security';
 import { validateDataset } from '../dataset-validation.cjs';
@@ -152,6 +153,9 @@ function syncStatus(value: Record<string, unknown>) {
 }
 export default async function handler(req: any, res: any) {
   res.setHeader('Cache-Control', 'no-store, private'); res.setHeader('X-Content-Type-Options', 'nosniff');
+  // Fail closed until admin sessions, drafts, publish/restore, audit, and sync
+  // have all been migrated together. Never write to Redis while public reads use PostgreSQL.
+  if (postgresRuntimeSelected()) return res.status(503).json({ error: 'PostgreSQL storage is selected, but the admin API cutover is not complete. Disable the PostgreSQL flag until the full admin and sync migration is deployed.' });
   const config = configured();
   if (!config) return res.status(503).json({ error: 'Set both admin password hashes and the session secret, and connect Upstash Redis to Production in Vercel.' });
   if (!['GET', 'POST', 'DELETE'].includes(req.method)) return res.status(405).json({ error: 'Method not allowed' });
