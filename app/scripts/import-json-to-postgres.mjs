@@ -25,7 +25,8 @@ function validateCourse(course, file, index) {
       typeof course.name !== 'string' || !Array.isArray(course.instructors)) {
     throw new Error(file + ' item ' + (index + 1) + ' has an invalid course shape');
   }
-  if (!Number.isFinite(Number(course.credits)) || Number(course.credits) < 0) throw new Error(file + ' item ' + (index + 1) + ' has invalid credits');
+  const pendingSource = course.awaitingSource === true && course.noFixedSchedule === true;
+  if (course.credits !== undefined && (!Number.isFinite(Number(course.credits)) || Number(course.credits) < 0) || course.credits === undefined && !pendingSource) throw new Error(file + ' item ' + (index + 1) + ' has invalid credits');
   for (const [ii, instructor] of course.instructors.entries()) {
     if (!instructor || typeof instructor.name !== 'string') throw new Error(file + ' instructor ' + (ii + 1) + ' is invalid');
     for (const field of ['lectures', 'labs', 'tutorials']) {
@@ -45,6 +46,16 @@ async function main() {
   const documents = await Promise.all(FILES.map(load));
   const data = Object.fromEntries(documents.map(item => [item.name, item.value]));
   const semester = data['semester.json'];
+  const verifiedAt = typeof semester.dataLastVerified === 'string' ? Date.parse(semester.dataLastVerified + 'T00:00:00Z') : NaN;
+  const ageDays = Number.isFinite(verifiedAt) ? (Date.now() - verifiedAt) / 86_400_000 : Infinity;
+  const maxAgeDays = Number(process.env.PLANORA_MAX_DATA_AGE_DAYS || 7);
+  if (!Number.isFinite(verifiedAt) || ageDays < -1 || ageDays > maxAgeDays) {
+    const override = process.env.ALLOW_STALE_DATA_IMPORT === 'true';
+    if (!override) throw new Error('Refusing to import stale/undated source JSON (dataLastVerified=' +
+      String(semester.dataLastVerified || 'missing') + ', ageDays=' + (Number.isFinite(ageDays) ? ageDays.toFixed(1) : 'unknown') +
+      '). Refresh and validate the source data first. An explicit one-off ALLOW_STALE_DATA_IMPORT=true override is available only for a deliberate test import.');
+    console.warn('WARNING: ALLOW_STALE_DATA_IMPORT=true; importing stale or undated source JSON by explicit override.');
+  }
   const courses = data['courses.json'];
   const sch = data['sch.json'];
   const majors = data['majors.json'];
