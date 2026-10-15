@@ -1,6 +1,6 @@
 import { createHash, createHmac, randomUUID, scryptSync, timingSafeEqual } from 'node:crypto';
 import { draftKey, liveKey, HISTORY_KEY, rateLimited, redis, saveWithHistory, saveLive, undoLive, undoWithHistory, storageConfigured } from './admin-store';
-import { postgresRuntimeSelected, readCatalogDocument, readPostgresCatalogSnapshot, savePostgresDraft, undoPostgresDraft } from './postgres-store';
+import { postgresRuntimeSelected, readCatalogDocument, readPostgresCatalogSnapshot, savePostgresDraft, publishPostgresDraft, undoPostgresDraft } from './postgres-store';
 import { listPostgresAuditEvents } from '../lib/postgres-history';
 import { listPostgresSyncBackups, readPostgresSyncBackup, readPostgresSyncDraft } from '../lib/postgres-sync-store';
 import { isCatalogFile } from './catalog';
@@ -313,6 +313,46 @@ export default async function handler(req: any, res: any) {
       const result = await savePostgresDraft({ documentName: body.file, content: body.content, expectedHash: body.expectedRevision, actorId: admin.id, actorName: admin.name, reason: source });
       if (!result.saved) return res.status(409).json({ error: 'Another admin updated this draft. Reload it before saving.' });
       return res.status(200).json({ revision: result.contentSha256, entry: { at: new Date().toISOString(), adminId: admin.id, adminName: admin.name, action: 'save_draft', file: body.file, source } });
+    }
+    if (postgresMode && body.action === 'publish_draft') {
+      if (!allowedFile(body.file) || typeof body.expectedRevision !== 'string' || typeof body.expectedLiveRevision !== 'string') {
+        return res.status(400).json({ error: 'Choose a draft and provide its current draft and published revisions.' });
+      }
+      const reason = typeof body.source === 'string' ? body.source.trim().slice(0, 240) : '';
+      if (!reason) return res.status(400).json({ error: 'Add what you reviewed before publishing this draft.' });
+      const snapshot = await readPostgresCatalogSnapshot();
+      const draft = snapshot.drafts[body.file];
+      const live = snapshot.published[body.file];
+      if (!draft || draft.contentSha256 !== body.expectedRevision || live.contentSha256 !== body.expectedLiveRevision) {
+        return res.status(409).json({ error: 'The draft or published catalog changed. Reload and review both versions before publishing.' });
+      }
+      const values: Record<string, any> = {};
+      for (const name of FILES) {
+        const content = name === body.file ? draft.content : snapshot.drafts[name]?.content || snapshot.published[name].content;
+        values[name.replace('.json', '')] = JSON.parse(content);
+      }
+      const check = validateDataset(values);
+      if (check.errors.length) {
+        return res.status(400).json({ error: 'Fix semester validation errors before publishing.', errors: check.errors.slice(0, 20) });
+      }
+      if (JSON.stringify(JSON.parse(draft.content)) === JSON.stringify(JSON.parse(live.content))) {
+        return res.status(400).json({ error: 'The draft has no changes compared with the published version.' });
+      }
+      const result = await publishPostgresDraft({
+        documentName: body.file,
+        expectedDraftHash: body.expectedRevision,
+        expectedPublishedHash: body.expectedLiveRevision,
+        actorId: admin.id,
+        actorName: admin.name,
+        reason,
+      });
+      if (!result.published) return res.status(409).json({ error: 'The draft or published catalog changed. Nothing was published; reload and review again.' });
+      return res.status(200).json({
+        published: true,
+        revision: result.contentSha256,
+        liveRevision: result.contentSha256,
+        entry: { at: new Date().toISOString(), adminId: admin.id, adminName: admin.name, action: 'publish', file: body.file, source: reason, revision: result.revision },
+      });
     }
     if (postgresMode && body.action === 'undo') {
       if (!allowedFile(body.file) || typeof body.expectedRevision !== 'string') return res.status(400).json({ error: 'Choose a draft and its current revision.' });
