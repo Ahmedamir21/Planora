@@ -1,6 +1,8 @@
 import { createHash, createHmac, randomUUID, scryptSync, timingSafeEqual } from 'node:crypto';
 import { draftKey, liveKey, HISTORY_KEY, rateLimited, redis, saveWithHistory, saveLive, undoLive, undoWithHistory, storageConfigured } from './admin-store';
-import { postgresRuntimeSelected } from './postgres-store';
+import { postgresRuntimeSelected, readCatalogDocument, readPostgresCatalogSnapshot } from './postgres-store';
+import { listPostgresAuditEvents, listPostgresRevisions } from '../lib/postgres-history';
+import { listPostgresSyncBackups, readPostgresSyncBackup, readPostgresSyncDraft } from '../lib/postgres-sync-store';
 import { isCatalogFile } from './catalog';
 import { jsonRequest, sameOrigin } from './security';
 import { validateDataset } from '../dataset-validation.cjs';
@@ -153,9 +155,9 @@ function syncStatus(value: Record<string, unknown>) {
 }
 export default async function handler(req: any, res: any) {
   res.setHeader('Cache-Control', 'no-store, private'); res.setHeader('X-Content-Type-Options', 'nosniff');
-  // Fail closed until admin sessions, drafts, publish/restore, audit, and sync
-  // have all been migrated together. Never write to Redis while public reads use PostgreSQL.
-  if (postgresRuntimeSelected()) return res.status(503).json({ error: 'PostgreSQL storage is selected, but the admin API cutover is not complete. Disable the PostgreSQL flag until the full admin and sync migration is deployed.' });
+  // PostgreSQL mode exposes migrated read-only admin views, but all mutations remain
+  // fail-closed until every write path has been migrated to transactional SQL.
+  const postgresMode = postgresRuntimeSelected();
   const config = configured();
   if (!config) return res.status(503).json({ error: 'Set both admin password hashes and the session secret, and connect Upstash Redis to Production in Vercel.' });
   if (!['GET', 'POST', 'DELETE'].includes(req.method)) return res.status(405).json({ error: 'Method not allowed' });
@@ -166,6 +168,51 @@ export default async function handler(req: any, res: any) {
   try {
     if (req.method === 'GET') {
       const action = req.query?.action;
+      if (postgresMode) {
+        if (action === 'history') {
+          const page = Math.min(1000, Math.max(0, Number(req.query?.page) || 0));
+          const result = await listPostgresAuditEvents({ page, pageSize: 20 });
+          return res.status(200).json({ entries: result.entries.map(row => ({
+            id: `${row.createdAt}:${row.action}:${row.actorId || 'system'}`,
+            at: row.createdAt, adminId: row.actorId || 'system', adminName: row.actorName || 'System',
+            action: row.action, ...row.metadata,
+          })) });
+        }
+        if (action === 'draft' || action === 'live') {
+          if (!allowedFile(req.query?.file)) return res.status(400).json({ error: 'Invalid filename.' });
+          const name = req.query.file as typeof FILES[number];
+          const doc = action === 'draft'
+            ? await readCatalogDocument(name, 'draft')
+            : (await readPostgresCatalogSnapshot()).published[name];
+          return res.status(200).json({
+            content: doc?.content ?? null,
+            revision: doc?.contentSha256 ?? '',
+            updatedAt: doc?.updatedAt ?? null,
+          });
+        }
+        if (action === 'sync_status') {
+          const [draft, backups] = await Promise.all([
+            readPostgresSyncDraft(), listPostgresSyncBackups(0, 20),
+          ]);
+          return res.status(200).json({
+            status: draft?.status || { state: 'Not run', phase: 'idle' },
+            draft: draft ? { ...draft.content, courses: undefined, sch: undefined } : null,
+            draftRevision: draft?.contentSha256 || '',
+            backups: backups.entries,
+          });
+        }
+        if (action === 'sync_backup') {
+          const version = typeof req.query?.version === 'string' ? req.query.version : '';
+          if (!/^v\\d{4}-\\d{2}-\\d{2}-\\d{4}-\\d{2}(?:-\\d{2})?$/.test(version)) return res.status(400).json({ error: 'Invalid backup version.' });
+          const backup = await readPostgresSyncBackup(version);
+          if (!backup) return res.status(404).json({ error: 'Backup not found.' });
+          return res.status(200).json({ backup });
+        }
+        if (action === 'reports' || action === 'feedback' || action === 'security') {
+          return res.status(503).json({ error: 'This admin view still uses the legacy store and is unavailable in PostgreSQL mode.' });
+        }
+        return res.status(200).json({ authenticated: true, user: { id: admin!.id, name: admin!.name } });
+      }
       if (action === 'reports') {
         const rawIds = await redis(['LRANGE', REPORTS_KEY, 0, 499]);
         const rows = rawIds?.length ? await redis(['HMGET', REPORTS_DATA, ...rawIds]) : [];
@@ -249,6 +296,7 @@ export default async function handler(req: any, res: any) {
       return res.status(200).json({ authenticated: true, user: { id: candidate.id, name: candidate.name } });
     }
     if (!admin) return res.status(401).json({ error: 'Sign in again.' });
+    if (postgresMode) return res.status(503).json({ error: 'PostgreSQL read-only admin views are enabled, but write actions are not yet migrated. No changes were made.' });
     if (body.action === 'sync_stage') {
       const source = typeof body.source === 'string' ? body.source.trim().slice(0, 240) : '';
       const expectedRevision = typeof body.expectedSyncRevision === 'string' ? body.expectedSyncRevision : '';
