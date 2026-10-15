@@ -12,7 +12,8 @@
   --muted: #9ba7c0;
   --muted-2: #6f7b96;
   --accent: #668bcc;
-  --accent-ink: #10132b;
+  --accent-fill: #003385;
+  --accent-ink: #ffffff;
   --brand-soft: #668bcc;
   --brand-blue: #668bcc;
   --brand-warm: #f59e0b;
@@ -51,6 +52,7 @@
   --muted: #667085;
   --muted-2: #8b94a8;
   --accent: #315b92;
+  --accent-fill: #003385;
   --accent-ink: #ffffff;
   --brand-soft: #315b92;
   --brand-blue: #315b92;
@@ -178,14 +180,14 @@ body {
   cursor: not-allowed;
 }
 .btn-accent {
-  background: var(--accent);
+  background: var(--accent-fill);
   color: var(--accent-ink);
   border-color: transparent;
   font-weight: 700;
 }
 .btn-accent:hover:not(:disabled) {
   filter: brightness(1.06);
-  background: var(--accent);
+  background: var(--accent-fill);
   border-color: transparent;
 }
 
@@ -389,7 +391,7 @@ body {
   width: 8px;
   height: 8px;
   border-radius: 999px;
-  background: var(--accent);
+  background: var(--accent-fill);
   display: inline-block;
   flex: none;
   animation: livePulse 1.6s ease-in-out infinite;
@@ -799,7 +801,7 @@ body {
 .assistant-message.user {
   margin-left: auto;
   border-bottom-right-radius: 5px;
-  background: var(--accent);
+  background: var(--accent-fill);
   color: var(--accent-ink);
 }
 .assistant-message.assistant {
@@ -854,7 +856,7 @@ body {
   flex: none;
   border: 0;
   border-radius: 12px;
-  background: var(--accent);
+  background: var(--accent-fill);
   color: var(--accent-ink);
   cursor: pointer;
   font-size: 18px;
