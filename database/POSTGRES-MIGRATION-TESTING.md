@@ -3,9 +3,10 @@
 Run these commands from the repository root after applying the schema to a **disposable PostgreSQL database**.
 
 1. Install dependencies: `cd app && npm ci`
-2. Apply the schema with your private database URL: `psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f ../database/migrations/0001_initial_schema.sql`
-3. Import the checked-in source catalog once: `npm run db:import-json`
-4. Verify the import without modifying it: `npm run db:verify-import`
+2. Apply the base schema with your private database URL: `psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f ../database/migrations/0001_initial_schema.sql`
+3. Apply follow-up migrations in numeric order, including `psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f ../database/migrations/0002_expand_catalog_revision_actions.sql` (required for existing installations; harmless after the updated base schema).
+4. Import the checked-in source catalog once: `npm run db:import-json`
+5. Verify the import without modifying it: `npm run db:verify-import`
 
 Set `DATABASE_URL` in your shell or secret manager. Never commit it, paste it into an issue, or put it in a workflow file.
 
