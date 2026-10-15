@@ -1276,3 +1276,41 @@ a .glass-icon {
     transition: none;
   }
 }
+
+
+/* Hard guard against component/utility styles expanding the glass icon tile. */
+.glass-icon {
+  box-sizing: border-box !important;
+  flex: 0 0 40px !important;
+  width: 40px !important;
+  min-width: 40px !important;
+  max-width: 40px !important;
+  height: 40px !important;
+  min-height: 40px !important;
+  max-height: 40px !important;
+  padding: 0 !important;
+  align-self: center;
+}
+
+.glass-icon > svg {
+  box-sizing: border-box;
+  width: 20px !important;
+  min-width: 20px !important;
+  max-width: 20px !important;
+  height: 20px !important;
+  min-height: 20px !important;
+  max-height: 20px !important;
+  flex: 0 0 20px !important;
+}
+
+@media (max-width: 480px) {
+  .glass-icon {
+    flex-basis: 36px !important;
+    width: 36px !important;
+    min-width: 36px !important;
+    max-width: 36px !important;
+    height: 36px !important;
+    min-height: 36px !important;
+    max-height: 36px !important;
+  }
+}
