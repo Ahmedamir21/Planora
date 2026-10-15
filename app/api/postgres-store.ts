@@ -5,8 +5,15 @@
  * move together before PLANORA_STORAGE_BACKEND=postgres can be enabled. Never
  * silently fall back to Redis when PostgreSQL is selected.
  */
-import { Pool, type PoolClient } from 'pg';
+import type { Pool, PoolClient } from 'pg';
+import { createRequire } from 'node:module';
 import { createHash } from 'node:crypto';
+
+// Keep PostgreSQL's runtime driver lazy: existing Redis-mode API tests import
+// handlers without needing the optional database driver installed in their app.
+// In the deployed API, this resolves `pg` from the repository's server package.
+const require = createRequire(import.meta.url);
+const loadPg = () => require('pg') as { Pool: new (options: Record<string, unknown>) => Pool };
 
 type PlanoraPool = Pool & { __planoraPool?: true };
 const globalPool = globalThis as typeof globalThis & { __planoraPostgresPool?: PlanoraPool };
@@ -34,6 +41,7 @@ export function postgresConfigured() {
 export function postgresPool(): Pool {
   if (!postgresRuntimeSelected()) throw new Error('PostgreSQL runtime is not enabled.');
   if (globalPool.__planoraPostgresPool) return globalPool.__planoraPostgresPool;
+  const { Pool } = loadPg();
   const pool = new Pool({
     connectionString: databaseUrl(),
     max: 3,
