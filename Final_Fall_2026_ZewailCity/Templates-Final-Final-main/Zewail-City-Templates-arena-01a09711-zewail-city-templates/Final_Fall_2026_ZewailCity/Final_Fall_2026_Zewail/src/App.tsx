@@ -1,3 +1,13 @@
+   import AnimatedBackground from "./components/AnimatedBackground";
+
+   export default function App() {
+     return (
+       <>
+         <AnimatedBackground />
+         {/* باقي الصفحة زي ما هي */}
+       </>
+     );
+   }
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { COURSE_BY_ID } from './data/courses';
 import {
