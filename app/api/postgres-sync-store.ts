@@ -99,7 +99,7 @@ export async function publishPostgresSyncDraft(args: {
   reason: string;
   version: string;
 }): Promise<{ published: true; backupVersion: string; coursesHash: string; schHash: string } | { published: false }> {
-  if (!args.reason.trim() || !/^v\\d{4}-\\d{2}-\\d{2}-\\d{4}-\\d{2}$/.test(args.version)) {
+  if (!args.reason.trim() || !/^v\d{4}-\d{2}-\d{2}-\d{4}-\d{2}$/.test(args.version)) {
     throw new Error('A valid backup version and publish reason are required.');
   }
   return withPostgresTransaction(async client => {
@@ -181,7 +181,7 @@ export async function restorePostgresSyncBackup(args: {
   actorName: string;
   reason: string;
 }): Promise<{ restored: true; coursesHash: string; schHash: string } | { restored: false }> {
-  if (!/^v\\d{4}-\\d{2}-\\d{2}-\\d{4}-\\d{2}$/.test(args.version) || !args.reason.trim()) {
+  if (!/^v\d{4}-\d{2}-\d{2}-\d{4}-\d{2}$/.test(args.version) || !args.reason.trim()) {
     throw new Error('A valid backup version and restore reason are required.');
   }
   return withPostgresTransaction(async client => {
