@@ -170,3 +170,75 @@ export async function publishPostgresSyncDraft(args: {
     return { published: true as const, backupVersion: args.version, coursesHash, schHash };
   });
 }
+
+
+/** Restore a sync backup atomically, recording new immutable published revisions. */
+export async function restorePostgresSyncBackup(args: {
+  version: string;
+  expectedCoursesHash: string;
+  expectedSchHash: string;
+  actorId: string;
+  actorName: string;
+  reason: string;
+}): Promise<{ restored: true; coursesHash: string; schHash: string } | { restored: false }> {
+  if (!/^v\\d{4}-\\d{2}-\\d{2}-\\d{4}-\\d{2}$/.test(args.version) || !args.reason.trim()) {
+    throw new Error('A valid backup version and restore reason are required.');
+  }
+  return withPostgresTransaction(async client => {
+    const active = await client.query<{ semester_key: string }>(
+      'SELECT semester_key FROM planora.semesters WHERE is_active=true FOR UPDATE'
+    );
+    if (active.rowCount !== 1) throw new Error('PostgreSQL must contain exactly one active semester.');
+    const semesterKey = active.rows[0].semester_key;
+    const backupResult = await client.query<{ snapshot: {
+      courses: unknown[]; sch: unknown[]; version: string; semesterKey: string;
+    } }>(
+      'SELECT snapshot FROM planora.sync_backups WHERE semester_key=$1 AND version=$2',
+      [semesterKey, args.version],
+    );
+    if (backupResult.rowCount !== 1) throw new Error('Requested sync backup does not exist.');
+    const backup = backupResult.rows[0].snapshot;
+    if (backup.semesterKey !== semesterKey || !Array.isArray(backup.courses) || !Array.isArray(backup.sch)) {
+      throw new Error('Sync backup is invalid or belongs to a different semester.');
+    }
+    const currentResult = await client.query<{
+      document_name: CatalogName; revision: number; content_sha256: string;
+    }>(
+      "SELECT document_name, revision, content_sha256 FROM planora.catalog_documents " +
+      "WHERE semester_key=$1 AND state='published' AND document_name IN ('courses.json','sch.json') FOR UPDATE",
+      [semesterKey],
+    );
+    const currentCourses = currentResult.rows.find(row => row.document_name === 'courses.json');
+    const currentSch = currentResult.rows.find(row => row.document_name === 'sch.json');
+    if (!currentCourses || !currentSch ||
+        currentCourses.content_sha256.trim() !== args.expectedCoursesHash ||
+        currentSch.content_sha256.trim() !== args.expectedSchHash) return { restored: false as const };
+    const nextCourses = JSON.stringify(backup.courses);
+    const nextSch = JSON.stringify(backup.sch);
+    const coursesHash = sha256(nextCourses);
+    const schHash = sha256(nextSch);
+    for (const item of [
+      { name: 'courses.json' as const, content: nextCourses, hash: coursesHash, revision: currentCourses.revision + 1 },
+      { name: 'sch.json' as const, content: nextSch, hash: schHash, revision: currentSch.revision + 1 },
+    ]) {
+      await client.query(
+        "UPDATE planora.catalog_documents SET content=$3::jsonb, content_sha256=$4, revision=$5, updated_by=$6, updated_at=now() " +
+        "WHERE semester_key=$1 AND document_name=$2 AND state='published'",
+        [semesterKey, item.name, item.content, item.hash, item.revision, args.actorId],
+      );
+      await client.query(
+        "INSERT INTO planora.catalog_revisions (semester_key, document_name, revision, state, action, content, content_sha256, actor_id, actor_name, reason) " +
+        "VALUES ($1,$2,$3,'published','sync_restore',$4::jsonb,$5,$6,$7,$8)",
+        [semesterKey, item.name, item.revision, item.content, item.hash, args.actorId, args.actorName,
+          ('Restore backup ' + args.version + ': ' + args.reason).slice(0, 500)],
+      );
+    }
+    await client.query(
+      'INSERT INTO planora.admin_audit_events (actor_id, actor_name, action, metadata) VALUES ($1,$2,$3,$4::jsonb)',
+      [args.actorId, args.actorName, 'sync_restore', JSON.stringify({
+        semesterKey, version: args.version, coursesHash, schHash, reason: args.reason.trim(),
+      })],
+    );
+    return { restored: true as const, coursesHash, schHash };
+  });
+}
