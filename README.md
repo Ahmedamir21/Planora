@@ -11,7 +11,7 @@
 <br/>
 
 <a href="https://zc-planora.vercel.app/">
-  <img src="https://img.shields.io/badge/OPEN_LIVE_PLANNER-Planora-668BCC?style=for-the-badge&labelColor=161A23" alt="Open Live Planner" />
+  <img src="https://img.shields.io/badge/OPEN_LIVE_PLANNER-Planora-003385?style=for-the-badge&labelColor=161A23" alt="Open Live Planner" />
 </a>
 
 <br/><br/>
