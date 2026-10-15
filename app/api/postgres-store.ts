@@ -389,3 +389,58 @@ export async function postgresReadiness(): Promise<{
     draftDocuments: row.draft_documents,
   };
 }
+
+
+/** Undo the latest draft save using immutable SQL revisions and optimistic locking. */
+export async function undoPostgresDraft(args: {
+  documentName: 'semester.json' | 'courses.json' | 'majors.json' | 'sch.json';
+  expectedHash: string;
+  actorId: string;
+  actorName: string;
+  reason: string;
+}): Promise<{ undone: true; contentSha256: string; revision: number | null } | { undone: false }> {
+  return withPostgresTransaction(async client => {
+    const active = await client.query<{ semester_key: string }>(
+      'SELECT semester_key FROM planora.semesters WHERE is_active=true FOR UPDATE'
+    );
+    if (active.rowCount !== 1) throw new Error('PostgreSQL must contain exactly one active Planora semester.');
+    const semesterKey = active.rows[0].semester_key;
+    const current = await client.query<{ revision: number; content_sha256: string }>(
+      "SELECT revision, content_sha256 FROM planora.catalog_documents WHERE semester_key=$1 AND document_name=$2 AND state='draft' FOR UPDATE",
+      [semesterKey, args.documentName],
+    );
+    if (current.rowCount !== 1 || current.rows[0].content_sha256.trim() !== args.expectedHash) return { undone: false as const };
+    const prior = await client.query<{ revision: number; content: unknown; content_sha256: string }>(
+      "SELECT revision, content, content_sha256 FROM planora.catalog_revisions WHERE semester_key=$1 AND document_name=$2 AND state='draft' AND revision < $3 ORDER BY revision DESC LIMIT 1",
+      [semesterKey, args.documentName, current.rows[0].revision],
+    );
+    if (prior.rowCount === 0) {
+      await client.query(
+        "DELETE FROM planora.catalog_documents WHERE semester_key=$1 AND document_name=$2 AND state='draft' AND content_sha256=$3",
+        [semesterKey, args.documentName, args.expectedHash],
+      );
+      await client.query(
+        "INSERT INTO planora.admin_audit_events (actor_id, actor_name, action, metadata) VALUES ($1,$2,'undo_draft',$3::jsonb)",
+        [args.actorId, args.actorName, JSON.stringify({ semesterKey, documentName: args.documentName, removedInitialDraft: true, reason: args.reason.slice(0, 500) })],
+      );
+      return { undone: true as const, contentSha256: '', revision: null };
+    }
+    const parsed = prior.rows[0].content;
+    const content = JSON.stringify(parsed);
+    const contentSha256 = createHash('sha256').update(content).digest('hex');
+    const revision = current.rows[0].revision + 1;
+    await client.query(
+      "UPDATE planora.catalog_documents SET content=$3::jsonb, content_sha256=$4, revision=$5, updated_by=$6, updated_at=now() WHERE semester_key=$1 AND document_name=$2 AND state='draft'",
+      [semesterKey, args.documentName, content, contentSha256, revision, args.actorId],
+    );
+    await client.query(
+      "INSERT INTO planora.catalog_revisions (semester_key, document_name, revision, state, action, content, content_sha256, actor_id, actor_name, reason) VALUES ($1,$2,$3,'draft','undo_draft',$4::jsonb,$5,$6,$7,$8)",
+      [semesterKey, args.documentName, revision, content, contentSha256, args.actorId, args.actorName, args.reason.slice(0, 500)],
+    );
+    await client.query(
+      "INSERT INTO planora.admin_audit_events (actor_id, actor_name, action, metadata) VALUES ($1,$2,'undo_draft',$3::jsonb)",
+      [args.actorId, args.actorName, JSON.stringify({ semesterKey, documentName: args.documentName, revision, contentSha256, restoredRevision: prior.rows[0].revision })],
+    );
+    return { undone: true as const, contentSha256, revision };
+  });
+}
