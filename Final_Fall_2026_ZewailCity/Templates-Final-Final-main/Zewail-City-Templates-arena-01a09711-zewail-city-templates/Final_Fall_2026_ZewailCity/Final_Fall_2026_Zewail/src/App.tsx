@@ -1,13 +1,4 @@
-   import AnimatedBackground from "./components/AnimatedBackground";
-
-   export default function App() {
-     return (
-       <>
-         <AnimatedBackground />
-         {/* باقي الصفحة زي ما هي */}
-       </>
-     );
-   }
+import AnimatedBackground from "./components/AnimatedBackground";
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { COURSE_BY_ID } from './data/courses';
 import {
@@ -1412,6 +1403,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen pb-14">
+      <AnimatedBackground />
       <AppStatus />
       <div className="mx-auto max-w-[1560px] px-3 py-4 sm:px-6 sm:py-6">
         <header className="panel mb-3 flex flex-col gap-4 p-4 sm:flex-row sm:items-start sm:justify-between sm:p-5">
