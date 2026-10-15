@@ -91,3 +91,21 @@ export async function listPostgresAuditEvents(args: {
     })),
   };
 }
+
+/** Fetch the exact immutable revision body for server-side validation before restore. */
+export async function readPostgresRevisionContent(args: {
+  documentName: DocumentName;
+  state: 'published' | 'draft';
+  revision: number;
+}): Promise<string | null> {
+  if (!DOCUMENTS.includes(args.documentName) || !Number.isSafeInteger(args.revision) || args.revision < 1) {
+    throw new Error('Invalid catalog revision request.');
+  }
+  const semesterKey = await activeSemesterKey();
+  const result = await postgresPool().query<{ content: unknown }>(
+    'SELECT content FROM planora.catalog_revisions WHERE semester_key=$1 AND document_name=$2 AND state=$3 AND revision=$4 LIMIT 1',
+    [semesterKey, args.documentName, args.state, args.revision],
+  );
+  if (result.rowCount !== 1) return null;
+  return JSON.stringify(result.rows[0].content);
+}
