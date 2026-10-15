@@ -37,8 +37,8 @@ export async function stagePostgresSyncDraft(args: {
     );
     if (active.rowCount !== 1) throw new Error('PostgreSQL must contain exactly one active semester.');
     const semesterKey = active.rows[0].semester_key;
-    const current = await client.query<{ content_sha256: string }>(
-      'SELECT content_sha256 FROM planora.sync_drafts WHERE semester_key=$1 FOR UPDATE',
+    const current = await client.query<{ content_sha256: string; run_id: string | null }>(
+      'SELECT content_sha256, run_id FROM planora.sync_drafts WHERE semester_key=$1 FOR UPDATE',
       [semesterKey],
     );
     if ((current.rows[0]?.content_sha256.trim() || '') !== args.expectedDraftHash) return { staged: false as const };
