@@ -1479,3 +1479,106 @@ a .glass-icon {
   display: none !important;
 }
 
+/* ================================================================== */
+/* Glass skin (lite): translucent surfaces + gentle background motion. */
+/* No backdrop-filter or blur filters; motion is transform-only.        */
+/* ================================================================== */
+@media screen {
+  :root,
+  [data-theme='dark'] {
+    --gf: rgba(255, 255, 255, 0.055);
+    --ge: rgba(255, 255, 255, 0.14);
+    --gs: rgba(255, 255, 255, 0.16);
+    --orb-a: rgba(109, 91, 255, 0.42);
+    --orb-b: rgba(34, 211, 238, 0.3);
+  }
+  [data-theme='light'] {
+    --gf: rgba(255, 255, 255, 0.7);
+    --ge: rgba(255, 255, 255, 0.95);
+    --gs: rgba(255, 255, 255, 1);
+    --orb-a: rgba(124, 92, 255, 0.18);
+    --orb-b: rgba(34, 211, 238, 0.18);
+  }
+  body {
+    background: var(--bg);
+  }
+
+  /* Radial gradients provide softness without filter: blur(). */
+  body::before,
+  body::after {
+    content: '';
+    position: fixed;
+    z-index: -1;
+    pointer-events: none;
+    border-radius: 50%;
+    width: 640px;
+    height: 640px;
+    will-change: transform;
+    contain: strict;
+  }
+  body::before {
+    left: -200px;
+    top: -60px;
+    background: radial-gradient(closest-side, var(--orb-a), transparent);
+    animation: glassDriftA 40s ease-in-out infinite;
+  }
+  body::after {
+    right: -220px;
+    bottom: -120px;
+    background: radial-gradient(closest-side, var(--orb-b), transparent);
+    animation: glassDriftB 52s ease-in-out infinite;
+  }
+  @keyframes glassDriftA {
+    0%, 100% { transform: translate3d(0, 0, 0); }
+    50% { transform: translate3d(160px, 90px, 0); }
+  }
+  @keyframes glassDriftB {
+    0%, 100% { transform: translate3d(0, 0, 0); }
+    50% { transform: translate3d(-170px, -80px, 0); }
+  }
+  .panel,
+  .panel-soft,
+  .course-card {
+    background: var(--gf);
+    border-color: var(--ge);
+    box-shadow: inset 0 1px 0 var(--gs);
+  }
+  .panel { border-radius: 20px; }
+  .panel-soft { border-radius: 14px; }
+  .course-card { border-radius: 16px; }
+  .course-card[data-state='warning'] {
+    background: color-mix(in srgb, var(--warn-bg) 55%, transparent);
+    border-color: var(--warn-line);
+  }
+  .btn:not(.btn-accent),
+  .pill,
+  .select,
+  .course-search-wrap {
+    background: var(--gf);
+    border-color: var(--ge);
+  }
+  .btn:hover:not(:disabled):not(.btn-accent) {
+    background: color-mix(in srgb, var(--gf) 60%, var(--ge));
+  }
+  .event-card {
+    box-shadow: inset 0 1px 0 var(--gs);
+  }
+  .btn {
+    transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease, opacity 0.15s ease;
+  }
+  .btn:hover:not(:disabled) { transform: translateY(-1px); }
+  .btn:active:not(:disabled) { transform: translateY(1px); }
+}
+@media screen and (max-width: 640px) {
+  body::before,
+  body::after {
+    width: 420px;
+    height: 420px;
+  }
+  body::after { animation: none; }
+}
+@media screen and (prefers-reduced-motion: reduce) {
+  body::before,
+  body::after { animation: none; }
+  .btn:hover:not(:disabled) { transform: none; }
+}
