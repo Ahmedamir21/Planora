@@ -89,6 +89,35 @@ async function login(page) {
   await sleep(1200);
   if (/incorrect|invalid|unable to sign|support ID|rejected/i.test(await page.locator('body').innerText().catch(()=>''))) throw new Error('Self-Service login failed or was rejected.');
 }
+async function openCoursesPage(page) {
+  // Try the portal's own navigation first; the authenticated session can reject
+  // direct deep links in some environments.
+  const nav = page.locator('a[href*="Registration/Courses"]').first();
+  try {
+    if (await nav.count() && await nav.isVisible()) {
+      await nav.click({ timeout: 10_000 });
+      await page.waitForURL(/Registration\/Courses/i, { timeout: 12_000 });
+      return;
+    }
+  } catch { /* try the canonical route below */ }
+
+  let lastError;
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    try {
+      await page.goto(COURSES_URL, { waitUntil: 'domcontentloaded', timeout: 35_000 });
+      await page.waitForLoadState('domcontentloaded', { timeout: 8_000 }).catch(() => {});
+      if (/requested URL was rejected|support ID/i.test(await page.locator('body').innerText().catch(() => ''))) {
+        throw new Error('Self-Service rejected the course catalog request (possible cloud-runner/WAF restriction).');
+      }
+      return;
+    } catch (error) {
+      lastError = error;
+      if (attempt < 2) await sleep(1_000);
+    }
+  }
+  throw new Error('Could not open the authenticated Self-Service course catalog after two attempts. GitHub Actions previously timed out on this URL. If the portal blocks cloud-runner IPs, retries cannot bypass that restriction. ' + String(lastError?.message || lastError));
+}
+
 async function searchCourse(page, code) {
   // Strict boundary: only inspect the configured course-results pane, never the
   // personal/right-side schedule or the whole page.
@@ -168,6 +197,7 @@ async function main() {
   const page = await browser.newPage({ viewport:{ width:1440, height:1000 } });
   try {
     await login(page);
+    await openCoursesPage(page);
     const courses = JSON.parse(await fs.readFile(path.join(SEMESTER_DIR,'courses.json'),'utf8'));
     const sch = JSON.parse(await fs.readFile(path.join(SEMESTER_DIR,'sch.json'),'utf8'));
     const all = [...courses, ...sch], warnings = [], records = [];
