@@ -405,6 +405,9 @@ export default async function handler(req: any, res: any) {
       return res.status(200).json({ revision: result.contentSha256, entry: { at: new Date().toISOString(), adminId: admin.id, adminName: admin.name, action: 'undo_draft', file: body.file, source, revision: result.revision } });
     }
     if (postgresMode) return res.status(503).json({ error: 'PostgreSQL admin write action is not migrated. No changes were made.' });
+    if (postgresMode && ['sync_stage', 'sync_discard', 'sync_publish', 'sync_restore'].includes(String(body.action))) {
+      return res.status(503).json({ error: 'PostgreSQL Self-Service Sync actions are not migrated yet. No changes were made.' });
+    }
     if (body.action === 'sync_stage') {
       const source = typeof body.source === 'string' ? body.source.trim().slice(0, 240) : '';
       const expectedRevision = typeof body.expectedSyncRevision === 'string' ? body.expectedSyncRevision : '';
