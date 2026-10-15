@@ -235,15 +235,21 @@ export async function restorePostgresSyncBackup(args: {
     const now = new Date();
     const backupVersionBase = `v${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, '0')}-${String(now.getUTCDate()).padStart(2, '0')}-${String(now.getUTCHours()).padStart(2, '0')}${String(now.getUTCMinutes()).padStart(2, '0')}-${String(now.getUTCSeconds()).padStart(2, '0')}`;
     let backupVersion = backupVersionBase;
-    for (let suffix = 1; suffix <= 99; suffix += 1) {
+    let allocated = false;
+    for (let suffix = 0; suffix <= 99; suffix += 1) {
+      backupVersion = suffix === 0
+        ? backupVersionBase
+        : `${backupVersionBase}-${String(suffix).padStart(2, '0')}`;
       const existing = await client.query(
         'SELECT 1 FROM planora.sync_backups WHERE semester_key=$1 AND version=$2',
         [semesterKey, backupVersion],
       );
-      if (existing.rowCount === 0) break;
-      if (suffix === 99) throw new Error('Could not allocate a unique automatic safety backup version.');
-      backupVersion = `${backupVersionBase}-${String(suffix).padStart(2, '0')}`;
+      if (existing.rowCount === 0) {
+        allocated = true;
+        break;
+      }
     }
+    if (!allocated) throw new Error('Could not allocate a unique automatic safety backup version.');
     const beforeRestore = {
       semesterKey,
       version: backupVersion,
