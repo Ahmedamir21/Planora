@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import process from 'node:process';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { chromium } from 'playwright';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -21,7 +21,7 @@ const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 function required(name, value) { if (!value) throw new Error(`Missing required environment variable ${name}.`); return value; }
 function normaliseDay(value) {
   const key = String(value || '').trim().toLowerCase();
-  return ({ sunday:'Sun', sun:'Sun', monday:'Mon', mon:'Mon', tuesday:'Tue', tue:'Tue', wednesday:'Wed', wed:'Wed', thursday:'Thu', thu:'Thu' })[key] || null;
+  return ({ sunday:'Sun', sun:'Sun', monday:'Mon', mon:'Mon', tuesday:'Tue', tue:'Tue', wednesday:'Wed', wed:'Wed', thursday:'Thu', thu:'Thu', friday:'Fri', fri:'Fri', saturday:'Sat', sat:'Sat' })[key] || null;
 }
 function parseClock(value, allowEnd59 = false) {
   const match = String(value || '').trim().match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
@@ -89,7 +89,67 @@ async function login(page) {
   await sleep(1200);
   if (/incorrect|invalid|unable to sign|support ID|rejected/i.test(await page.locator('body').innerText().catch(()=>''))) throw new Error('Self-Service login failed or was rejected.');
 }
+async function firstVisibleLocator(page, preferred, fallbacks) {
+  for (const selector of [preferred, ...fallbacks].filter(Boolean)) {
+    try {
+      const locator = page.locator(selector).first();
+      if (await locator.count() && await locator.isVisible()) return locator;
+    } catch { /* try the next known selector */ }
+  }
+  return null;
+}
+
+async function openCoursesPage(page) {
+  if (/\/Registration\/Courses(?:[/?#]|$)/i.test(page.url())) return;
+  // Prefer the authenticated portal's own navigation when it exposes the course
+  // catalog link; some PowerCampus deployments reject direct deep-link navigation.
+  const nav = page.locator('a[href*="Registration/Courses" i]').first();
+  try {
+    if (await nav.count() && await nav.isVisible()) {
+      await nav.click({ timeout: 10_000 });
+      await page.waitForURL(/Registration\/Courses/i, { timeout: 12_000 });
+      return;
+    }
+  } catch { /* direct URL retry below */ }
+
+  let lastError;
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    try {
+      await page.goto(COURSES_URL, { waitUntil: 'domcontentloaded', timeout: 35_000 });
+      await page.waitForLoadState('domcontentloaded', { timeout: 8_000 }).catch(() => {});
+      if (/requested URL was rejected|support ID/i.test(await page.locator('body').innerText().catch(() => ''))) {
+        throw new Error('Self-Service rejected the course catalog request (possible cloud WAF restriction).');
+      }
+      return;
+    } catch (error) {
+      lastError = error;
+      if (attempt < 2) await sleep(1_000);
+    }
+  }
+  throw new Error('Could not open the authenticated Self-Service course catalog after two attempts. ' +
+    'The previous GitHub Actions run timed out on this same URL; if the portal blocks cloud-runner IPs, retries cannot bypass that restriction. ' +
+    String(lastError?.message || lastError));
+}
+
 async function searchCourse(page, code) {
+  const search = await firstVisibleLocator(page, SEARCH_SELECTOR, [
+    'input[type="search"]',
+    'input[placeholder*="search" i]',
+    'input[id*="search" i]',
+    'input[name*="search" i]',
+    'input[type="text"]:visible',
+  ]);
+  if (!search) throw new Error(`Could not find a visible course search input for ${code}; configured selector and safe fallbacks failed.`);
+
+  const body = await page.locator('body').innerText().catch(() => '');
+  if (/requested URL was rejected|support ID/i.test(body)) throw new Error('Self-Service rejected the courses page.');
+
+  await search.fill(code);
+  await search.press('Enter');
+  await page.waitForLoadState('domcontentloaded', { timeout: 12_000 }).catch(() => {});
+  await sleep(650);
+
+  const escapedCode = code.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\async function searchCourse(page, code) {
   await page.goto(COURSES_URL, { waitUntil:'commit', timeout:60_000 });
   await page.waitForSelector(SEARCH_SELECTOR, { state:'visible', timeout:60_000 });
   const body = await page.locator('body').innerText().catch(()=>'');
@@ -121,7 +181,35 @@ async function searchCourse(page, code) {
   const withTrustedTitle = rawTexts.map(text => new RegExp(escapedCode, 'i').test(text) && /:\\s*[^\\n]+/.test(text) ? text : `${courseTitle}\\n${text}`);
   return pickCardTexts(withTrustedTitle);
 }
+');
+  const titlePattern = new RegExp('^\\\\s*' + escapedCode + '\\\\s*:\\\\s*\\\\S', 'i');
+  const linkTexts = await page.locator('a').allInnerTexts();
+  const courseTitle = linkTexts.map(value => value.trim()).find(value => titlePattern.test(value)) || '';
+  if (!courseTitle) throw new Error(`Could not read the blue ${code}: Course Name link. The course was not clicked.`);
 
+  const source = await firstVisibleLocator(page, RESULTS_SELECTOR, [
+    'main',
+    '[role="main"]',
+    '#content',
+    '.course-results',
+    '[class*="results" i]',
+  ]);
+  if (!source) throw new Error(`No safe course-results container was found for ${code}; refusing to inspect the whole page.`);
+
+  const cards = source.locator('article, li, [class*="card"], [class*="Card"], [role="article"]');
+  const texts = await cards.evaluateAll(nodes => nodes.map(node => node.innerText || '').filter(Boolean));
+  const matchingTexts = texts.filter(text =>
+    /Subtype\\s*:/i.test(text) && /Section\\s*:/i.test(text) &&
+    /\\d{1,2}:\\d{2}\\s*[AP]M\\s*-\\s*\\d{1,2}:\\d{2}\\s*[AP]M/i.test(text) &&
+    !/\\bREGISTERED\\b|\\bMY\\s+SCHEDULE\\b/i.test(text)
+  );
+  const withTrustedTitle = matchingTexts.map(text =>
+    new RegExp(escapedCode, 'i').test(text) && /:\\s*[^\\n]+/.test(text)
+      ? text
+      : `${courseTitle}\\n${text}`
+  );
+  return pickCardTexts(withTrustedTitle);
+}
 function meetingCount(course) {
   let total = 0;
   for (const teacher of course?.instructors || []) total += (teacher.lectures?.length || 0) + (teacher.labs?.length || 0) + (teacher.tutorials?.length || 0);
@@ -154,8 +242,6 @@ function mergeInto(base, records, warnings) {
 async function main() {
   required('SELF_SERVICE_USERNAME', USERNAME);
   required('SELF_SERVICE_PASSWORD', PASSWORD);
-  required('SELF_SERVICE_RESULTS_SELECTOR', RESULTS_SELECTOR);
-  required('SELF_SERVICE_SEARCH_SELECTOR', SEARCH_SELECTOR);
   required('PLANORA_SYNC_INGEST_URL', INGEST_URL);
   required('PLANORA_SYNC_INGEST_SECRET', INGEST_SECRET);
 
@@ -164,20 +250,33 @@ async function main() {
   const page = await browser.newPage({ viewport:{ width:1440, height:1000 } });
   try {
     await login(page);
+    await openCoursesPage(page);
     const courses = JSON.parse(await fs.readFile(path.join(SEMESTER_DIR,'courses.json'),'utf8'));
     const sch = JSON.parse(await fs.readFile(path.join(SEMESTER_DIR,'sch.json'),'utf8'));
     const all = [...courses, ...sch], warnings = [], records = [];
-    const requestedRaw = required('PLANORA_COURSE_CODES', process.env.PLANORA_COURSE_CODES);
-    const requested = [...new Set(requestedRaw.split(',').map(value=>value.trim().toUpperCase()).filter(Boolean))];
-    if (!requested.length || requested.length > 3) throw new Error('First-test safety limit: provide 1 to 3 explicit PLANORA_COURSE_CODES only.');
+    const requestedRaw = String(process.env.PLANORA_COURSE_CODES || 'ALL').trim();
+    const allCodes = [...new Set(all.map(course => String(course.code || '').trim().toUpperCase()).filter(Boolean))];
+    const requested = /^ALL$/i.test(requestedRaw)
+      ? allCodes
+      : [...new Set(requestedRaw.split(',').map(value => value.trim().toUpperCase()).filter(Boolean))];
+    if (!requested.length) throw new Error('No course codes were found to refresh. Set PLANORA_COURSE_CODES=ALL or provide comma-separated codes.');
     const knownCodes = new Set(all.map(course => course.code));
     const unknown = requested.filter(code => !knownCodes.has(code));
     if (unknown.length) throw new Error(`Unknown Planora course code(s): ${unknown.join(', ')}.`);
-    for (const code of requested) {
+    for (const [index, code] of requested.entries()) {
+      console.log(`Refreshing ${index + 1}/${requested.length}: ${code}`);
       const rows = await searchCourse(page, code);
       records.push(...rows);
       if (!rows.length) warnings.push(`${code}: no parseable course cards found.`);
-      await sleep(250);
+      await sleep(350);
+    }
+    const fetchedCodes = new Set(records.map(row => row.code));
+    const missingCodes = requested.filter(code => {
+      const current = all.find(course => String(course.code || '').toUpperCase() === code);
+      return !fetchedCodes.has(code) && !current?.awaitingSource && !current?.noFixedSchedule;
+    });
+    if (missingCodes.length) {
+      throw new Error(`Refusing to stage an incomplete refresh. No source sections were parsed for ${missingCodes.length} course(s): ${missingCodes.slice(0, 30).join(', ')}${missingCodes.length > 30 ? ', …' : ''}. Existing data was not published or overwritten.`);
     }
     const nextCourses = mergeInto(courses, records, warnings), nextSch = mergeInto(sch, records, warnings);
     const payload = { source:`Self-Service daily agent · ${new Date().toISOString().slice(0,10)}`, startedAt, fetchedAt:new Date().toISOString(), agentWarnings:[...new Set(warnings)].slice(0,100), dataset:{ courses:nextCourses, sch:nextSch } };
@@ -187,4 +286,8 @@ async function main() {
     console.log(JSON.stringify({ ok:true, records:records.length, warnings:payload.agentWarnings.length, ingest:JSON.parse(body) }, null, 2));
   } finally { await browser.close(); }
 }
-main().catch(error => { console.error(error instanceof Error ? error.stack : error); process.exitCode = 1; });
+export { normaliseDay, parseClock, parseMeetingText, pickCardTexts };
+
+if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
+  main().catch(error => { console.error(error instanceof Error ? error.stack : error); process.exitCode = 1; });
+}
