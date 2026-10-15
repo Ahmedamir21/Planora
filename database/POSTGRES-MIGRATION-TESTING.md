@@ -17,7 +17,7 @@ The verifier is read-only. It checks that:
 
 The importer intentionally refuses to overwrite an existing catalog and refuses stale/undated source data unless a deliberate one-off override is supplied. Use an empty disposable database for the first test. Do not use production credentials for migration testing.
 
-**Important:** these checks do not mean the runtime API has migrated. The existing catalog/admin/sync handlers still use Redis for live overrides, drafts, and history. Keep this pull request unmerged and do not enable a PostgreSQL runtime flag until catalog reads, admin writes, sync staging/publishing, history, and restore all use one consistent transactional backend and pass end-to-end tests.
+**Important:** these checks do not mean the runtime API has migrated. The public catalog GET now reads the PostgreSQL snapshot when `PLANORA_STORAGE_BACKEND=postgres`; admin and sync-ingest intentionally return 503 in that mode until their writes/history/staging/publish/restore are migrated. Keep the flag unset and keep this pull request unmerged until those routes use one consistent transactional backend and pass end-to-end tests.
 
 ## PostgreSQL runtime primitives (not yet connected to HTTP routes)
 
@@ -29,13 +29,13 @@ The staged `app/api/postgres-store.ts` module now includes:
 - restore from an immutable published revision as a new revision, with optimistic concurrency;
 - a readiness query for the active semester and published document count.
 
-These are persistence primitives, not a completed cutover. Current `admin.ts`, `catalog.ts`, and `sync-ingest.ts` still use Redis. Do not enable the flag or deploy this module as the live source until route integration, combined-dataset validation, sync draft/publish/backup/restore parity, authorization review, and end-to-end tests are complete. The primitives have not yet been exercised against a real PostgreSQL server in this environment.
+These are persistence primitives, not a completed cutover. `catalog.ts` uses the PostgreSQL snapshot only when the explicit flag is selected; `admin.ts` and `sync-ingest.ts` fail closed in that mode instead of writing to Redis. Do not enable the flag for production until admin reads/writes, combined-dataset validation, sync draft/publish/backup/restore parity, authorization review, and end-to-end tests are complete. The primitives have not yet been exercised against a real PostgreSQL server in this environment.
 
 ## Required API cutover order
 
 Do not enable a partial backend switch. Implement and verify the following as one feature branch:
 
-1. **Shared catalog adapter:** read all four published documents and all four draft documents from the same active semester; keep bundled JSON only as an explicit bootstrap/reference fallback, never as a silent fallback after PostgreSQL has been selected.
+1. **Shared catalog adapter:** public catalog reads now use the consistent snapshot helper in PostgreSQL mode. Finish admin reads/writes using the same active semester; keep bundled JSON only as an explicit bootstrap/reference fallback, never as a silent fallback after PostgreSQL has been selected.
 2. **Admin route parity:** preserve the existing signed admin cookie and same-origin protections. Move draft/live reads, save, publish, undo/restore, revision history, and audit writes to the PostgreSQL adapter. Keep reports, feedback, security events, and rate limiting on Redis until their separate migration is designed; make their dependency explicit rather than claiming all admin storage moved.
 3. **Whole-dataset validation:** before any catalog publish, combine the proposed document with the other current published documents, run the existing dataset validator, and reject invalid combinations before the write transaction. Preserve the rule that public catalog quick-save cannot add/remove course IDs.
 4. **Sync parity:** store sync draft, status, and backup metadata in a consistent backend; ingestion must remain read-only against the student portal and draft-only. Publish/restore must validate the complete dataset and atomically update both courses.json and sch.json, revision history, audit, and sync status in one transaction.
@@ -47,4 +47,4 @@ Do not enable a partial backend switch. Implement and verify the following as on
 
 The migration branch has a Vercel preview deployment marked Ready, and the latest recorded Planner CI and Claude Security Review workflow runs completed successfully. This validates the recorded repository checks only; it does not prove database import/runtime behavior because no disposable PostgreSQL connection was configured for this work. The production API remains on its existing backend.
 
-The storage layer also now exposes `readPostgresCatalogSnapshot()`: it reads the active semester and all published/draft catalog documents in a single SQL statement, requires all four published documents, rejects duplicate/unknown/incomplete document rows, and returns the database-stored hashes for concurrency checks. This is a building block for route integration; it is not yet used by the HTTP handlers and has not yet been exercised against a live PostgreSQL instance.
+The storage layer exposes `readPostgresCatalogSnapshot()`: it reads the active semester and all published/draft catalog documents in a single SQL statement, requires all four published documents, rejects duplicate/unknown/incomplete document rows, and returns database-stored hashes. `catalog.ts` now uses it for public catalog GETs in PostgreSQL mode. This route and the new fail-closed admin/sync guards have not yet been exercised against a live PostgreSQL instance; admin and sync are intentionally unavailable while the flag is on.
