@@ -2,7 +2,7 @@ import { createHash, createHmac, randomUUID, scryptSync, timingSafeEqual } from 
 import { draftKey, liveKey, HISTORY_KEY, rateLimited, redis, saveWithHistory, saveLive, undoLive, undoWithHistory, storageConfigured } from './admin-store';
 import { postgresRuntimeSelected, readCatalogDocument, readPostgresCatalogSnapshot, savePostgresDraft, publishPostgresDraft, restorePostgresRevision, undoPostgresDraft } from './postgres-store';
 import { listPostgresAuditEvents, listPostgresRevisions, readPostgresRevisionContent } from '../lib/postgres-history';
-import { listPostgresSyncBackups, readPostgresSyncBackup, readPostgresSyncDraft } from '../lib/postgres-sync-store';
+import { discardPostgresSyncDraft, listPostgresSyncBackups, publishPostgresSyncDraft, readPostgresSyncBackup, readPostgresSyncDraft, restorePostgresSyncBackup, stagePostgresSyncDraft } from '../lib/postgres-sync-store';
 import { isCatalogFile } from './catalog';
 import { jsonRequest, sameOrigin } from './security';
 import { validateDataset } from '../dataset-validation.cjs';
@@ -404,8 +404,109 @@ export default async function handler(req: any, res: any) {
       if (!result.undone) return res.status(409).json({ error: 'The draft changed or no longer exists. Reload before undoing.' });
       return res.status(200).json({ revision: result.contentSha256, entry: { at: new Date().toISOString(), adminId: admin.id, adminName: admin.name, action: 'undo_draft', file: body.file, source, revision: result.revision } });
     }
-    if (postgresMode && ['sync_stage', 'sync_discard', 'sync_publish', 'sync_restore'].includes(String(body.action))) {
-      return res.status(503).json({ error: 'PostgreSQL Self-Service Sync actions are not migrated yet. No changes were made.' });
+    if (postgresMode && body.action === 'sync_stage') {
+      const source = typeof body.source === 'string' ? body.source.trim().slice(0, 240) : '';
+      const expectedRevision = typeof body.expectedSyncRevision === 'string' ? body.expectedSyncRevision : '';
+      const dataset = body.dataset && typeof body.dataset === 'object' ? body.dataset : null;
+      if (!source || !dataset || !Array.isArray(dataset.courses) || !Array.isArray(dataset.sch)) {
+        return res.status(400).json({ error: 'Add the fetched courses, SCH data, and a source label.' });
+      }
+      const currentDraft = await readPostgresSyncDraft();
+      if ((currentDraft?.contentSha256 || '') !== expectedRevision) {
+        return res.status(409).json({ error: 'The sync draft changed. Refresh Self-Service Sync before staging again.' });
+      }
+      const snapshot = await readPostgresCatalogSnapshot();
+      const semester = JSON.parse(snapshot.published['semester.json'].content);
+      const majors = JSON.parse(snapshot.published['majors.json'].content);
+      const check = validateDataset({ semester, majors, courses: dataset.courses, sch: dataset.sch });
+      if (check.errors.length) {
+        return res.status(400).json({ error: `Fetched data has ${check.errors.length} blocking validation errors. Live data was not changed.`, errors: check.errors.slice(0, 30) });
+      }
+      const liveCourses = JSON.parse(snapshot.published['courses.json'].content);
+      const liveSch = JSON.parse(snapshot.published['sch.json'].content);
+      const diff = syncChangeSummary(liveCourses, liveSch, dataset.courses, dataset.sch);
+      const warnings = [...check.warnings];
+      const sectionBase = Math.max(1, diff.previousSections);
+      if (Math.abs(diff.sectionDelta) > Math.max(20, Math.ceil(sectionBase * 0.25))) warnings.unshift(`Large section-count change: ${diff.previousSections} → ${diff.sections}. Review before publishing.`);
+      if (diff.addedCourses || diff.removedCourses) warnings.unshift(`Course set changed: +${diff.addedCourses} / -${diff.removedCourses}. Review course mapping before publishing.`);
+      const now = new Date().toISOString();
+      const draft = {
+        source, fetchedAt: typeof body.fetchedAt === 'string' ? body.fetchedAt : now, stagedAt: now,
+        courses: dataset.courses, sch: dataset.sch,
+        validation: { warnings, summary: check.summary }, changes: diff,
+      };
+      const state = warnings.length ? 'Warning' : 'Success';
+      const status = {
+        state, phase: 'draft_ready',
+        startedAt: typeof body.startedAt === 'string' ? body.startedAt : now,
+        finishedAt: now, source, ...syncCounts(dataset.courses, dataset.sch), warnings: warnings.length,
+      };
+      const result = await stagePostgresSyncDraft({
+        draft, expectedDraftHash: expectedRevision, actorId: admin.id, actorName: admin.name, status,
+      });
+      if (!result.staged) return res.status(409).json({ error: 'The sync draft changed while staging. Refresh and retry.' });
+      return res.status(200).json({ draftRevision: result.contentSha256, state, warnings, changes: diff, summary: check.summary });
+    }
+    if (postgresMode && body.action === 'sync_discard') {
+      const expectedRevision = typeof body.expectedSyncRevision === 'string' ? body.expectedSyncRevision : '';
+      const reason = typeof body.source === 'string' && body.source.trim()
+        ? body.source.trim().slice(0, 240) : 'Discarded by admin.';
+      if (!expectedRevision) return res.status(400).json({ error: 'Reload the current sync draft before discarding it.' });
+      const result = await discardPostgresSyncDraft({
+        expectedDraftHash: expectedRevision, actorId: admin.id, actorName: admin.name, reason,
+      });
+      if (!result.discarded) return res.status(409).json({ error: 'The sync draft changed or no longer exists. Refresh before discarding it.' });
+      return res.status(200).json({ discarded: true });
+    }
+    if (postgresMode && body.action === 'sync_publish') {
+      const expectedRevision = typeof body.expectedSyncRevision === 'string' ? body.expectedSyncRevision : '';
+      const reason = typeof body.source === 'string' ? body.source.trim().slice(0, 240) : '';
+      if (!expectedRevision) return res.status(400).json({ error: 'Reload the latest Self-Service sync draft before publishing.' });
+      if (!reason) return res.status(400).json({ error: 'Add what you verified before publishing this draft.' });
+      const draft = await readPostgresSyncDraft();
+      if (!draft || draft.contentSha256 !== expectedRevision) return res.status(409).json({ error: 'Reload the latest Self-Service sync draft before publishing.' });
+      const snapshot = await readPostgresCatalogSnapshot();
+      const semester = JSON.parse(snapshot.published['semester.json'].content);
+      const majors = JSON.parse(snapshot.published['majors.json'].content);
+      const check = validateDataset({ semester, majors, courses: draft.content.courses, sch: draft.content.sch });
+      if (check.errors.length) return res.status(400).json({ error: `Draft has ${check.errors.length} blocking errors.`, errors: check.errors.slice(0, 30) });
+      const now = new Date();
+      const version = `v${now.getUTCFullYear()}-${String(now.getUTCMonth()+1).padStart(2,'0')}-${String(now.getUTCDate()).padStart(2,'0')}-${String(now.getUTCHours()).padStart(2,'0')}${String(now.getUTCMinutes()).padStart(2,'0')}-${String(now.getUTCSeconds()).padStart(2,'0')}`;
+      const result = await publishPostgresSyncDraft({
+        expectedDraftHash: expectedRevision,
+        expectedCoursesHash: snapshot.published['courses.json'].contentSha256,
+        expectedSchHash: snapshot.published['sch.json'].contentSha256,
+        actorId: admin.id, actorName: admin.name, reason, version,
+      });
+      if (!result.published) return res.status(409).json({ error: 'Live data or the sync draft changed. Nothing was published; refresh and review again.' });
+      return res.status(200).json({ published: true, backupVersion: result.backupVersion });
+    }
+    if (postgresMode && body.action === 'sync_restore') {
+      const version = typeof body.version === 'string' ? body.version : '';
+      const reason = typeof body.source === 'string' ? body.source.trim().slice(0, 240) : '';
+      if (!/^v\\d{4}-\\d{2}-\\d{2}-\\d{4}-\\d{2}(?:-\\d{2})?$/.test(version) || !reason) {
+        return res.status(400).json({ error: 'Choose a backup and add a restore reason.' });
+      }
+      const rawBackup = await readPostgresSyncBackup(version);
+      if (!rawBackup) return res.status(404).json({ error: 'Backup not found.' });
+      const backup = rawBackup as { semesterKey?: string; semester?: unknown; majors?: unknown; courses?: unknown; sch?: unknown };
+      const snapshot = await readPostgresCatalogSnapshot();
+      const semester = JSON.parse(snapshot.published['semester.json'].content);
+      const majors = JSON.parse(snapshot.published['majors.json'].content);
+      const check = validateDataset({
+        semester, majors,
+        courses: Array.isArray(backup.courses) ? backup.courses : [],
+        sch: Array.isArray(backup.sch) ? backup.sch : [],
+      });
+      if (check.errors.length) return res.status(400).json({ error: 'This backup failed validation against the current semester and was not restored.', errors: check.errors.slice(0, 30) });
+      const result = await restorePostgresSyncBackup({
+        version,
+        expectedCoursesHash: snapshot.published['courses.json'].contentSha256,
+        expectedSchHash: snapshot.published['sch.json'].contentSha256,
+        actorId: admin.id, actorName: admin.name, reason,
+      });
+      if (!result.restored) return res.status(409).json({ error: 'Live data changed while restoring. Nothing was restored; refresh and retry.' });
+      return res.status(200).json({ restored: true, version, safetyBackupVersion: result.backupVersion });
     }
     if (postgresMode) return res.status(503).json({ error: 'PostgreSQL admin write action is not migrated. No changes were made.' });
     if (body.action === 'sync_stage') {
