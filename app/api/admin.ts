@@ -1,7 +1,7 @@
 import { createHash, createHmac, randomUUID, scryptSync, timingSafeEqual } from 'node:crypto';
 import { draftKey, liveKey, HISTORY_KEY, rateLimited, redis, saveWithHistory, saveLive, undoLive, undoWithHistory, storageConfigured } from './admin-store';
 import { postgresRuntimeSelected, readCatalogDocument, readPostgresCatalogSnapshot, savePostgresDraft, publishPostgresDraft, restorePostgresRevision, undoPostgresDraft } from './postgres-store';
-import { listPostgresAuditEvents, listPostgresRevisions, readPostgresRevisionContent } from '../lib/postgres-history';
+import { listPostgresAuditEvents, readPostgresRevisionContent } from '../lib/postgres-history';
 import { discardPostgresSyncDraft, listPostgresSyncBackups, publishPostgresSyncDraft, readPostgresSyncBackup, readPostgresSyncDraft, restorePostgresSyncBackup, stagePostgresSyncDraft } from '../lib/postgres-sync-store';
 import { isCatalogFile } from './catalog';
 import { jsonRequest, sameOrigin } from './security';
@@ -364,10 +364,6 @@ export default async function handler(req: any, res: any) {
       const snapshot = await readPostgresCatalogSnapshot();
       if (snapshot.published[body.file].contentSha256 !== body.expectedLiveRevision) {
         return res.status(409).json({ error: 'The published catalog changed. Reload before restoring a revision.' });
-      }
-      const historical = await listPostgresRevisions({ documentName: body.file, state: 'published', page: 0, pageSize: 100 });
-      if (!historical.entries.some(entry => entry.revision === body.revision)) {
-        return res.status(404).json({ error: 'Published revision not found in the latest 100 history entries.' });
       }
       const historicalContent = await readPostgresRevisionContent({ documentName: body.file, state: 'published', revision: body.revision });
       if (historicalContent === null) return res.status(404).json({ error: 'Published revision content not found.' });
