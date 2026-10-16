@@ -58,7 +58,7 @@ export async function stagePostgresSyncDraft(args: {
       "VALUES ($1,'validated','draft_ready',$2::jsonb,$3::jsonb,now(),now()) RETURNING run_id",
       [
         args.draft.source.trim().slice(0, 240),
-        JSON.stringify({ courses: args.draft.courses.length + args.draft.sch.length }),
+        JSON.stringify({ courses: args.draft.courses.length, sch: args.draft.sch.length }),
         JSON.stringify((args.draft.validation as { warnings?: unknown[] } | undefined)?.warnings || []),
       ],
     );
