@@ -193,7 +193,7 @@ export async function restorePostgresSyncBackup(args: {
   actorName: string;
   reason: string;
 }): Promise<{ restored: true; backupVersion: string; coursesHash: string; schHash: string } | { restored: false }> {
-  if (!/^v\d{4}-\d{2}-\d{2}-\d{4}-\d{2}$/.test(args.version) || !args.reason.trim()) {
+  if (!/^v\d{4}-\d{2}-\d{2}-\d{4}-\d{2}(?:-\d{2})?$/.test(args.version) || !args.reason.trim()) {
     throw new Error('A valid backup version and restore reason are required.');
   }
   return withPostgresTransaction(async client => {
