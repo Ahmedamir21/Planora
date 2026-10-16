@@ -83,7 +83,7 @@ export async function readPostgresSyncDraft(): Promise<{
   contentSha256: string;
   status: Record<string, unknown>;
 } | null> {
-  const { postgresPool, activeSemesterKey } = await import('./postgres-store');
+  const { postgresPool, activeSemesterKey } = await import('../api/postgres-store');
   const semesterKey = await activeSemesterKey();
   const result = await postgresPool().query<{
     content: PostgresSyncDraft;
@@ -344,7 +344,7 @@ export async function listPostgresSyncBackups(page = 0, pageSize = 20): Promise<
   page: number;
   pageSize: number;
 }> {
-  const { postgresPool, activeSemesterKey } = await import('./postgres-store');
+  const { postgresPool, activeSemesterKey } = await import('../api/postgres-store');
   const safePage = Number.isSafeInteger(page) ? Math.max(0, Math.min(1000, page)) : 0;
   const safeSize = Number.isSafeInteger(pageSize) ? Math.max(1, Math.min(100, pageSize)) : 20;
   const semesterKey = await activeSemesterKey();
@@ -369,7 +369,7 @@ export async function readPostgresSyncBackup(version: string): Promise<unknown |
   if (!/^v\d{4}-\d{2}-\d{2}-\d{4}-\d{2}(?:-\d{2})?$/.test(version)) {
     throw new Error('Invalid sync backup version.');
   }
-  const { postgresPool, activeSemesterKey } = await import('./postgres-store');
+  const { postgresPool, activeSemesterKey } = await import('../api/postgres-store');
   const semesterKey = await activeSemesterKey();
   const result = await postgresPool().query<{ snapshot: unknown }>(
     'SELECT snapshot FROM planora.sync_backups WHERE semester_key=$1 AND version=$2',
