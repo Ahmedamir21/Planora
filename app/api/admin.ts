@@ -1,6 +1,6 @@
 import { createHash, createHmac, randomUUID, scryptSync, timingSafeEqual } from 'node:crypto';
 import { draftKey, liveKey, HISTORY_KEY, rateLimited, redis, saveWithHistory, saveLive, undoLive, undoWithHistory, storageConfigured } from './admin-store';
-import { postgresRuntimeSelected, readCatalogDocument, readPostgresCatalogSnapshot, savePostgresDraft, publishPostgresDraft, restorePostgresRevision, undoPostgresDraft } from './postgres-store';
+import { postgresRuntimeSelected, postgresConfigured, readCatalogDocument, readPostgresCatalogSnapshot, savePostgresDraft, publishPostgresDraft, restorePostgresRevision, undoPostgresDraft } from './postgres-store';
 import { listPostgresAuditEvents, readPostgresRevisionContent } from '../lib/postgres-history';
 import { discardPostgresSyncDraft, listPostgresSyncBackups, publishPostgresSyncDraft, readPostgresSyncBackup, readPostgresSyncDraft, restorePostgresSyncBackup, stagePostgresSyncDraft } from '../lib/postgres-sync-store';
 import { isCatalogFile } from './catalog';
@@ -158,6 +158,7 @@ export default async function handler(req: any, res: any) {
   // PostgreSQL mode exposes migrated read-only admin views, but all mutations remain
   // fail-closed until every write path has been migrated to transactional SQL.
   const postgresMode = postgresRuntimeSelected();
+  if (postgresMode && !postgresConfigured()) return res.status(503).json({ error: 'PostgreSQL storage is selected but DATABASE_URL is not configured. No data was read or changed.' });
   const config = configured();
   if (!config) return res.status(503).json({ error: 'Set both admin password hashes and the session secret, and connect Upstash Redis to Production in Vercel.' });
   if (!['GET', 'POST', 'DELETE'].includes(req.method)) return res.status(405).json({ error: 'Method not allowed' });
