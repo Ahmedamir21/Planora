@@ -329,7 +329,8 @@ export default async function handler(req: any, res: any) {
       }
       const values: Record<string, any> = {};
       for (const name of FILES) {
-        const content = name === body.file ? draft.content : snapshot.drafts[name]?.content || snapshot.published[name].content;
+        // Validate against the published catalog, not other drafts: only one document is published here.
+        const content = name === body.file ? draft.content : snapshot.published[name].content;
         values[name.replace('.json', '')] = JSON.parse(content);
       }
       const check = validateDataset(values);
@@ -371,7 +372,8 @@ export default async function handler(req: any, res: any) {
       if (historicalContent === null) return res.status(404).json({ error: 'Published revision content not found.' });
       const values: Record<string, any> = {};
       for (const name of FILES) {
-        const raw = name === body.file ? historicalContent : snapshot.drafts[name]?.content || snapshot.published[name].content;
+        // A restore creates one published revision; validate it against other published documents.
+        const raw = name === body.file ? historicalContent : snapshot.published[name].content;
         values[name.replace('.json', '')] = JSON.parse(raw);
       }
       const check = validateDataset(values);
