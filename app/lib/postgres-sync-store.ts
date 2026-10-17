@@ -105,6 +105,8 @@ export async function publishPostgresSyncDraft(args: {
   expectedDraftHash: string;
   expectedCoursesHash: string;
   expectedSchHash: string;
+  expectedSemesterHash: string;
+  expectedMajorsHash: string;
   actorId: string;
   actorName: string;
   reason: string;
@@ -119,6 +121,14 @@ export async function publishPostgresSyncDraft(args: {
     );
     if (active.rowCount !== 1) throw new Error('PostgreSQL must contain exactly one active semester.');
     const semesterKey = active.rows[0].semester_key;
+    const dependencies = await client.query<{ document_name: string; content_sha256: string }>(
+      "SELECT document_name, content_sha256 FROM planora.catalog_documents " +
+      "WHERE semester_key=$1 AND state='published' AND document_name IN ('semester.json','majors.json') FOR UPDATE",
+      [semesterKey],
+    );
+    const dependencyHashes = new Map(dependencies.rows.map(row => [row.document_name, row.content_sha256.trim()]));
+    if (dependencyHashes.get('semester.json') !== args.expectedSemesterHash ||
+        dependencyHashes.get('majors.json') !== args.expectedMajorsHash) return { published: false as const };
     const draftResult = await client.query<{ content: PostgresSyncDraft; content_sha256: string; run_id: string | null }>(
       'SELECT content, content_sha256, run_id FROM planora.sync_drafts WHERE semester_key=$1 FOR UPDATE',
       [semesterKey],
@@ -202,6 +212,14 @@ export async function restorePostgresSyncBackup(args: {
     );
     if (active.rowCount !== 1) throw new Error('PostgreSQL must contain exactly one active semester.');
     const semesterKey = active.rows[0].semester_key;
+    const dependencies = await client.query<{ document_name: string; content_sha256: string }>(
+      "SELECT document_name, content_sha256 FROM planora.catalog_documents " +
+      "WHERE semester_key=$1 AND state='published' AND document_name IN ('semester.json','majors.json') FOR UPDATE",
+      [semesterKey],
+    );
+    const dependencyHashes = new Map(dependencies.rows.map(row => [row.document_name, row.content_sha256.trim()]));
+    if (dependencyHashes.get('semester.json') !== args.expectedSemesterHash ||
+        dependencyHashes.get('majors.json') !== args.expectedMajorsHash) return { restored: false as const };
     const backupResult = await client.query<{ snapshot: {
       courses: unknown[]; sch: unknown[]; version: string; semesterKey: string;
     } }>(
