@@ -477,6 +477,8 @@ export default async function handler(req: any, res: any) {
         expectedDraftHash: expectedRevision,
         expectedCoursesHash: snapshot.published['courses.json'].contentSha256,
         expectedSchHash: snapshot.published['sch.json'].contentSha256,
+        expectedSemesterHash: snapshot.published['semester.json'].contentSha256,
+        expectedMajorsHash: snapshot.published['majors.json'].contentSha256,
         actorId: admin.id, actorName: admin.name, reason, version,
       });
       if (!result.published) return res.status(409).json({ error: 'Live data or the sync draft changed. Nothing was published; refresh and review again.' });
