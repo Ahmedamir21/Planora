@@ -108,7 +108,7 @@ async function main() {
     for (const [type, items] of [['courses', courses], ['sch', sch]]) {
       for (const [courseOrder, course] of items.entries()) {
         await client.query('INSERT INTO planora.courses (semester_key, catalog_type, course_id, code, name, category_code, credits, source_order, raw_payload) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9::jsonb)',
-          [semester.key, type, course.id, course.code, course.name, Number.isInteger(course.c) ? course.c : null, Number(course.credits), courseOrder, JSON.stringify(course)]);
+          [semester.key, type, course.id, course.code, course.name, Number.isInteger(course.c) ? course.c : null, course.credits === undefined ? 0 : Number(course.credits), courseOrder, JSON.stringify(course)]);
         for (const [instructorOrder, instructor] of course.instructors.entries()) {
           const result = await client.query('INSERT INTO planora.instructors (semester_key, catalog_type, course_id, instructor_order, name, unassigned, raw_payload) VALUES ($1,$2,$3,$4,$5,$6,$7::jsonb) RETURNING instructor_id',
             [semester.key, type, course.id, instructorOrder, instructor.name, instructor.unassigned === true, JSON.stringify(instructor)]);
