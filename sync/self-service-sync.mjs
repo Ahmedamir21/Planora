@@ -21,7 +21,7 @@ const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 function required(name, value) { if (!value) throw new Error(`Missing required environment variable ${name}.`); return value; }
 function normaliseDay(value) {
   const key = String(value || '').trim().toLowerCase();
-  return ({ sunday:'Sun', sun:'Sun', monday:'Mon', mon:'Mon', tuesday:'Tue', tue:'Tue', wednesday:'Wed', wed:'Wed', thursday:'Thu', thu:'Thu' })[key] || null;
+  return ({ sunday:'Sun', sun:'Sun', monday:'Mon', mon:'Mon', tuesday:'Tue', tue:'Tue', wednesday:'Wed', wed:'Wed', thursday:'Thu', thu:'Thu', friday:'Fri', fri:'Fri', saturday:'Sat', sat:'Sat' })[key] || null;
 }
 function parseClock(value, allowEnd59 = false) {
   const match = String(value || '').trim().match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
@@ -89,39 +89,73 @@ async function login(page) {
   await sleep(1200);
   if (/incorrect|invalid|unable to sign|support ID|rejected/i.test(await page.locator('body').innerText().catch(()=>''))) throw new Error('Self-Service login failed or was rejected.');
 }
+async function openCoursesPage(page) {
+  if (/\/Registration\/Courses(?:[/?#]|$)/i.test(page.url())) return;
+  // Try the portal's own navigation first; the authenticated session can reject
+  // direct deep links in some environments.
+  const nav = page.locator('a[href*="Registration/Courses"]').first();
+  try {
+    if (await nav.count() && await nav.isVisible()) {
+      await nav.click({ timeout: 10_000 });
+      await page.waitForURL(/Registration\/Courses/i, { timeout: 12_000 });
+      return;
+    }
+  } catch { /* try the canonical route below */ }
+
+  let lastError;
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    try {
+      await page.goto(COURSES_URL, { waitUntil: 'domcontentloaded', timeout: 35_000 });
+      await page.waitForLoadState('domcontentloaded', { timeout: 8_000 }).catch(() => {});
+      if (/requested URL was rejected|support ID/i.test(await page.locator('body').innerText().catch(() => ''))) {
+        throw new Error('Self-Service rejected the course catalog request (possible cloud-runner/WAF restriction).');
+      }
+      return;
+    } catch (error) {
+      lastError = error;
+      if (attempt < 2) await sleep(1_000);
+    }
+  }
+  throw new Error('Could not open the authenticated Self-Service course catalog after two attempts. GitHub Actions previously timed out on this URL. If the portal blocks cloud-runner IPs, retries cannot bypass that restriction. ' + String(lastError?.message || lastError));
+}
+
 async function searchCourse(page, code) {
-  await page.goto(COURSES_URL, { waitUntil:'commit', timeout:60_000 });
-  await page.waitForSelector(SEARCH_SELECTOR, { state:'visible', timeout:60_000 });
-  const body = await page.locator('body').innerText().catch(()=>'');
+  // Strict boundary: only inspect the configured course-results pane, never the
+  // personal/right-side schedule or the whole page.
+  required('SELF_SERVICE_RESULTS_SELECTOR', RESULTS_SELECTOR);
+  required('SELF_SERVICE_SEARCH_SELECTOR', SEARCH_SELECTOR);
+  const body = await page.locator('body').innerText().catch(() => '');
   if (/requested URL was rejected|support ID/i.test(body)) throw new Error('Self-Service rejected the courses page.');
 
+  const source = page.locator(RESULTS_SELECTOR).first();
+  if (await source.count() === 0 || !(await source.isVisible().catch(() => false))) {
+    throw new Error('Configured course-results selector was not found or visible. Refusing to inspect the personal/right-side schedule.');
+  }
   const search = page.locator(SEARCH_SELECTOR).first();
-  if (await search.count() === 0) throw new Error(`Could not find the configured visible course search input for ${code}. Nothing was clicked.`);
+  if (await search.count() === 0 || !(await search.isVisible().catch(() => false))) {
+    throw new Error('Configured search selector was not found inside the course-results pane. Nothing was clicked.');
+  }
   await search.fill(code);
   await search.press('Enter');
-  await page.waitForLoadState('networkidle', { timeout:20_000 }).catch(()=>{});
-  await sleep(800);
+  await page.waitForLoadState('domcontentloaded', { timeout: 12_000 }).catch(() => {});
+  await sleep(650);
 
-  // Safety boundary: never guess which cards belong to the left results pane.
-  required('SELF_SERVICE_RESULTS_SELECTOR', RESULTS_SELECTOR);
-  const source = page.locator(RESULTS_SELECTOR).first();
-  if (await source.count() === 0) throw new Error(`Configured left-results container was not found for ${code}. Right-side schedule was not inspected.`);
-
-  // Read the blue course-title link inside the configured LEFT results pane only.
-  // This is a read operation; the scraper never clicks the course link.
+  const escapedCode = code; // validated catalog course codes contain letters, digits and spaces
+  const titlePattern = new RegExp('^\\s*' + escapedCode + '\\s*:\\s*\\S', 'i');
   const linkTexts = await source.locator('a').allInnerTexts();
-  const escapedCode = code.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const titlePattern = new RegExp(`^\\\\s*${escapedCode}\\\\s*:\\\\s*\\\\S`, 'i');
   const courseTitle = linkTexts.map(value => value.trim()).find(value => titlePattern.test(value)) || '';
-  if (!courseTitle) throw new Error(`Could not read the blue ${code}: Course Name link inside the configured left-results pane. Nothing was clicked.`);
+  if (!courseTitle) throw new Error('Could not read the course title link for ' + code + ' inside the configured results pane. The course was not clicked.');
 
   const cards = source.locator('article, li, [class*="card"], [class*="Card"], [role="article"]');
   const texts = await cards.evaluateAll(nodes => nodes.map(node => node.innerText || '').filter(Boolean));
   const rawTexts = texts.length ? texts : [await source.innerText()];
-  const withTrustedTitle = rawTexts.map(text => new RegExp(escapedCode, 'i').test(text) && /:\\s*[^\\n]+/.test(text) ? text : `${courseTitle}\\n${text}`);
+  const withTrustedTitle = rawTexts.map(text =>
+    new RegExp(escapedCode, 'i').test(text) && /:\s*[^\n]+/.test(text)
+      ? text
+      : courseTitle + '\n' + text
+  );
   return pickCardTexts(withTrustedTitle);
 }
-
 function meetingCount(course) {
   let total = 0;
   for (const teacher of course?.instructors || []) total += (teacher.lectures?.length || 0) + (teacher.labs?.length || 0) + (teacher.tutorials?.length || 0);
@@ -164,6 +198,7 @@ async function main() {
   const page = await browser.newPage({ viewport:{ width:1440, height:1000 } });
   try {
     await login(page);
+    await openCoursesPage(page);
     const courses = JSON.parse(await fs.readFile(path.join(SEMESTER_DIR,'courses.json'),'utf8'));
     const sch = JSON.parse(await fs.readFile(path.join(SEMESTER_DIR,'sch.json'),'utf8'));
     const all = [...courses, ...sch], warnings = [], records = [];
