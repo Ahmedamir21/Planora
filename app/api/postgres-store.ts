@@ -249,6 +249,7 @@ export async function publishPostgresDraft(args: {
   documentName: 'semester.json' | 'courses.json' | 'majors.json' | 'sch.json';
   expectedDraftHash: string;
   expectedPublishedHash: string;
+  expectedCatalogHashes: Record<'semester.json' | 'courses.json' | 'majors.json' | 'sch.json', string>;
   actorId: string;
   actorName: string;
   reason?: string;
@@ -259,6 +260,15 @@ export async function publishPostgresDraft(args: {
     );
     if (active.rowCount !== 1) throw new Error('PostgreSQL must contain exactly one active Planora semester.');
     const semesterKey = active.rows[0].semester_key;
+    const catalog = await client.query<{ document_name: string; content_sha256: string }>(
+      "SELECT document_name, content_sha256 FROM planora.catalog_documents " +
+      "WHERE semester_key=$1 AND state='published' FOR UPDATE",
+      [semesterKey],
+    );
+    const currentHashes = new Map(catalog.rows.map(row => [row.document_name, row.content_sha256.trim()]));
+    if (Object.entries(args.expectedCatalogHashes).some(([name, hash]) => currentHashes.get(name) !== hash)) {
+      return { published: false as const };
+    }
     const docs = await client.query<{
       state: 'draft' | 'published';
       content: unknown;
@@ -311,6 +321,7 @@ export async function restorePostgresRevision(args: {
   documentName: 'semester.json' | 'courses.json' | 'majors.json' | 'sch.json';
   sourceRevision: number;
   expectedPublishedHash: string;
+  expectedCatalogHashes: Record<'semester.json' | 'courses.json' | 'majors.json' | 'sch.json', string>;
   actorId: string;
   actorName: string;
   reason?: string;
@@ -324,6 +335,15 @@ export async function restorePostgresRevision(args: {
     );
     if (active.rowCount !== 1) throw new Error('PostgreSQL must contain exactly one active Planora semester.');
     const semesterKey = active.rows[0].semester_key;
+    const catalog = await client.query<{ document_name: string; content_sha256: string }>(
+      "SELECT document_name, content_sha256 FROM planora.catalog_documents " +
+      "WHERE semester_key=$1 AND state='published' FOR UPDATE",
+      [semesterKey],
+    );
+    const currentHashes = new Map(catalog.rows.map(row => [row.document_name, row.content_sha256.trim()]));
+    if (Object.entries(args.expectedCatalogHashes).some(([name, hash]) => currentHashes.get(name) !== hash)) {
+      return { restored: false as const };
+    }
     const current = await client.query<{ revision: number; content_sha256: string }>(
       "SELECT revision, content_sha256 FROM planora.catalog_documents " +
       "WHERE semester_key=$1 AND document_name=$2 AND state='published' FOR UPDATE",
