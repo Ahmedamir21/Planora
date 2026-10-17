@@ -506,6 +506,8 @@ export default async function handler(req: any, res: any) {
         version,
         expectedCoursesHash: snapshot.published['courses.json'].contentSha256,
         expectedSchHash: snapshot.published['sch.json'].contentSha256,
+        expectedSemesterHash: snapshot.published['semester.json'].contentSha256,
+        expectedMajorsHash: snapshot.published['majors.json'].contentSha256,
         actorId: admin.id, actorName: admin.name, reason,
       });
       if (!result.restored) return res.status(409).json({ error: 'Live data changed while restoring. Nothing was restored; refresh and retry.' });
