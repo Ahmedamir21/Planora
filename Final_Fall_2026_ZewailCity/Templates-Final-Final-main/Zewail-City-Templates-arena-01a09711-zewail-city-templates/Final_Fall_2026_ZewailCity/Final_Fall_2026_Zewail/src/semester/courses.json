@@ -23,7 +23,7 @@
       "name": "Elmahdy Maree Maree",
       "lectures": [
         { "type": "Lecture", "sec": "02", "day": "Tue", "start": 840, "end": 960, "room": "G038B" },
-        { "type": "Lecture", "sec": "04", "day": "Tue", "start": 720, "end": 840, "room": "G025B" }
+        { "type": "Lecture", "sec": "04", "day": "Tue", "start": 720, "end": 840, "room": "F027B1" }
       ],
       "labs": [],
       "tutorials": []
@@ -69,7 +69,7 @@
     {
       "name": "Yousry Abdelazeem Abdelazeem",
       "lectures": [
-        { "type": "Lecture", "sec": "01", "day": "Mon", "start": 600, "end": 720, "room": "G038-B" },
+        { "type": "Lecture", "sec": "01", "day": "Mon", "start": 600, "end": 720, "room": "G011-B" },
         { "type": "Lecture", "sec": "02", "day": "Mon", "start": 960, "end": 1080, "room": "G038B" }
       ],
       "labs": [
@@ -297,7 +297,7 @@
           { "type": "Tutorial", "sec": "08", "day": "Sun", "start": 600, "end": 720, "room": "G035-B" },
           { "type": "Tutorial", "sec": "09", "day": "Mon", "start": 960, "end": 1080, "room": "F001-D" },
           { "type": "Tutorial", "sec": "10", "day": "Wed", "start": 960, "end": 1080, "room": "F011-D" },
-          { "type": "Tutorial", "sec": "11", "day": "Mon", "start": 840, "end": 960, "room": "F32-B4" },
+          { "type": "Tutorial", "sec": "11", "day": "Mon", "start": 840, "end": 960, "room": "F30-B4" },
           { "type": "Tutorial", "sec": "12", "day": "Tue", "start": 960, "end": 1080, "room": "F011-D" }
         ]
       }
