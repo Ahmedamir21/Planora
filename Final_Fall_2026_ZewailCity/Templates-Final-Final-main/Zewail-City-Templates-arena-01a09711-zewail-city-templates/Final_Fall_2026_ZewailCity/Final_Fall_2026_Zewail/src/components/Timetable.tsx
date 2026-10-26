@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import type { Course, Meeting } from '../types';
+import type { Course, Meeting, MeetingType } from '../types';
 import { DAYS, DAY_LABEL, formatRange, packLanes, to12h } from '../lib/time';
 import { uid } from '../lib/picks';
 import { SEMESTER_CONFIG, TERM_SESSION_LABEL } from '../config/semester';
@@ -24,6 +24,7 @@ export function Timetable({
   variant = 'final',
   yearBadges,
   highlightedCourseId,
+  onRemoveComponent,
 }: {
   events: TimetableEvent[];
   hiddenCount: number;
@@ -33,6 +34,8 @@ export function Timetable({
   yearBadges?: Record<string, string>;
   /** Course currently hovered/focused in the picker; other timetable events dim slightly. */
   highlightedCourseId?: string | null;
+  /** Remove only the selected Lecture/Lab/Tutorial from the current pick. */
+  onRemoveComponent?: (courseId: string, kind: MeetingType, meeting: Meeting) => void;
 }) {
   const [selectedEvent, setSelectedEvent] = useState<TimetableEvent | null>(null);
   useEffect(() => {
@@ -243,6 +246,25 @@ export function Timetable({
             <Detail label="Schedule" value={`${DAY_LABEL[selectedEvent.meeting.day]} · ${formatRange(selectedEvent.meeting.start, selectedEvent.meeting.end)}`} />
             <Detail label="Room" value={selectedEvent.meeting.room || 'Not published'} />
           </div>
+          {onRemoveComponent && (
+            <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t pt-4" style={{ borderColor: 'var(--line)' }}>
+              <p className="text-xs" style={{ color: 'var(--muted)' }}>
+                Removes only this selected component. The course and its other components stay in your schedule.
+              </p>
+              <button
+                type="button"
+                className="btn btn-tap"
+                style={{ color: 'var(--warn)', borderColor: 'var(--warn-line)' }}
+                aria-label={`Remove this ${selectedEvent.meeting.type} from ${selectedEvent.course.code}`}
+                onClick={() => {
+                  onRemoveComponent(selectedEvent.course.id, selectedEvent.meeting.type, selectedEvent.meeting);
+                  setSelectedEvent(null);
+                }}
+              >
+                <Icon name="trash-2" size="sm" /> Remove this {selectedEvent.meeting.type}
+              </button>
+            </div>
+          )}
           <p className="mt-5 text-[11px]" style={{ color: 'var(--muted)' }}>Student planner · unofficial · data last verified {SEMESTER_CONFIG.dataLastVerified}. Enrollment, seats and course descriptions are not published in this planner.</p>
         </div>
       </div>
