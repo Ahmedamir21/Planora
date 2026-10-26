@@ -155,8 +155,8 @@
   {
     "id": "software",
     "title": "Software Development",
-    "subtitle": "CSAI — Software Development",
-    "blurb": "Software development track within CSAI — swaps CSAI 205 / the elective for CSAI 203 + PHYS 104.",
+    "subtitle": "Software Development",
+    "blurb": "Engineering process and physics track — swaps CSAI 205 / the elective for CSAI 203 + PHYS 104.",
     "years": [
       {
         "id": "y1",
