@@ -4,6 +4,7 @@ import { COURSE_BY_ID } from '../data/courses';
 
 type Props = { majorId: string | null; onClose: () => void };
 type ProgressByMajor = Record<string, string[]>;
+type DetailTab = 'course' | 'prerequisites';
 
 const STORAGE_KEY = 'planora-degree-progress-v1';
 
@@ -25,6 +26,9 @@ function readProgress(): ProgressByMajor {
 export function DegreeHub({ majorId, onClose }: Props) {
   const [selectedMajorId, setSelectedMajorId] = useState(majorId && MAJOR_BY_ID[majorId] ? majorId : MAJORS[0]?.id ?? '');
   const [progressByMajor, setProgressByMajor] = useState<ProgressByMajor>(readProgress);
+  const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
+  const [hoveredCourseId, setHoveredCourseId] = useState<string | null>(null);
+  const [detailTab, setDetailTab] = useState<DetailTab>('course');
   const major = MAJOR_BY_ID[selectedMajorId];
 
   useEffect(() => {
@@ -35,13 +39,26 @@ export function DegreeHub({ majorId, onClose }: Props) {
     }
   }, [progressByMajor]);
 
-  const allCourseIds = useMemo(() => {
+  const yearCourses = useMemo(() => {
     if (!major) return [];
-    return [...new Set(major.years.flatMap((year) => year.courseIds).filter((id) => !!COURSE_BY_ID[id]))];
+    return major.years.map((year) => ({
+      ...year,
+      ids: [...new Set(year.courseIds)].filter((id) => !!COURSE_BY_ID[id]),
+    }));
   }, [major]);
+
+  useEffect(() => {
+    const available = new Set(yearCourses.flatMap((year) => year.ids));
+    if (selectedCourseId && !available.has(selectedCourseId)) setSelectedCourseId(null);
+  }, [selectedMajorId, selectedCourseId, yearCourses]);
+
+  const allCourseIds = useMemo(() => yearCourses.flatMap((year) => year.ids), [yearCourses]);
   const completed = new Set(progressByMajor[selectedMajorId] ?? []);
   const completedCount = allCourseIds.filter((id) => completed.has(id)).length;
   const percent = allCourseIds.length ? Math.round((completedCount / allCourseIds.length) * 100) : 0;
+  const activeCourseId = hoveredCourseId ?? selectedCourseId;
+  const selectedCourse = selectedCourseId ? COURSE_BY_ID[selectedCourseId] : null;
+  const selectedYear = selectedCourseId ? yearCourses.find((year) => year.ids.includes(selectedCourseId)) : null;
 
   const toggleCourse = (courseId: string, checked: boolean) => {
     setProgressByMajor((current) => {
@@ -54,69 +71,166 @@ export function DegreeHub({ majorId, onClose }: Props) {
 
   return (
     <div className="fixed inset-0 z-[130] overflow-y-auto bg-[var(--bg)] p-3 sm:p-6" role="dialog" aria-modal="true" aria-label="My Degree">
-      <div className="mx-auto max-w-[1200px]">
+      <div className="mx-auto max-w-[1400px]">
         <header className="panel mb-4 flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-[10px] font-bold uppercase tracking-[0.12em]" style={{ color: 'var(--accent)' }}>Planora · Academic roadmap</p>
             <h2 className="mt-1 text-2xl font-extrabold">My Degree</h2>
-            <p className="mt-1 text-sm" style={{ color: 'var(--muted)' }}>Explore the published course plan across all four years and track your own progress.</p>
+            <p className="mt-1 text-sm" style={{ color: 'var(--muted)' }}>Choose a course on the roadmap to view its details and prerequisites.</p>
           </div>
           <button type="button" className="btn" onClick={onClose}>Back to planner</button>
         </header>
 
         <section className="panel mb-4 p-4">
-          <label htmlFor="degree-major" className="mb-2 block text-xs font-bold">Major</label>
-          <select id="degree-major" className="select max-w-md" value={selectedMajorId} onChange={(event) => setSelectedMajorId(event.target.value)}>
-            {MAJORS.map((item) => <option key={item.id} value={item.id}>{item.title}</option>)}
-          </select>
-          {major && (
-            <div className="mt-4">
-              <div className="flex flex-wrap items-end justify-between gap-2">
-                <div>
-                  <p className="text-lg font-bold">{major.title}</p>
-                  <p className="text-sm" style={{ color: 'var(--muted)' }}>{major.subtitle}</p>
-                </div>
-                <p className="text-sm font-bold">{completedCount} / {allCourseIds.length} courses · {percent}%</p>
-              </div>
-              <div className="mt-3 h-2 overflow-hidden rounded-full" style={{ background: 'var(--surface-2)' }} role="progressbar" aria-label="Degree progress" aria-valuemin={0} aria-valuemax={100} aria-valuenow={percent}>
-                <div className="h-full rounded-full transition-all" style={{ width: `${percent}%`, background: 'var(--accent-fill)' }} />
-              </div>
-              <p className="mt-2 text-xs" style={{ color: 'var(--muted-2)' }}>Progress is self-tracked on this device; it is not an official university transcript.</p>
+          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+            <div className="min-w-0 flex-1">
+              <label htmlFor="degree-major" className="mb-2 block text-xs font-bold">Major</label>
+              <select id="degree-major" className="select w-full max-w-md" value={selectedMajorId} onChange={(event) => { setSelectedMajorId(event.target.value); setHoveredCourseId(null); setSelectedCourseId(null); }}>
+                {MAJORS.map((item) => <option key={item.id} value={item.id}>{item.title}</option>)}
+              </select>
+              {major && <p className="mt-3 text-sm" style={{ color: 'var(--muted)' }}>{major.subtitle}</p>}
             </div>
-          )}
+            <div className="w-full md:max-w-xs">
+              <div className="mb-2 flex items-center justify-between gap-2 text-xs">
+                <span style={{ color: 'var(--muted)' }}>Your progress</span>
+                <strong>{completedCount}/{allCourseIds.length} courses · {percent}%</strong>
+              </div>
+              <div className="h-2 overflow-hidden rounded-full" style={{ background: 'var(--surface-2)' }} role="progressbar" aria-label="Degree progress" aria-valuemin={0} aria-valuemax={100} aria-valuenow={percent}>
+                <div className="h-full rounded-full transition-all duration-300" style={{ width: `${percent}%`, background: 'var(--accent-fill)' }} />
+              </div>
+              <p className="mt-2 text-[10px]" style={{ color: 'var(--muted-2)' }}>Saved only on this device; not an official university transcript.</p>
+            </div>
+          </div>
         </section>
 
         {!major ? <section className="panel p-5">No curriculum is available for this major yet.</section> : (
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            {major.years.map((year) => {
-              const ids = [...new Set(year.courseIds)].filter((id) => !!COURSE_BY_ID[id]);
-              const yearDone = ids.filter((id) => completed.has(id)).length;
-              return (
-                <section key={year.id} className="panel p-3 sm:p-4">
-                  <div className="mb-3 border-b pb-3" style={{ borderColor: 'var(--line)' }}>
-                    <h3 className="text-sm font-extrabold">{year.label}</h3>
-                    <p className="mt-1 text-xs" style={{ color: 'var(--muted)' }}>{yearDone} of {ids.length} completed</p>
+          <>
+            <section className="panel overflow-hidden p-3 sm:p-5">
+              <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <h3 className="text-lg font-extrabold">{major.title} roadmap</h3>
+                  <p className="mt-1 text-xs" style={{ color: 'var(--muted)' }}>Follow the path from Year 1 to Year 4. Select any node for course information.</p>
+                </div>
+                <div className="flex flex-wrap gap-3 text-[10px]" style={{ color: 'var(--muted)' }}>
+                  <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full" style={{ background: 'var(--accent-fill)' }} /> Available</span>
+                  <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full" style={{ background: 'var(--ok)' }} /> Completed</span>
+                  <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full border-2" style={{ borderColor: 'var(--accent-fill)' }} /> Selected</span>
+                </div>
+              </div>
+
+              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                {yearCourses.map((year, yearIndex) => {
+                  const yearDone = year.ids.filter((id) => completed.has(id)).length;
+                  return (
+                    <section key={year.id} className="relative min-w-0 rounded-2xl border p-3 sm:p-4" style={{ borderColor: 'var(--line)', background: 'color-mix(in srgb, var(--paper) 88%, var(--accent-fill) 12%)' }}>
+                      <div className="mb-4 flex items-center gap-3">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-sm font-black" style={{ color: 'var(--accent-contrast, white)', background: 'var(--accent-fill)', boxShadow: '0 5px 16px color-mix(in srgb, var(--accent-fill) 24%, transparent)' }}>{yearIndex + 1}</div>
+                        <div className="min-w-0">
+                          <h4 className="text-sm font-extrabold">{year.label}</h4>
+                          <p className="mt-0.5 text-[10px]" style={{ color: 'var(--muted)' }}>{yearDone} of {year.ids.length} completed</p>
+                        </div>
+                      </div>
+                      <div className="relative space-y-2.5 pl-4">
+                        <div className="absolute bottom-3 left-[7px] top-3 w-[2px] rounded-full" style={{ background: 'color-mix(in srgb, var(--accent-fill) 38%, var(--line))' }} />
+                        {year.ids.map((id, courseIndex) => {
+                          const course = COURSE_BY_ID[id];
+                          const isDone = completed.has(id);
+                          const isSelected = selectedCourseId === id;
+                          const isActive = activeCourseId === id;
+                          const isDimmed = !!activeCourseId && !isActive;
+                          return (
+                            <div key={id} className="relative">
+                              <span className="absolute -left-4 top-[17px] z-[1] h-3.5 w-3.5 rounded-full border-[3px] transition-all duration-200" style={{ borderColor: isActive ? 'var(--accent-fill)' : isDone ? 'var(--ok)' : 'var(--paper)', background: isDone ? 'var(--ok)' : 'var(--accent-fill)', boxShadow: isActive ? '0 0 0 5px color-mix(in srgb, var(--accent-fill) 18%, transparent), 0 0 18px color-mix(in srgb, var(--accent-fill) 45%, transparent)' : 'none' }} />
+                              <button
+                                type="button"
+                                aria-pressed={isSelected}
+                                onMouseEnter={() => setHoveredCourseId(id)}
+                                onMouseLeave={() => setHoveredCourseId(null)}
+                                onFocus={() => setHoveredCourseId(id)}
+                                onBlur={() => setHoveredCourseId(null)}
+                                onClick={() => { setSelectedCourseId(id); setDetailTab('course'); }}
+                                className="group relative w-full rounded-xl border p-3 text-left transition-all duration-200 focus-visible:outline-none focus-visible:ring-2"
+                                style={{
+                                  borderColor: isSelected ? 'var(--accent-fill)' : isDone ? 'color-mix(in srgb, var(--ok) 55%, var(--line))' : 'var(--line)',
+                                  background: isSelected ? 'color-mix(in srgb, var(--accent-fill) 13%, var(--paper))' : isDone ? 'color-mix(in srgb, var(--ok) 9%, var(--paper))' : 'var(--paper)',
+                                  opacity: isDimmed ? 0.46 : 1,
+                                  transform: isActive ? 'translateX(3px)' : 'translateX(0)',
+                                  boxShadow: isActive ? '0 5px 18px color-mix(in srgb, var(--accent-fill) 17%, transparent)' : 'none',
+                                  outlineColor: 'var(--accent-fill)',
+                                }}
+                                title={`View ${course.code} details`}
+                              >
+                                <span className="flex items-start justify-between gap-2">
+                                  <span className="min-w-0">
+                                    <span className="block text-[11px] font-extrabold tracking-wide" style={{ color: isActive ? 'var(--accent)' : 'var(--text)' }}>{course.code}</span>
+                                    <span className="mt-1 block text-xs font-semibold leading-snug" style={{ color: 'var(--text)' }}>{course.name}</span>
+                                  </span>
+                                  <span className="mt-0.5 shrink-0 rounded-full px-2 py-1 text-[9px] font-bold" style={{ color: isDone ? 'var(--ok)' : 'var(--muted)', background: isDone ? 'color-mix(in srgb, var(--ok) 12%, transparent)' : 'var(--surface-2)' }}>{isDone ? 'Done' : `Node ${courseIndex + 1}`}</span>
+                                </span>
+                                {course.credits != null && <span className="mt-2 inline-block text-[10px]" style={{ color: 'var(--muted)' }}>{course.credits} credits</span>}
+                              </button>
+                            </div>
+                          );
+                        })}
+                        {year.ids.length === 0 && <p className="rounded-xl border border-dashed p-3 text-xs" style={{ borderColor: 'var(--line)', color: 'var(--muted)' }}>Course plan not published yet.</p>}
+                      </div>
+                    </section>
+                  );
+                })}
+              </div>
+            </section>
+
+            <section className="panel mt-4 overflow-hidden">
+              <div className="border-b p-4 sm:p-5" style={{ borderColor: 'var(--line)' }}>
+                <p className="text-[10px] font-bold uppercase tracking-[0.12em]" style={{ color: 'var(--accent)' }}>Selected course</p>
+                <h3 className="mt-1 text-lg font-extrabold">{selectedCourse ? selectedCourse.name : 'Choose a course node'}</h3>
+                <p className="mt-1 text-xs" style={{ color: 'var(--muted)' }}>{selectedCourse ? `${selectedCourse.code}${selectedCourse.credits != null ? ` · ${selectedCourse.credits} credits` : ''}${selectedYear ? ` · ${selectedYear.label}` : ''}` : 'Tap a course on the roadmap to see its information and requirements.'}</p>
+              </div>
+              {selectedCourse ? (
+                <>
+                  <div className="flex gap-2 border-b px-4 pt-3 sm:px-5" style={{ borderColor: 'var(--line)' }} role="tablist" aria-label="Course information">
+                    <button type="button" role="tab" aria-selected={detailTab === 'course'} onClick={() => setDetailTab('course')} className="rounded-t-lg border-b-2 px-3 py-2 text-xs font-bold transition-colors" style={{ borderColor: detailTab === 'course' ? 'var(--accent-fill)' : 'transparent', color: detailTab === 'course' ? 'var(--accent)' : 'var(--muted)' }}>Course Details</button>
+                    <button type="button" role="tab" aria-selected={detailTab === 'prerequisites'} onClick={() => setDetailTab('prerequisites')} className="rounded-t-lg border-b-2 px-3 py-2 text-xs font-bold transition-colors" style={{ borderColor: detailTab === 'prerequisites' ? 'var(--accent-fill)' : 'transparent', color: detailTab === 'prerequisites' ? 'var(--accent)' : 'var(--muted)' }}>Prerequisites</button>
                   </div>
-                  <div className="space-y-2">
-                    {ids.map((id) => {
-                      const course = COURSE_BY_ID[id];
-                      const checked = completed.has(id);
-                      return (
-                        <label key={id} className="flex cursor-pointer items-start gap-2 rounded-xl border p-2.5 transition-colors" style={{ borderColor: checked ? 'var(--ok)' : 'var(--line)', background: checked ? 'color-mix(in srgb, var(--ok) 9%, var(--paper))' : 'var(--paper)' }}>
-                          <input className="mt-0.5 h-4 w-4 shrink-0 accent-[var(--accent-fill)]" type="checkbox" checked={checked} onChange={(event) => toggleCourse(id, event.target.checked)} />
-                          <span className="min-w-0">
-                            <span className="block text-xs font-bold">{course.code}</span>
-                            <span className="mt-0.5 block text-[11px] leading-snug" style={{ color: 'var(--muted)' }}>{course.name}</span>
-                          </span>
-                        </label>
-                      );
-                    })}
-                    {ids.length === 0 && <p className="text-xs" style={{ color: 'var(--muted)' }}>Course plan not published yet.</p>}
+                  <div className="p-4 sm:p-5">
+                    {detailTab === 'course' ? (
+                      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                        <div className="rounded-xl border p-3" style={{ borderColor: 'var(--line)', background: 'var(--paper)' }}>
+                          <p className="text-[10px] font-bold uppercase tracking-wide" style={{ color: 'var(--muted)' }}>Course code</p>
+                          <p className="mt-1 text-sm font-extrabold">{selectedCourse.code}</p>
+                        </div>
+                        <div className="rounded-xl border p-3" style={{ borderColor: 'var(--line)', background: 'var(--paper)' }}>
+                          <p className="text-[10px] font-bold uppercase tracking-wide" style={{ color: 'var(--muted)' }}>Credits</p>
+                          <p className="mt-1 text-sm font-extrabold">{selectedCourse.credits != null ? selectedCourse.credits : 'Not confirmed in this dataset'}</p>
+                        </div>
+                        <div className="rounded-xl border p-3" style={{ borderColor: 'var(--line)', background: 'var(--paper)' }}>
+                          <p className="text-[10px] font-bold uppercase tracking-wide" style={{ color: 'var(--muted)' }}>Progress status</p>
+                          <label className="mt-2 flex items-center gap-2 text-sm font-semibold">
+                            <input type="checkbox" className="h-4 w-4 accent-[var(--accent-fill)]" checked={completed.has(selectedCourse.id)} onChange={(event) => toggleCourse(selectedCourse.id, event.target.checked)} />
+                            {completed.has(selectedCourse.id) ? 'Completed' : 'Mark as completed'}
+                          </label>
+                        </div>
+                        <div className="rounded-xl border p-3 sm:col-span-2 lg:col-span-3" style={{ borderColor: 'var(--line)', background: 'var(--paper)' }}>
+                          <p className="text-[10px] font-bold uppercase tracking-wide" style={{ color: 'var(--muted)' }}>Course name</p>
+                          <p className="mt-1 text-sm font-semibold">{selectedCourse.name}</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-start gap-3 rounded-xl border p-4" style={{ borderColor: 'color-mix(in srgb, var(--accent-fill) 28%, var(--line))', background: 'color-mix(in srgb, var(--accent-fill) 6%, var(--paper))' }}>
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-sm font-black" style={{ color: 'var(--accent)', background: 'color-mix(in srgb, var(--accent-fill) 14%, transparent)' }}>i</span>
+                        <div>
+                          <p className="text-sm font-extrabold">Prerequisites for {selectedCourse.code}</p>
+                          <p className="mt-1 text-sm leading-relaxed" style={{ color: 'var(--muted)' }}>Prerequisite requirements are not listed in the currently verified course data. They will only be shown here once confirmed from the official 2026 study plan or course catalog.</p>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                </section>
-              );
-            })}
-          </div>
+                </>
+              ) : (
+                <div className="p-5 text-sm" style={{ color: 'var(--muted)' }}>Select a course node above. Its information and prerequisites will appear here.</div>
+              )}
+            </section>
+          </>
         )}
       </div>
     </div>
