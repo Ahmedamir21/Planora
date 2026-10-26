@@ -66,6 +66,7 @@ export function CoursePicker({
 }: Props) {
   const [searchQuery, setSearchQuery] = useState('');
   const [schOpen, setSchOpen] = useState(true);
+  const [englOpen, setEnglOpen] = useState(true);
   const takenCourses = courses.filter((c) => picks[c.id]);
   const normalizedSearch = searchQuery.trim().toLowerCase();
   const visibleCourses = normalizedSearch
@@ -77,13 +78,15 @@ export function CoursePicker({
     : courses;
 
   const currentYearCourses = visibleCourses.filter(
-    (c) => !c.code.startsWith('SCH ') && !yearBadges?.[c.id],
+    (c) => !c.code.startsWith('SCH ') && !c.code.startsWith('ENGL ') && !yearBadges?.[c.id],
   );
   const schCourses = visibleCourses.filter((c) => c.code.startsWith('SCH '));
+  const englCourses = visibleCourses.filter((c) => c.code.startsWith('ENGL '));
   const otherYearCourses = visibleCourses.filter(
-    (c) => !c.code.startsWith('SCH ') && !!yearBadges?.[c.id],
+    (c) => !c.code.startsWith('SCH ') && !c.code.startsWith('ENGL ') && !!yearBadges?.[c.id],
   );
   const selectedSchCount = schCourses.filter((c) => !!picks[c.id]).length;
+  const selectedEnglCount = englCourses.filter((c) => !!picks[c.id]).length;
 
   const renderCourse = (course: Course) => (
     <CourseCard
@@ -239,6 +242,25 @@ export function CoursePicker({
           </section>
         )}
 
+        {englCourses.length > 0 && (
+          <section className="space-y-2.5">
+            <button
+              type="button"
+              className="course-group-toggle"
+              onClick={() => setEnglOpen((v) => !v)}
+              aria-expanded={normalizedSearch ? true : englOpen}
+            >
+              <span className="min-w-0 text-left">
+                <span className="block text-[11px] font-bold uppercase tracking-[0.08em]">ENGL levels</span>
+                <span className="block text-[10.5px] font-medium" style={{ color: 'var(--muted-2)' }}>
+                  {englCourses.length} available{selectedEnglCount > 0 ? ` · ${selectedEnglCount} selected` : ''}
+                </span>
+              </span>
+              <span className="pill">{normalizedSearch || englOpen ? 'Hide' : 'Show'}</span>
+            </button>
+            {(normalizedSearch || englOpen) && englCourses.map(renderCourse)}
+          </section>
+        )}
         {otherYearCourses.length > 0 && (
           <section className="space-y-2.5">
             <div className="px-1">
