@@ -2097,7 +2097,7 @@ export default function App() {
         onLockActions={applyAssistantLockActions}
       /></Suspense>}
 
-      <Suspense fallback={null}><CommandPalette
+      {commandOpen && <Suspense fallback={null}><CommandPalette
         open={commandOpen}
         onClose={() => setCommandOpen(false)}
         courses={courses}
@@ -2105,7 +2105,7 @@ export default function App() {
         onBestSchedule={scrollToBestSchedule}
         onPreferences={() => setPrefsOpen(true)}
         onShare={shareFromCommand}
-      /></Suspense>
+      /></Suspense>}
 
       {reportTarget && (
         <Suspense fallback={null}><ReportIssueDialog
