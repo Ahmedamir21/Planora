@@ -180,56 +180,55 @@ export function DegreeHub({ majorId, onClose }: Props) {
               </div>
             </section>
 
-            <section className="panel mt-4 overflow-hidden">
-              <div className="border-b p-4 sm:p-5" style={{ borderColor: 'var(--line)' }}>
-                <p className="text-[10px] font-bold uppercase tracking-[0.12em]" style={{ color: 'var(--accent)' }}>Selected course</p>
-                <h3 className="mt-1 text-lg font-extrabold">{selectedCourse ? selectedCourse.name : 'Choose a course node'}</h3>
-                <p className="mt-1 text-xs" style={{ color: 'var(--muted)' }}>{selectedCourse ? `${selectedCourse.code}${selectedCourse.credits != null ? ` · ${selectedCourse.credits} credits` : ''}${selectedYear ? ` · ${selectedYear.label}` : ''}` : 'Tap a course on the roadmap to see its information and requirements.'}</p>
+
+            {selectedCourse && (
+              <div className="fixed inset-0 z-[145] flex items-end justify-center bg-black/60 p-0 sm:items-center sm:p-4" role="dialog" aria-modal="true" aria-label={`Course details for ${selectedCourse.code}`} onClick={(event) => { if (event.target === event.currentTarget) setSelectedCourseId(null); }}>
+                <section className="panel max-h-[92vh] w-full max-w-[760px] overflow-y-auto rounded-b-none p-4 sm:rounded-2xl sm:p-5">
+                  <header className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="text-[10px] font-bold uppercase tracking-[0.12em]" style={{ color: 'var(--accent)' }}>Planora · Course Details</p>
+                      <h3 className="mt-2 text-lg font-extrabold sm:text-xl">{selectedCourse.code}: {selectedCourse.name}</h3>
+                      <p className="mt-1 text-xs" style={{ color: 'var(--muted)' }}>{selectedYear?.label ?? major.title}</p>
+                    </div>
+                    <button type="button" className="btn shrink-0" onClick={() => setSelectedCourseId(null)} aria-label="Close course details">✕</button>
+                  </header>
+                  <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                    <div className="rounded-xl border p-3" style={{ borderColor: 'var(--line)', background: 'var(--paper)' }}>
+                      <p className="text-[10px] font-bold uppercase tracking-wide" style={{ color: 'var(--muted)' }}>Term</p>
+                      <p className="mt-1 text-sm font-semibold">Fall 2026 · Main Session</p>
+                    </div>
+                    <div className="rounded-xl border p-3" style={{ borderColor: 'var(--line)', background: 'var(--paper)' }}>
+                      <p className="text-[10px] font-bold uppercase tracking-wide" style={{ color: 'var(--muted)' }}>Credits</p>
+                      <p className="mt-1 text-sm font-semibold">{selectedCourse.credits != null ? selectedCourse.credits : 'Not confirmed in this roadmap data'}</p>
+                    </div>
+                    <div className="rounded-xl border p-3 sm:col-span-2" style={{ borderColor: 'var(--line)', background: 'var(--paper)' }}>
+                      <p className="text-[10px] font-bold uppercase tracking-wide" style={{ color: 'var(--muted)' }}>Course status</p>
+                      <label className="mt-2 flex items-center gap-2 text-sm font-semibold">
+                        <input type="checkbox" className="h-4 w-4 accent-[var(--accent-fill)]" checked={completed.has(selectedCourse.id)} onChange={(event) => toggleCourse(selectedCourse.id, event.target.checked)} />
+                        {completed.has(selectedCourse.id) ? 'Completed' : 'Mark as completed'}
+                      </label>
+                    </div>
+                  </div>
+                  <div className="mt-4 flex gap-2 border-b" style={{ borderColor: 'var(--line)' }} role="tablist" aria-label="Course information">
+                    <button type="button" role="tab" aria-selected={detailTab === 'course'} onClick={() => setDetailTab('course')} className="border-b-2 px-3 py-2 text-xs font-bold" style={{ borderColor: detailTab === 'course' ? 'var(--accent-fill)' : 'transparent', color: detailTab === 'course' ? 'var(--accent)' : 'var(--muted)' }}>Course Details</button>
+                    <button type="button" role="tab" aria-selected={detailTab === 'prerequisites'} onClick={() => setDetailTab('prerequisites')} className="border-b-2 px-3 py-2 text-xs font-bold" style={{ borderColor: detailTab === 'prerequisites' ? 'var(--accent-fill)' : 'transparent', color: detailTab === 'prerequisites' ? 'var(--accent)' : 'var(--muted)' }}>Prerequisites</button>
+                  </div>
+                  {detailTab === 'course' ? (
+                    <div className="mt-4 rounded-xl border p-4" style={{ borderColor: 'var(--line)', background: 'var(--paper)' }}>
+                      <p className="text-[10px] font-bold uppercase tracking-wide" style={{ color: 'var(--muted)' }}>Course name</p>
+                      <p className="mt-1 text-sm font-semibold">{selectedCourse.name}</p>
+                      <p className="mt-3 text-xs leading-relaxed" style={{ color: 'var(--muted)' }}>Course details shown here are limited to information verified in the roadmap dataset. Section, instructor, schedule, and room information are only shown when a verified timetable match exists.</p>
+                    </div>
+                  ) : (
+                    <div className="mt-4 rounded-xl border p-4" style={{ borderColor: 'color-mix(in srgb, var(--accent-fill) 28%, var(--line))', background: 'color-mix(in srgb, var(--accent-fill) 6%, var(--paper))' }}>
+                      <p className="text-sm font-extrabold">Prerequisites</p>
+                      <p className="mt-1 text-sm leading-relaxed" style={{ color: 'var(--muted)' }}>Prerequisites are not confirmed for this course in the verified data currently available. No requirement is inferred from a similar course name or code.</p>
+                    </div>
+                  )}
+                  <p className="mt-4 text-[10px] leading-relaxed" style={{ color: 'var(--muted-2)' }}>Student planner · unofficial · course prerequisites and enrollment details are shown only when verified from an official source.</p>
+                </section>
               </div>
-              {selectedCourse ? (
-                <>
-                  <div className="flex gap-2 border-b px-4 pt-3 sm:px-5" style={{ borderColor: 'var(--line)' }} role="tablist" aria-label="Course information">
-                    <button type="button" role="tab" aria-selected={detailTab === 'course'} onClick={() => setDetailTab('course')} className="rounded-t-lg border-b-2 px-3 py-2 text-xs font-bold transition-colors" style={{ borderColor: detailTab === 'course' ? 'var(--accent-fill)' : 'transparent', color: detailTab === 'course' ? 'var(--accent)' : 'var(--muted)' }}>Course Details</button>
-                    <button type="button" role="tab" aria-selected={detailTab === 'prerequisites'} onClick={() => setDetailTab('prerequisites')} className="rounded-t-lg border-b-2 px-3 py-2 text-xs font-bold transition-colors" style={{ borderColor: detailTab === 'prerequisites' ? 'var(--accent-fill)' : 'transparent', color: detailTab === 'prerequisites' ? 'var(--accent)' : 'var(--muted)' }}>Prerequisites</button>
-                  </div>
-                  <div className="p-4 sm:p-5">
-                    {detailTab === 'course' ? (
-                      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                        <div className="rounded-xl border p-3" style={{ borderColor: 'var(--line)', background: 'var(--paper)' }}>
-                          <p className="text-[10px] font-bold uppercase tracking-wide" style={{ color: 'var(--muted)' }}>Course code</p>
-                          <p className="mt-1 text-sm font-extrabold">{selectedCourse.code}</p>
-                        </div>
-                        <div className="rounded-xl border p-3" style={{ borderColor: 'var(--line)', background: 'var(--paper)' }}>
-                          <p className="text-[10px] font-bold uppercase tracking-wide" style={{ color: 'var(--muted)' }}>Credits</p>
-                          <p className="mt-1 text-sm font-extrabold">{selectedCourse.credits != null ? selectedCourse.credits : 'Not confirmed in this dataset'}</p>
-                        </div>
-                        <div className="rounded-xl border p-3" style={{ borderColor: 'var(--line)', background: 'var(--paper)' }}>
-                          <p className="text-[10px] font-bold uppercase tracking-wide" style={{ color: 'var(--muted)' }}>Progress status</p>
-                          <label className="mt-2 flex items-center gap-2 text-sm font-semibold">
-                            <input type="checkbox" className="h-4 w-4 accent-[var(--accent-fill)]" checked={completed.has(selectedCourse.id)} onChange={(event) => toggleCourse(selectedCourse.id, event.target.checked)} />
-                            {completed.has(selectedCourse.id) ? 'Completed' : 'Mark as completed'}
-                          </label>
-                        </div>
-                        <div className="rounded-xl border p-3 sm:col-span-2 lg:col-span-3" style={{ borderColor: 'var(--line)', background: 'var(--paper)' }}>
-                          <p className="text-[10px] font-bold uppercase tracking-wide" style={{ color: 'var(--muted)' }}>Course name</p>
-                          <p className="mt-1 text-sm font-semibold">{selectedCourse.name}</p>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="flex items-start gap-3 rounded-xl border p-4" style={{ borderColor: 'color-mix(in srgb, var(--accent-fill) 28%, var(--line))', background: 'color-mix(in srgb, var(--accent-fill) 6%, var(--paper))' }}>
-                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-sm font-black" style={{ color: 'var(--accent)', background: 'color-mix(in srgb, var(--accent-fill) 14%, transparent)' }}>i</span>
-                        <div>
-                          <p className="text-sm font-extrabold">Prerequisites for {selectedCourse.code}</p>
-                          <p className="mt-1 text-sm leading-relaxed" style={{ color: 'var(--muted)' }}>Prerequisite requirements are not listed in the currently verified course data. They will only be shown here once confirmed from the official 2026 study plan or course catalog.</p>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </>
-              ) : (
-                <div className="p-5 text-sm" style={{ color: 'var(--muted)' }}>Select a course node above. Its information and prerequisites will appear here.</div>
-              )}
-            </section>
+            )}
           </>
         )}
       </div>
