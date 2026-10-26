@@ -426,20 +426,27 @@ export default function App() {
    * A lecture may pair with any instructor's lab/tutorial — the only pairing rule is
    * the time-overlap check (inside each course AND across the whole selection).
    */
-  const generation: GenerationResult | null = useMemo(() => {
-    // Courses with no published schedule (noFixedSchedule) are excluded from the search
-    // space entirely: they are always trivially satisfied and contribute only credits,
-    // never a scheduling constraint (and must not read as "blocked").
+  // Defer combination generation until after the first render. Restored schedules can
+  // have a large search space; doing this synchronously in render can delay first paint.
+  const [generation, setGeneration] = useState<GenerationResult | null>(null);
+
+  useEffect(() => {
     const schedulable = takenCourses.filter((c) => !c.noFixedSchedule);
+    if (schedulable.length === 0) {
+      setGeneration(null);
+      return;
+    }
 
-    if (schedulable.length === 0) return null;
+    setGeneration(null);
+    const timer = window.setTimeout(() => {
+      const entries = schedulable.map((course) => ({
+        course,
+        pairings: buildCoursePairings(course),
+      }));
+      setGeneration(generateCombinations(entries));
+    }, 0);
 
-    const entries = schedulable.map((course) => ({
-      course,
-      pairings: buildCoursePairings(course),
-    }));
-
-    return generateCombinations(entries);
+    return () => window.clearTimeout(timer);
   }, [takenCourses]);
 
   const count = generation?.count ?? 0;
