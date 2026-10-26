@@ -75,6 +75,8 @@ import {
   type PlannerLocks,
 } from './lib/assistantControls';
 import { Icon } from './components/Icon';
+import { SavedTimetablesPanel, type TimetableSnapshot } from './components/SavedTimetablesPanel';
+import { DegreeHub } from './components/DegreeHub';
 
 function isAboutHash(): boolean {
   return typeof window !== 'undefined' && (window.location.hash ?? '').replace('#', '') === 'about';
@@ -223,6 +225,8 @@ export default function App() {
 
   const [copied, setCopied] = useState(false);
   const [showAbout, setShowAbout] = useState(isAboutHash);
+  const [savedTimetablesOpen, setSavedTimetablesOpen] = useState(false);
+  const [degreeHubOpen, setDegreeHubOpen] = useState(false);
   const [confirmClearOpen, setConfirmClearOpen] = useState(false);
   const [mobileScheduleOpen, setMobileScheduleOpen] = useState(false);
   const [commandOpen, setCommandOpen] = useState(false);
@@ -1447,6 +1451,44 @@ export default function App() {
     }
   }, [detailEntries, metrics, totalCredits, takenCourses]);
 
+  const timetableSnapshot: TimetableSnapshot = {
+    majorId,
+    yearId,
+    creditCap,
+    instructorFilter,
+    picks,
+    requireComplete,
+    typeFilter,
+    courseFilter,
+    preferences,
+  };
+
+  const restoreTimetable = useCallback((snapshot: TimetableSnapshot) => {
+    const restoredMajorId = snapshot.majorId && MAJOR_BY_ID[snapshot.majorId] ? snapshot.majorId : null;
+    const restoredMajor = restoredMajorId ? MAJOR_BY_ID[restoredMajorId] : null;
+    const restoredYearId = restoredMajor && restoredMajor.years.some((year) => year.id === snapshot.yearId)
+      ? snapshot.yearId
+      : restoredMajor?.years[0]?.id ?? null;
+
+    setMajorId(restoredMajorId);
+    setYearId(restoredYearId);
+    setPicks(trimPicksToMajor(snapshot.picks, restoredMajorId));
+    setInstructorFilter(trimFilterToMajor(snapshot.instructorFilter, restoredMajorId));
+    setCreditCap(snapshot.creditCap);
+    setRequireComplete(snapshot.requireComplete);
+    setTypeFilter((snapshot.typeFilter as TypeFilter) || 'All');
+    setCourseFilter(snapshot.courseFilter || 'all');
+    setPreferences(snapshot.preferences);
+    setPlannerLocks({ courseIds: [], components: {} });
+    setComboIndex(0);
+    setBest(null);
+    setShowMajorPicker(false);
+    setShowYearPicker(false);
+    setCrossYearOpen(false);
+    setSavedTimetablesOpen(false);
+    showToast({ message: 'Saved timetable restored.' });
+  }, [showToast]);
+
   /* ---------------- render ---------------- */
 
   return (
@@ -1518,7 +1560,9 @@ export default function App() {
               </button>
             )}
 
-            <ThemeToggle theme={theme} onChange={setTheme} />
+            {major && !showAbout && <button type="button" className="btn btn-tap" onClick={() => setSavedTimetablesOpen(true)} title="Save and restore named timetable versions">▣ Saved plans</button>}
+          <button type="button" className="btn btn-tap" onClick={() => setDegreeHubOpen(true)} title="View your degree roadmap and track completed courses">🎓 My Degree</button>
+          <ThemeToggle theme={theme} onChange={setTheme} />
           </div>
         </header>
 
@@ -2156,6 +2200,8 @@ export default function App() {
         /></Suspense>
       )}
       {feedbackOpen && <Suspense fallback={null}><FeedbackDialog onClose={() => setFeedbackOpen(false)} /></Suspense>}
+      {savedTimetablesOpen && <SavedTimetablesPanel snapshot={timetableSnapshot} onRestore={restoreTimetable} onClose={() => setSavedTimetablesOpen(false)} />}
+      {degreeHubOpen && <DegreeHub majorId={majorId} onClose={() => setDegreeHubOpen(false)} />}
       <Toast toast={toast} onClose={() => setToast(null)} />
 
       {crossYearOpen && major && yearPlan && (
