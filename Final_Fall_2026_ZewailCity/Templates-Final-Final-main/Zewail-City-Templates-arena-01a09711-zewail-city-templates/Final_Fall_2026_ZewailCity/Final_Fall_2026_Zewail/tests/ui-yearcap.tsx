@@ -48,10 +48,23 @@ const buttons = () => Array.from(doc.querySelectorAll('button')) as HTMLButtonEl
 const buttonByText = (text: string) => buttons().find((b) => b.textContent?.trim().includes(text));
 const click = (el: HTMLElement) => act(() => el.click());
 
-const root = createRoot(doc.getElementById('root')!);
-act(() => {
-  root.render(React.createElement(App));
-});
+/** Wait for lazy-loaded UI to commit before asserting against its DOM. */
+const waitFor = async (selector: string, attempts = 30): Promise<HTMLElement | null> => {
+  for (let i = 0; i < attempts; i++) {
+    const element = doc.querySelector(selector);
+    if (element instanceof dom.window.HTMLElement) return element as HTMLElement;
+    await act(async () => {
+      await new Promise<void>((resolve) => setTimeout(resolve, 0));
+    });
+  }
+  return null;
+};
+
+async function runUiTest(): Promise<void> {
+  const root = createRoot(doc.getElementById('root')!);
+  act(() => {
+    root.render(React.createElement(App));
+  });
 
 /* ================= 1. year → major picker step ================= */
 check('year picker shows first', doc.body.textContent!.includes('Choose Your Year') && !doc.body.textContent!.includes('Choose Your Major'));
@@ -65,8 +78,9 @@ click(buttonByText('Year 2 (Sophomore)')!);
 click(buttonByText('Change major')!);
 click(buttonByText('Information Technology')!);
 click(buttonByText('Choose from another year')!);
-check('IT Year 1 courses are available from Year 2', !!doc.querySelector('input[aria-label="Register IT 101 from Year 1 (Freshman)"]'));
-click(doc.querySelector('input[aria-label="Register IT 101 from Year 1 (Freshman)"]') as HTMLElement);
+const it101CrossYear = await waitFor('input[aria-label="Register IT 101 from Year 1 (Freshman)"]');
+check('IT Year 1 courses are available from Year 2', !!it101CrossYear);
+if (it101CrossYear) click(it101CrossYear);
 click(buttonByText('Done')!);
 check('IT Year 1 course appears in Year 2 picker with credits', doc.body.textContent!.includes('IT 101') && doc.body.textContent!.includes('Year 1') && doc.body.textContent!.includes('2 credits'));
 click(buttonByText('Change year')!);
@@ -115,12 +129,13 @@ check('switching to Over Load activates the 21-cap', doc.body.textContent!.inclu
 
 /* ================= 5. cross-year browser ================= */
 click(buttonByText('Choose from another year')!);
-check('cross-year browser opens listing other years of the SAME major', doc.body.textContent!.includes('Choose from another year') && doc.body.textContent!.includes('DSAI 456'));
+const dsai456CrossYear = await waitFor('input[aria-label="Register DSAI 456 from Year 4 (Senior)"]');
+check('cross-year browser opens listing other years of the SAME major', !!dsai456CrossYear && doc.body.textContent!.includes('Choose from another year') && doc.body.textContent!.includes('DSAI 456'));
 const search = doc.querySelector('#cross-year-search') as HTMLInputElement;
 check('search input present', !!search);
-const crossTick = doc.querySelector('input[aria-label="Register DSAI 456 from Year 4 (Senior)"]') as HTMLInputElement;
-click(crossTick);
-check('cross-year course registers into the same PickState', crossTick.checked === true);
+const crossTick = dsai456CrossYear as HTMLInputElement | null;
+if (crossTick) click(crossTick);
+check('cross-year course registers into the same PickState', crossTick?.checked === true);
 click(buttonByText('Done')!);
 check('cross-year course appears in the main picker with a Year 4 badge', doc.body.textContent!.includes('DSAI 456') && doc.body.textContent!.includes('Year 4'));
 
@@ -138,6 +153,12 @@ check('placeholder shows the arranged-individually note, no option pickers', doc
 check('placeholder credits count toward the total (1 cr registered)', doc.body.textContent!.includes('1 credit registered'));
 check('placeholder never appears as still-to-decide', !doc.body.textContent!.includes('Pick a lecture time for CSAI 498') && !doc.body.textContent!.includes('CSAI 498: pick all published components'));
 
-act(() => root.unmount());
-console.log(`\n${pass} passed, ${fail} failed (year picker + credit cap + cross-year browser)`);
-process.exit(fail ? 1 : 0);
+  console.log(`\n${pass} passed, ${fail} failed (year picker + credit cap + cross-year browser)`);
+  act(() => root.unmount());
+  process.exit(fail ? 1 : 0);
+}
+
+runUiTest().catch((error) => {
+  console.error(error);
+  process.exit(1);
+});
