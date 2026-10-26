@@ -30,7 +30,7 @@ import {
   type Pick,
   type PickState,
 } from './lib/picks';
-import type { ComboMetrics, Course, MeetingType, Pairing } from './types';
+import type { ComboMetrics, Course, Meeting, MeetingType, Pairing } from './types';
 import { formatRange, formatDuration, to12h } from './lib/time';
 import { readScheduleFromLocation, type ShareExtras } from './lib/share';
 import { downloadCalendarIcs } from './lib/calendar';
@@ -652,6 +652,45 @@ export default function App() {
   const changePick = useCallback((courseId: string, pick: Pick) => {
     setPicks((prev) => ({ ...prev, [courseId]: pick }));
   }, []);
+
+  /** Remove one selected timetable component without unticking the course. */
+  const removeTimetableComponent = useCallback((
+    courseId: string,
+    kind: MeetingType,
+    meeting: Meeting,
+  ) => {
+    const course = COURSE_BY_ID[courseId];
+    const currentPick = picksRef.current[courseId];
+    if (!course || !currentPick || currentPick[kind] !== uid(meeting)) {
+      showToast({ message: `${course?.code ?? 'Course'} ${kind.toLowerCase()} is no longer selected.` });
+      return;
+    }
+
+    if (isComponentLocked(plannerLocks, courseId, kind)) {
+      showToast({ message: `${course.code} ${kind.toLowerCase()} is locked. Unlock it before removing it.` });
+      return;
+    }
+
+    const previousComponent = currentPick[kind];
+    setPicks((prev) => {
+      const pick = prev[courseId];
+      if (!pick || pick[kind] !== uid(meeting)) return prev;
+      return { ...prev, [courseId]: { ...pick, [kind]: null } };
+    });
+
+    showToast({
+      message: `${course.code} ${kind.toLowerCase()} removed. Other components remain selected.`,
+      actionLabel: 'Undo',
+      onAction: () => {
+        setPicks((prev) => {
+          const pick = prev[courseId];
+          if (!pick) return { ...prev, [courseId]: { ...emptyPick(), [kind]: previousComponent } };
+          return { ...prev, [courseId]: { ...pick, [kind]: previousComponent } };
+        });
+        setToast(null);
+      },
+    });
+  }, [plannerLocks, showToast]);
 
   const toggleCourse = useCallback((courseId: string, taking: boolean) => {
     const course = COURSE_BY_ID[courseId];
@@ -1852,6 +1891,7 @@ export default function App() {
                           variant={noConflicts ? 'final' : 'draft'}
                           yearBadges={yearBadges}
                           highlightedCourseId={hoveredCourseId}
+                          onRemoveComponent={removeTimetableComponent}
                         />
                       </div>
                     )}
@@ -2081,6 +2121,7 @@ export default function App() {
                 variant={noConflicts ? 'final' : 'draft'}
                 yearBadges={yearBadges}
                 highlightedCourseId={hoveredCourseId}
+                onRemoveComponent={removeTimetableComponent}
               />
             )}
           </div>
