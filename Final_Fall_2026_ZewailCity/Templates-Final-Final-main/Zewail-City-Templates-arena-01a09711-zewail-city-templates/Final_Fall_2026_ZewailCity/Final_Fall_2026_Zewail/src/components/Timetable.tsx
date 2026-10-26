@@ -261,7 +261,7 @@ export function Timetable({
                   setSelectedEvent(null);
                 }}
               >
-                <Icon name="trash-2" size="sm" /> Remove this {selectedEvent.meeting.type}
+                Remove this {selectedEvent.meeting.type}
               </button>
             </div>
           )}
