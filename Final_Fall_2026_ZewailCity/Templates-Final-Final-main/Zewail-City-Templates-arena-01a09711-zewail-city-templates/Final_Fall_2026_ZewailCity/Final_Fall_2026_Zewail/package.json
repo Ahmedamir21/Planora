@@ -25,10 +25,8 @@
     "test:ui": "esbuild tests/ui-maxhours.tsx --bundle --platform=node --format=cjs --packages=external --jsx=automatic --outfile=node_modules/.tmp/ui-maxhours.cjs --log-level=error && node node_modules/.tmp/ui-maxhours.cjs && esbuild tests/ui-share.tsx --bundle --platform=node --format=cjs --packages=external --jsx=automatic --outfile=node_modules/.tmp/ui-share.cjs --log-level=error && node node_modules/.tmp/ui-share.cjs && esbuild tests/ui-yearcap.tsx --bundle --platform=node --format=cjs --packages=external --jsx=automatic --outfile=node_modules/.tmp/ui-yearcap.cjs --log-level=error && node node_modules/.tmp/ui-yearcap.cjs && esbuild tests/ui-timetable.tsx --bundle --platform=node --format=cjs --packages=external --jsx=automatic --outfile=node_modules/.tmp/ui-timetable.cjs --log-level=error && node node_modules/.tmp/ui-timetable.cjs"
   },
   "dependencies": {
-    "clsx": "2.1.1",
     "react": "19.2.6",
-    "react-dom": "19.2.6",
-    "tailwind-merge": "3.4.0"
+    "react-dom": "19.2.6"
   },
   "devDependencies": {
     "@tailwindcss/vite": "4.1.17",
