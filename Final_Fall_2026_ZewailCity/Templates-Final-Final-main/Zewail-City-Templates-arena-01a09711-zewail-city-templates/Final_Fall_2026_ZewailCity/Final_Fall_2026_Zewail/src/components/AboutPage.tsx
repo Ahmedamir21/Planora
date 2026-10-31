@@ -1,5 +1,6 @@
 import { COURSE_DATA_LAST_VERIFIED } from '../data/meta';
-import { CREATOR_CREDIT, PRODUCT_TITLE, SEMESTER_CONFIG, TERM_LABEL, TERM_SESSION_LABEL } from '../config/semester';
+import { PRODUCT_TITLE, SEMESTER_CONFIG, TERM_LABEL, TERM_SESSION_LABEL } from '../config/semester';
+import { Creators } from './Creators';
 
 const GITHUB_REPO_URL = 'https://github.com/Ahmedamir21/Planora';
 
@@ -114,9 +115,7 @@ export function AboutPage({ onBack }: { onBack: () => void }) {
                 Version {SEMESTER_CONFIG.version} — merged build: advanced Best-Schedule engine, live credits dashboard, instructor
                 filters, share links &amp; mobile upgrade. Built with React, Vite and Tailwind CSS.
               </p>
-              <p className="mt-1 text-[13px]" style={{ color: 'var(--muted)' }}>
-                <span style={{ color: 'var(--accent)' }}>{CREATOR_CREDIT}</span>
-              </p>
+              <Creators align="start" />
             </div>
             <a
               href={GITHUB_REPO_URL}

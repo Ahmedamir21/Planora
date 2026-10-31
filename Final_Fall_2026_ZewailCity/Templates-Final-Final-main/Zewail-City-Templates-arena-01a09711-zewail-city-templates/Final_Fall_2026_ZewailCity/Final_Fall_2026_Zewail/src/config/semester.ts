@@ -22,4 +22,4 @@ export const SHARE_TEXT = `Check out my ${TERM_LABEL} schedule on Planora.`;
 export const DOCUMENT_TITLE = PRODUCT_TITLE;
 export const DOCUMENT_DESCRIPTION = `Planora is a student-built schedule planner for choosing courses and sections, detecting conflicts, comparing schedules, and sharing the final plan.`;
 
-export const CREATOR_CREDIT = 'Directed by Ahmed Amir & Youssef Taha (الريبات المشطشطين)';
+export const CREATOR_CREDIT = 'Directed by Ahmed Amir & Youssef Taha';

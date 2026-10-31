@@ -66,6 +66,7 @@ export function CoursePicker({
 }: Props) {
   const [searchQuery, setSearchQuery] = useState('');
   const [schOpen, setSchOpen] = useState(true);
+  const [englOpen, setEnglOpen] = useState(true);
   const takenCourses = courses.filter((c) => picks[c.id]);
   const normalizedSearch = searchQuery.trim().toLowerCase();
   const visibleCourses = normalizedSearch
@@ -77,13 +78,15 @@ export function CoursePicker({
     : courses;
 
   const currentYearCourses = visibleCourses.filter(
-    (c) => !c.code.startsWith('SCH ') && !yearBadges?.[c.id],
+    (c) => !c.code.startsWith('SCH ') && !c.code.startsWith('ENGL ') && !yearBadges?.[c.id],
   );
   const schCourses = visibleCourses.filter((c) => c.code.startsWith('SCH '));
+  const englCourses = visibleCourses.filter((c) => c.code.startsWith('ENGL '));
   const otherYearCourses = visibleCourses.filter(
-    (c) => !c.code.startsWith('SCH ') && !!yearBadges?.[c.id],
+    (c) => !c.code.startsWith('SCH ') && !c.code.startsWith('ENGL ') && !!yearBadges?.[c.id],
   );
   const selectedSchCount = schCourses.filter((c) => !!picks[c.id]).length;
+  const selectedEnglCount = englCourses.filter((c) => !!picks[c.id]).length;
 
   const renderCourse = (course: Course) => (
     <CourseCard
@@ -239,6 +242,25 @@ export function CoursePicker({
           </section>
         )}
 
+        {englCourses.length > 0 && (
+          <section className="space-y-2.5">
+            <button
+              type="button"
+              className="course-group-toggle"
+              onClick={() => setEnglOpen((v) => !v)}
+              aria-expanded={normalizedSearch ? true : englOpen}
+            >
+              <span className="min-w-0 text-left">
+                <span className="block text-[11px] font-bold uppercase tracking-[0.08em]">ENGL levels</span>
+                <span className="block text-[10.5px] font-medium" style={{ color: 'var(--muted-2)' }}>
+                  {englCourses.length} available{selectedEnglCount > 0 ? ` · ${selectedEnglCount} selected` : ''}
+                </span>
+              </span>
+              <span className="pill">{normalizedSearch || englOpen ? 'Hide' : 'Show'}</span>
+            </button>
+            {(normalizedSearch || englOpen) && englCourses.map(renderCourse)}
+          </section>
+        )}
         {otherYearCourses.length > 0 && (
           <section className="space-y-2.5">
             <div className="px-1">
@@ -371,7 +393,7 @@ function CourseCard({
         if (!e.currentTarget.contains(e.relatedTarget as Node | null)) onHoverCourse?.(null);
       }}
     >
-      <header className="flex items-start gap-3">
+      <header className="flex flex-wrap items-start gap-x-3 gap-y-2">
         <input
           type="checkbox"
           id={`take-${course.id}`}
@@ -380,7 +402,7 @@ function CourseCard({
           onChange={(e) => onToggle(e.target.checked)}
           aria-label={`Register ${course.code}`}
         />
-        <label htmlFor={`take-${course.id}`} className="min-w-0 flex-1 cursor-pointer py-0.5">
+        <label htmlFor={`take-${course.id}`} className="min-w-0 flex-1 basis-[12rem] cursor-pointer py-0.5">
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
             <span className="h-2.5 w-2.5 rounded-[3px]" style={{ background: `var(--c${course.c})` }} aria-hidden />
             <span className="mono text-[13.5px] font-bold tracking-tight" style={{ color: `var(--c${course.c})` }}>
@@ -421,7 +443,7 @@ function CourseCard({
             {course.name}
           </p>
         </label>
-        <div className="flex flex-none flex-wrap items-center justify-end gap-1.5">
+        <div className="ml-auto flex flex-none flex-wrap items-center justify-end gap-1.5 max-[560px]:ml-0 max-[560px]:basis-full max-[560px]:justify-start max-[560px]:pl-[30px]">
           <button
             type="button"
             className="btn btn-tap px-2.5 py-1.5 text-[11px]"
@@ -440,7 +462,7 @@ function CourseCard({
                 title={fullyLocked ? 'Unlock this course for AI and Best Schedule' : 'Keep this course unchanged by AI and Best Schedule'}
                 style={fullyLocked ? { color: 'var(--accent)', borderColor: 'var(--accent)' } : undefined}
               >
-                <Icon name={fullyLocked ? 'lock' : 'unlock'} /> {fullyLocked ? 'Locked' : 'Lock'}
+                <Icon name={fullyLocked ? 'lock' : 'unlock'} size="xs" /> {fullyLocked ? 'Locked' : 'Lock'}
               </button>
               <button
                 type="button"
@@ -682,14 +704,13 @@ function OptionRow({
       {active && onToggleLock && (
         <button
           type="button"
-          className="btn-tap flex-none rounded-lg px-2 py-1 text-[10px] font-bold"
+          className="btn-tap flex-none rounded-lg px-1.5 py-1 text-[10px] font-bold hover:bg-(--surface-2)"
           onClick={onToggleLock}
           aria-pressed={Boolean(locked)}
           title={locked ? 'Unlock this section for AI and Best Schedule' : 'Keep this section unchanged by AI and Best Schedule'}
           style={{
-            border: `1px solid ${locked ? 'var(--accent)' : 'var(--line)'}`,
+            border: '1px solid transparent',
             color: locked ? 'var(--accent)' : 'var(--muted)',
-            background: 'var(--surface)',
           }}
         >
           <Icon name={locked ? 'lock' : 'unlock'} bare />

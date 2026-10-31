@@ -207,6 +207,7 @@ body {
   border: 1px solid var(--line);
   background: var(--surface);
   color: var(--muted);
+  white-space: nowrap;
 }
 
 .course-card {
@@ -1173,3 +1174,309 @@ body {
   background: color-mix(in srgb, var(--accent) 14%, var(--paper));
   color: var(--ink);
 }
+
+
+/* Glass icon treatment: a restrained frosted surface that follows both themes. */
+.glass-icon {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* Keep the glass tile independent of surrounding heading/font size. */
+  box-sizing: border-box;
+  flex: 0 0 40px;
+  width: 40px;
+  min-width: 40px;
+  height: 40px;
+  margin-right: 10px;
+  overflow: hidden;
+  vertical-align: middle;
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--line));
+  border-radius: 0.68em;
+  color: var(--accent);
+  background:
+    linear-gradient(145deg,
+      color-mix(in srgb, white 13%, transparent),
+      transparent 54%),
+    color-mix(in srgb, var(--accent) 11%, var(--surface));
+  -webkit-backdrop-filter: blur(12px) saturate(135%);
+  backdrop-filter: blur(12px) saturate(135%);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, white 24%, transparent),
+    inset 0 -1px 0 color-mix(in srgb, var(--accent) 8%, transparent),
+    0 3px 10px color-mix(in srgb, var(--bg) 18%, transparent);
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.glass-icon::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 16%;
+  width: 68%;
+  height: 1px;
+  background: color-mix(in srgb, white 58%, transparent);
+  pointer-events: none;
+}
+
+.glass-icon svg {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 20px;
+  height: 20px;
+  flex: 0 0 20px;
+  filter: drop-shadow(0 1px 1px color-mix(in srgb, var(--bg) 15%, transparent));
+}
+
+.glass-icon-bare {
+  margin-right: 0;
+}
+
+/* Compact contexts should never let icons grow with oversized text. */
+button .glass-icon,
+a .glass-icon {
+  flex-shrink: 0;
+}
+
+@media (max-width: 480px) {
+  .glass-icon {
+    flex-basis: 36px;
+    width: 36px;
+    min-width: 36px;
+    height: 36px;
+    margin-right: 8px;
+    border-radius: 11px;
+  }
+
+  .glass-icon svg {
+    width: 18px;
+    height: 18px;
+    flex-basis: 18px;
+  }
+}
+
+@media (hover: hover) {
+  button:hover .glass-icon,
+  a:hover .glass-icon {
+    border-color: color-mix(in srgb, var(--accent) 52%, var(--line));
+    background-color: color-mix(in srgb, var(--accent) 17%, var(--surface));
+    box-shadow:
+      inset 0 1px 0 color-mix(in srgb, white 30%, transparent),
+      0 4px 12px color-mix(in srgb, var(--accent) 13%, transparent);
+    transform: translateY(-1px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glass-icon {
+    transition: none;
+  }
+}
+
+
+/* Chip size comes from --chip and --glyph (set by the size classes in the glass block below). */
+.glass-icon {
+  box-sizing: border-box !important;
+  flex: 0 0 var(--chip, 28px) !important;
+  width: var(--chip, 28px) !important;
+  min-width: var(--chip, 28px) !important;
+  max-width: var(--chip, 28px) !important;
+  height: var(--chip, 28px) !important;
+  min-height: var(--chip, 28px) !important;
+  max-height: var(--chip, 28px) !important;
+  padding: 0 !important;
+  align-self: center;
+}
+
+.glass-icon > svg {
+  box-sizing: border-box;
+  width: var(--glyph, 16px) !important;
+  min-width: var(--glyph, 16px) !important;
+  max-width: var(--glyph, 16px) !important;
+  height: var(--glyph, 16px) !important;
+  min-height: var(--glyph, 16px) !important;
+  max-height: var(--glyph, 16px) !important;
+  flex: 0 0 var(--glyph, 16px) !important;
+}
+
+
+/* Glass look for icon chips and buttons (dark is the default theme). */
+.btn {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  -webkit-backdrop-filter: blur(10px) saturate(140%);
+  backdrop-filter: blur(10px) saturate(140%);
+}
+.btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.28);
+}
+.btn-accent {
+  background: rgba(0, 51, 133, 0.62);
+  border-color: rgba(255, 255, 255, 0.22);
+  color: #ffffff;
+}
+.btn-accent:hover:not(:disabled) {
+  background: rgba(0, 51, 133, 0.78);
+  border-color: rgba(255, 255, 255, 0.34);
+  filter: none;
+}
+
+.glass-icon {
+  --chip: 28px;
+  --glyph: 16px;
+  margin-right: 8px;
+  border-radius: 9px;
+}
+.glass-icon-xs {
+  --chip: 22px;
+  --glyph: 13px;
+  margin-right: 6px;
+  border-radius: 7px;
+}
+.glass-icon-md {
+  --chip: 32px;
+  --glyph: 18px;
+  margin-right: 9px;
+  border-radius: 10px;
+}
+
+/* Buttons with a chip: tighter padding so the chip doesn't make them tall. */
+.btn:has(> .glass-icon:not(.glass-icon-bare)) {
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+}
+
+.glass-icon {
+  color: #ffffff;
+  background:
+    linear-gradient(160deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0) 55%),
+    rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 12px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22);
+  -webkit-backdrop-filter: blur(10px) saturate(140%);
+  backdrop-filter: blur(10px) saturate(140%);
+  transform: none;
+}
+.glass-icon::before {
+  left: 18%;
+  width: 64%;
+  background: rgba(255, 255, 255, 0.45);
+}
+.glass-icon > svg {
+  filter: none;
+}
+.btn-accent .glass-icon {
+  color: #ffffff;
+  background:
+    linear-gradient(160deg, rgba(255, 255, 255, 0.26), rgba(255, 255, 255, 0) 55%),
+    rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.32);
+}
+
+@media (hover: hover) {
+  button:hover .glass-icon,
+  a:hover .glass-icon {
+    color: #ffffff;
+    background:
+      linear-gradient(160deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0) 55%),
+      rgba(255, 255, 255, 0.16);
+    border-color: rgba(255, 255, 255, 0.42);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    transform: none;
+  }
+}
+
+/* Light theme */
+[data-theme='light'] .btn {
+  background: rgba(255, 255, 255, 0.6);
+  border-color: rgba(18, 23, 42, 0.12);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+[data-theme='light'] .btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.85);
+  border-color: rgba(0, 51, 133, 0.32);
+}
+[data-theme='light'] .btn-accent {
+  background: rgba(0, 51, 133, 0.88);
+  border-color: rgba(0, 51, 133, 0.5);
+}
+[data-theme='light'] .btn-accent:hover:not(:disabled) {
+  background: rgba(0, 51, 133, 0.96);
+  border-color: rgba(0, 51, 133, 0.7);
+}
+[data-theme='light'] .glass-icon {
+  color: var(--accent-fill);
+  background:
+    linear-gradient(160deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.2) 60%),
+    rgba(0, 51, 133, 0.08);
+  border-color: rgba(0, 51, 133, 0.28);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95);
+}
+[data-theme='light'] .glass-icon::before {
+  background: rgba(255, 255, 255, 0.9);
+}
+[data-theme='light'] .btn-accent .glass-icon {
+  color: #ffffff;
+  background:
+    linear-gradient(160deg, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0) 55%),
+    rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.36);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+@media (hover: hover) {
+  [data-theme='light'] button:hover .glass-icon,
+  [data-theme='light'] a:hover .glass-icon {
+    color: var(--accent-fill);
+    background:
+      linear-gradient(160deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.3) 60%),
+      rgba(0, 51, 133, 0.14);
+    border-color: rgba(0, 51, 133, 0.45);
+  }
+  [data-theme='light'] .btn-accent:hover .glass-icon {
+    color: #ffffff;
+    background:
+      linear-gradient(160deg, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0) 55%),
+      rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.45);
+  }
+}
+
+/* No blur support or reduced transparency: fall back to solid surfaces. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .btn { background: var(--surface); }
+  .btn-accent { background: var(--accent-fill); }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .btn,
+  .glass-icon {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+/* Bare icon: no chip, just the glyph. */
+.glass-icon.glass-icon-bare {
+  --chip: 20px;
+  --glyph: 15px;
+  margin-right: 0;
+  color: inherit !important;
+  background: none !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+.glass-icon-bare::before {
+  display: none !important;
+}
+
+/* ================================================================== */

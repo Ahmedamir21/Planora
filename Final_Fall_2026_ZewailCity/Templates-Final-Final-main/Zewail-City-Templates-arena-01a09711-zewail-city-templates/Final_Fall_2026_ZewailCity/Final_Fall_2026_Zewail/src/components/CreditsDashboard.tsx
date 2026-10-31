@@ -125,12 +125,12 @@ export function CreditsDashboard({
           )}
           {onOpenPreferences && (
             <button type="button" className="btn btn-tap px-2.5 py-1.5 text-[11px]" onClick={onOpenPreferences}>
-              <Icon name="sliders" /> Preferences
+              <Icon name="sliders" size="xs" /> Preferences
             </button>
           )}
           {onOpenBestSchedule && (
             <button type="button" className="btn btn-accent btn-tap px-2.5 py-1.5 text-[11px]" onClick={onOpenBestSchedule}>
-              <Icon name="sparkles" /> Best Schedule
+              <Icon name="sparkles" size="xs" /> Best Schedule
             </button>
           )}
         </div>

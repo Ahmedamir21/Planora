@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { COURSE_BY_ID } from './data/courses';
 import {
   allAvailableCourseIds,
@@ -30,12 +30,13 @@ import {
   type Pick,
   type PickState,
 } from './lib/picks';
-import type { ComboMetrics, Course, MeetingType, Pairing } from './types';
+import type { ComboMetrics, Course, Meeting, MeetingType, Pairing } from './types';
 import { formatRange, formatDuration, to12h } from './lib/time';
 import { readScheduleFromLocation, type ShareExtras } from './lib/share';
 import { downloadCalendarIcs } from './lib/calendar';
-import { ReportIssueDialog } from './components/ReportIssueDialog';
-import { FeedbackDialog } from './components/FeedbackDialog';
+const ReportIssueDialog = lazy(() => import('./components/ReportIssueDialog').then((m) => ({ default: m.ReportIssueDialog })));
+const FeedbackDialog = lazy(() => import('./components/FeedbackDialog').then((m) => ({ default: m.FeedbackDialog })));
+import { Creators } from './components/Creators';
 import { loadPreferences, type SchedulePreferences } from './lib/preferences';
 import { effectiveCreditCap, loadAppState, saveAppState, wouldExceedCap, type CreditCap } from './lib/appState';
 import { computeFreeTime, WINDOW_END, WINDOW_START } from './lib/freeTime';
@@ -43,7 +44,7 @@ import type { GeneratedSchedule } from './lib/bestSchedule';
 import { ThemeToggle, useTheme } from './components/ThemeToggle';
 import { MajorPicker } from './components/MajorPicker';
 import { YearPicker } from './components/YearPicker';
-import { CrossYearBrowser } from './components/CrossYearBrowser';
+const CrossYearBrowser = lazy(() => import('./components/CrossYearBrowser').then((m) => ({ default: m.CrossYearBrowser })));
 import { CreditLimitNote } from './components/CreditLimitNote';
 import { CoursePicker } from './components/CoursePicker';
 import { Timetable, type TimetableEvent } from './components/Timetable';
@@ -51,18 +52,19 @@ import { StatsBar } from './components/StatsBar';
 import { ScheduleDetails, type DetailEntry } from './components/ScheduleDetails';
 import { CombinationNav, Filters, type TypeFilter } from './components/Controls';
 import { EmptyState } from './components/EmptyState';
-import { CreditsDashboard } from './components/CreditsDashboard';
+const CreditsDashboard = lazy(() => import('./components/CreditsDashboard').then((m) => ({ default: m.CreditsDashboard })));
 import { ShareSchedule } from './components/ShareSchedule';
-import { AboutPage } from './components/AboutPage';
-import { BestSchedule } from './components/BestSchedule';
-import { CommandPalette } from './components/CommandPalette';
+const AboutPage = lazy(() => import('./components/AboutPage').then((m) => ({ default: m.AboutPage })));
+const BestSchedule = lazy(() => import('./components/BestSchedule').then((m) => ({ default: m.BestSchedule })));
+const CommandPalette = lazy(() => import('./components/CommandPalette').then((m) => ({ default: m.CommandPalette })));
 import { Toast, type ToastState } from './components/Toast';
-import { ScheduleAssistant, type AssistantLockAction, type AssistantProposal, type AssistantProposalPreview } from './components/ScheduleAssistant';
-import { ShareScheduleImage } from './components/ShareScheduleImage';
+import type { AssistantLockAction, AssistantProposal, AssistantProposalPreview } from './components/ScheduleAssistant';
+const ScheduleAssistant = lazy(() => import('./components/ScheduleAssistant').then((m) => ({ default: m.ScheduleAssistant })));
+const ShareScheduleImage = lazy(() => import('./components/ShareScheduleImage').then((m) => ({ default: m.ShareScheduleImage })));
 import { InstallAppButton } from './components/InstallAppButton';
 import { AppStatus } from './components/AppStatus';
 import { COURSE_DATA_LAST_VERIFIED } from './data/meta';
-import { CREATOR_CREDIT, DOCUMENT_DESCRIPTION, DOCUMENT_TITLE, LEGACY_UNTAGGED_SEMESTER_KEY, SEMESTER_CONFIG, TERM_SESSION_LABEL, TERM_SESSION_PAREN_LABEL } from './config/semester';
+import { DOCUMENT_DESCRIPTION, DOCUMENT_TITLE, LEGACY_UNTAGGED_SEMESTER_KEY, SEMESTER_CONFIG, TERM_SESSION_LABEL, TERM_SESSION_PAREN_LABEL } from './config/semester';
 import {
   isComponentLocked,
   isCourseLocked,
@@ -424,20 +426,27 @@ export default function App() {
    * A lecture may pair with any instructor's lab/tutorial — the only pairing rule is
    * the time-overlap check (inside each course AND across the whole selection).
    */
-  const generation: GenerationResult | null = useMemo(() => {
-    // Courses with no published schedule (noFixedSchedule) are excluded from the search
-    // space entirely: they are always trivially satisfied and contribute only credits,
-    // never a scheduling constraint (and must not read as "blocked").
+  // Defer combination generation until after the first render. Restored schedules can
+  // have a large search space; doing this synchronously in render can delay first paint.
+  const [generation, setGeneration] = useState<GenerationResult | null>(null);
+
+  useEffect(() => {
     const schedulable = takenCourses.filter((c) => !c.noFixedSchedule);
+    if (schedulable.length === 0) {
+      setGeneration(null);
+      return;
+    }
 
-    if (schedulable.length === 0) return null;
+    setGeneration(null);
+    const timer = window.setTimeout(() => {
+      const entries = schedulable.map((course) => ({
+        course,
+        pairings: buildCoursePairings(course),
+      }));
+      setGeneration(generateCombinations(entries));
+    }, 0);
 
-    const entries = schedulable.map((course) => ({
-      course,
-      pairings: buildCoursePairings(course),
-    }));
-
-    return generateCombinations(entries);
+    return () => window.clearTimeout(timer);
   }, [takenCourses]);
 
   const count = generation?.count ?? 0;
@@ -643,6 +652,45 @@ export default function App() {
   const changePick = useCallback((courseId: string, pick: Pick) => {
     setPicks((prev) => ({ ...prev, [courseId]: pick }));
   }, []);
+
+  /** Remove one selected timetable component without unticking the course. */
+  const removeTimetableComponent = useCallback((
+    courseId: string,
+    kind: MeetingType,
+    meeting: Meeting,
+  ) => {
+    const course = COURSE_BY_ID[courseId];
+    const currentPick = picksRef.current[courseId];
+    if (!course || !currentPick || currentPick[kind] !== uid(meeting)) {
+      showToast({ message: `${course?.code ?? 'Course'} ${kind.toLowerCase()} is no longer selected.` });
+      return;
+    }
+
+    if (isComponentLocked(plannerLocks, courseId, kind)) {
+      showToast({ message: `${course.code} ${kind.toLowerCase()} is locked. Unlock it before removing it.` });
+      return;
+    }
+
+    const previousComponent = currentPick[kind];
+    setPicks((prev) => {
+      const pick = prev[courseId];
+      if (!pick || pick[kind] !== uid(meeting)) return prev;
+      return { ...prev, [courseId]: { ...pick, [kind]: null } };
+    });
+
+    showToast({
+      message: `${course.code} ${kind.toLowerCase()} removed. Other components remain selected.`,
+      actionLabel: 'Undo',
+      onAction: () => {
+        setPicks((prev) => {
+          const pick = prev[courseId];
+          if (!pick) return { ...prev, [courseId]: { ...emptyPick(), [kind]: previousComponent } };
+          return { ...prev, [courseId]: { ...pick, [kind]: previousComponent } };
+        });
+        setToast(null);
+      },
+    });
+  }, [plannerLocks, showToast]);
 
   const toggleCourse = useCallback((courseId: string, taking: boolean) => {
     const course = COURSE_BY_ID[courseId];
@@ -1451,11 +1499,11 @@ export default function App() {
             </button>
 
             <a className="btn btn-tap" href="/admin.html" aria-label="Open Planora admin panel">
-              <Icon name="lock" /> Admin
+              <Icon name="lock" size="md" /> Admin
             </a>
 
             <button type="button" className="btn btn-accent btn-tap" onClick={() => setFeedbackOpen(true)}>
-              <Icon name="message" /> Feedback
+              <Icon name="message" size="md" /> Feedback
             </button>
 
             {major && !showAbout && (
@@ -1475,7 +1523,7 @@ export default function App() {
         </header>
 
         {showAbout ? (
-          <AboutPage onBack={closeAbout} />
+          <Suspense fallback={null}><AboutPage onBack={closeAbout} /></Suspense>
         ) : !yearId ? (
           <div className="space-y-3">
             <EmptyState
@@ -1678,7 +1726,7 @@ export default function App() {
               />
             )}
 
-            <CreditsDashboard
+            <Suspense fallback={null}><CreditsDashboard
               selectedCount={takenCourses.length}
               courseCount={courses.length}
               totalCredits={totalCredits}
@@ -1695,10 +1743,10 @@ export default function App() {
               onOpenPreferences={() => setPrefsOpen(true)}
               creditCap={effectiveCap}
               onChangeLimit={reopenCapNote}
-            />
+            /></Suspense>
             {takenCourses.some(course => course.credits == null) && <p role="status" className="mt-2 text-xs" style={{ color: 'var(--warn)' }}>Some selected English levels have unverified credits. The number above counts known credits only; check your official credit limit before registration.</p>}
 
-            <BestSchedule
+            <Suspense fallback={null}><BestSchedule
               courses={takenCourses}
               majorId={major.id}
               picks={picks}
@@ -1710,7 +1758,7 @@ export default function App() {
               onUse={useGeneratedSchedule}
               locks={plannerLocks}
               assistantConstraints={assistantConstraints}
-            />
+            /></Suspense>
 
             <div className="grid gap-3 xl:grid-cols-[minmax(340px,420px)_minmax(0,1fr)]">
               <CoursePicker
@@ -1843,6 +1891,7 @@ export default function App() {
                           variant={noConflicts ? 'final' : 'draft'}
                           yearBadges={yearBadges}
                           highlightedCourseId={hoveredCourseId}
+                          onRemoveComponent={removeTimetableComponent}
                         />
                       </div>
                     )}
@@ -1883,10 +1932,10 @@ export default function App() {
                     }}
                   />
 
-                  <ShareScheduleImage
+                  <Suspense fallback={null}><ShareScheduleImage
                     events={allEvents}
                     title={`${major.title} · ${yearPlan.label}`}
-                  />
+                  /></Suspense>
 
                   <button
                     type="button"
@@ -1992,12 +2041,9 @@ export default function App() {
           <button type="button" className="underline decoration-dotted underline-offset-2" onClick={() => setFeedbackOpen(true)}>Feedback</button>
         </footer>
 
-        <p
-          className="mt-2 text-center text-[10px] font-bold uppercase tracking-[0.14em]"
-          style={{ color: 'var(--accent)' }}
-        >
-          {CREATOR_CREDIT}
-        </p>
+        <div className="mt-2">
+          <Creators />
+        </div>
       </div>
 
       {/* Mobile quick-action bar: the primary workflow (generate → preferences → share) stays
@@ -2075,13 +2121,14 @@ export default function App() {
                 variant={noConflicts ? 'final' : 'draft'}
                 yearBadges={yearBadges}
                 highlightedCourseId={hoveredCourseId}
+                onRemoveComponent={removeTimetableComponent}
               />
             )}
           </div>
         </div>
       )}
 
-      {major && yearPlan && !showAbout && <ScheduleAssistant
+      {major && yearPlan && !showAbout && <Suspense fallback={null}><ScheduleAssistant
         context={assistantContext}
         onPreviewProposal={previewAssistantProposal}
         onApplyProposal={applyAssistantProposal}
@@ -2089,9 +2136,9 @@ export default function App() {
         onAddConstraints={addAssistantConstraints}
         onRemoveConstraint={removeAssistantConstraint}
         onLockActions={applyAssistantLockActions}
-      />}
+      /></Suspense>}
 
-      <CommandPalette
+      {commandOpen && <Suspense fallback={null}><CommandPalette
         open={commandOpen}
         onClose={() => setCommandOpen(false)}
         courses={courses}
@@ -2099,20 +2146,20 @@ export default function App() {
         onBestSchedule={scrollToBestSchedule}
         onPreferences={() => setPrefsOpen(true)}
         onShare={shareFromCommand}
-      />
+      /></Suspense>}
 
       {reportTarget && (
-        <ReportIssueDialog
+        <Suspense fallback={null}><ReportIssueDialog
           course={reportTarget.courseId ? COURSE_BY_ID[reportTarget.courseId] : undefined}
           pick={reportTarget.courseId ? picks[reportTarget.courseId] : undefined}
           onClose={() => setReportTarget(null)}
-        />
+        /></Suspense>
       )}
-      {feedbackOpen && <FeedbackDialog onClose={() => setFeedbackOpen(false)} />}
+      {feedbackOpen && <Suspense fallback={null}><FeedbackDialog onClose={() => setFeedbackOpen(false)} /></Suspense>}
       <Toast toast={toast} onClose={() => setToast(null)} />
 
       {crossYearOpen && major && yearPlan && (
-        <CrossYearBrowser
+        <Suspense fallback={null}><CrossYearBrowser
           major={major}
           currentYearId={yearPlan.id}
           picks={picks}
@@ -2120,7 +2167,7 @@ export default function App() {
           onClose={() => setCrossYearOpen(false)}
           capNotice={capNotice}
           shake={capShake}
-        />
+        /></Suspense>
       )}
 
       {confirmClearOpen && (
