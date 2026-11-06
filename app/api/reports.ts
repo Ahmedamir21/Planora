@@ -2,6 +2,7 @@ import { createHmac, randomUUID } from 'node:crypto';
 import { redis, storageConfigured } from './admin-store';
 import { notifyAdmins } from './report-email';
 import { jsonRequest, sameOrigin } from './security';
+import { clientIp } from './admin-security';
 
 export const REPORTS_KEY = 'planora:reports:ids:v1';
 export const REPORTS_DATA = 'planora:reports:data:v1';
@@ -9,7 +10,23 @@ const TYPES = ['Course name', 'Instructor name', 'Day or time', 'Room', 'Section
 const CREATE = `local n = redis.call('INCR', KEYS[1])
 if n == 1 then redis.call('EXPIRE', KEYS[1], 3600) end
 if n > 5 then return 0 end
-if redis.call('LLEN', KEYS[2]) >= 500 then return -1 end
+if redis.call('LLEN', KEYS[2]) >= 500 then
+  -- inbox full: drop the oldest item an admin already reviewed to make room
+  local freed = false
+  for i = redis.call('LLEN', KEYS[2]) - 1, 0, -1 do
+    local id = redis.call('LINDEX', KEYS[2], i)
+    local raw = redis.call('HGET', KEYS[3], id)
+    local ok, item = false, nil
+    if raw then ok, item = pcall(cjson.decode, raw) end
+    if not raw or (ok and type(item) == 'table' and item.status ~= 'new') then
+      redis.call('LREM', KEYS[2], 1, id)
+      redis.call('HDEL', KEYS[3], id)
+      freed = true
+      break
+    end
+  end
+  if not freed then return -1 end
+end
 redis.call('HSET', KEYS[3], ARGV[1], ARGV[2])
 redis.call('LPUSH', KEYS[2], ARGV[1])
 return 1`;
@@ -34,7 +51,7 @@ export default async function handler(req: any, res: any) {
   };
   if (!report.details || body.details.length > 1500 || body.publishedData.length > 3000 || body.courseCode.length > 80 || body.section.length > 40 || !['', 'Lecture', 'Lab', 'Tutorial'].includes(report.component)) return res.status(400).json({ error: 'Report details are missing or too long.' });
   try {
-    const ip = String(req.headers['x-forwarded-for'] || req.socket?.remoteAddress || 'unknown').split(',')[0].trim();
+    const ip = clientIp(req);
     const secret = process.env.PLANORA_ADMIN_SESSION_SECRET || '';
     const bucket = createHmac('sha256', secret).update(ip).digest('hex');
     const saved = await redis(['EVAL', CREATE, 3, `planora:reports:limit:${bucket}`, REPORTS_KEY, REPORTS_DATA, report.id, JSON.stringify(report)]);

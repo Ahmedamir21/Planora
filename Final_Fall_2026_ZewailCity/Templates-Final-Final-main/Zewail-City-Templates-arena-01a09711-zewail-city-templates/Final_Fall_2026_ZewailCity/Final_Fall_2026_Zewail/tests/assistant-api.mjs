@@ -19,7 +19,7 @@ async function run(name,message,context,expect,{modelResponse}={}){
   return {ok:true,status:200,json:async()=>({candidates:[{content:{parts:[{text:JSON.stringify(modelResponse)}]}}]})};
  };
  const res={statusCode:200,setHeader(){},status(n){this.statusCode=n;return this},json(data){this.body=data;return this}};
- await handler({method:'POST',headers:{host:'example.test',origin:'https://example.test','content-type':'application/json','x-forwarded-for':`regression-${++seq}`},body:{message,context}},res);
+ await handler({method:'POST',headers:{host:'example.test',origin:'https://example.test','content-type':'application/json','x-vercel-forwarded-for':`198.51.100.${(++seq % 250) + 1}`},body:{message,context}},res);
  assert.equal(res.statusCode,200,name);expect(res.body,providerCalls);console.log('PASS',name);
 }
 await run('exact CSAI course wins over subject ambiguity','Change CSAI 201 change lec 1 to lec 4',base,(b,calls)=>{assert.equal(calls,0);assert.equal(b.proposal.changes[0].meetingId,'csai-04')});
@@ -44,7 +44,7 @@ globalThis.fetch = async (url, options) => {
 };
 async function secured(headers = {}) {
  const response = {statusCode:200,cookie:'',setHeader(name,value){if(name==='Set-Cookie')this.cookie=value},status(code){this.statusCode=code;return this},json(data){this.body=data;return this}};
- await handler({method:'POST',headers:{host:'example.test',origin:'https://example.test','content-type':'application/json','x-forwarded-for':'campus-shared-ip',...headers},body:{message:'Help with my schedule',context:{}}},response);
+ await handler({method:'POST',headers:{host:'example.test',origin:'https://example.test','content-type':'application/json','x-vercel-forwarded-for':'203.0.113.7',...headers},body:{message:'Help with my schedule',context:{}}},response);
  return response;
 }
 assert.equal((await secured({origin:'https://evil.test'})).statusCode,403,'Cross-site assistant request accepted');
@@ -66,6 +66,24 @@ counts.set(ipKey,900);
 assert.equal((await secured()).statusCode,429,'Shared IP ceiling was bypassed');
 assert.equal(providerCalls,12,'Shared IP block still reached the AI provider');
 counts.set(ipKey,0);
+// Dropping the cookie must not reset the limit: cookie-less requests all count against the IP.
+counts.clear(); providerCalls = 0;
+let blocked = 0;
+for (let i = 0; i < 100; i++) if ((await secured()).statusCode === 429) blocked++;
+assert.equal(providerCalls,90,'Cookie-less requests got past the per-IP limit');
+assert.equal(blocked,10,'Cookie-less requests were not blocked after the per-IP limit');
+// A client-supplied X-Forwarded-For must not create a new bucket when Vercel already named the IP.
+counts.clear();
+await secured({'x-forwarded-for':'1.1.1.1'});
+await secured({'x-forwarded-for':'2.2.2.2'});
+assert.equal([...counts.keys()].filter(key => key.includes(':assistant-ip:')).length,1,'Spoofed X-Forwarded-For created its own bucket');
+// The site-wide ceiling protects the shared AI quota even when every IP is different.
+const globalKey = [...counts.keys()].find(key => key.includes(':assistant-global:'));
+assert(globalKey,'Global limit was not counted');
+counts.set(globalKey,600); providerCalls = 0;
+assert.equal((await secured()).statusCode,429,'Global assistant ceiling was bypassed');
+assert.equal(providerCalls,0,'Global block still reached the AI provider');
+counts.clear();
 console.log('PASS protected assistant origin, JSON, private API key and distributed browser limit');
 
 const priorFetch = globalThis.fetch;

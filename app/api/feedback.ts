@@ -1,6 +1,7 @@
 import { createHmac, randomUUID } from 'node:crypto';
 import { redis, storageConfigured } from './admin-store';
 import { jsonRequest, sameOrigin } from './security';
+import { clientIp } from './admin-security';
 
 export const FEEDBACK_IDS = 'planora:feedback:ids:v1';
 export const FEEDBACK_DATA = 'planora:feedback:data:v1';
@@ -8,7 +9,23 @@ export const FEEDBACK_CATEGORIES = ['Overall experience', 'Ease of use', 'Schedu
 const SAVE = `local n = redis.call('INCR', KEYS[1])
 if n == 1 then redis.call('EXPIRE', KEYS[1], 3600) end
 if n > 3 then return 0 end
-if redis.call('LLEN', KEYS[2]) >= 500 then return -1 end
+if redis.call('LLEN', KEYS[2]) >= 500 then
+  -- inbox full: drop the oldest item an admin already reviewed to make room
+  local freed = false
+  for i = redis.call('LLEN', KEYS[2]) - 1, 0, -1 do
+    local id = redis.call('LINDEX', KEYS[2], i)
+    local raw = redis.call('HGET', KEYS[3], id)
+    local ok, item = false, nil
+    if raw then ok, item = pcall(cjson.decode, raw) end
+    if not raw or (ok and type(item) == 'table' and item.status ~= 'new') then
+      redis.call('LREM', KEYS[2], 1, id)
+      redis.call('HDEL', KEYS[3], id)
+      freed = true
+      break
+    end
+  end
+  if not freed then return -1 end
+end
 redis.call('HSET', KEYS[3], ARGV[1], ARGV[2])
 redis.call('LPUSH', KEYS[2], ARGV[1])
 return 1`;
@@ -42,7 +59,7 @@ export default async function handler(req: any, res: any) {
   if (!FEEDBACK_CATEGORIES.includes(body.category) || typeof body.message !== 'string' || body.message.length > 1200 || (body.reporterName !== undefined && (typeof body.reporterName !== 'string' || body.reporterName.length > 60)) || !Number.isInteger(body.rating) || body.rating < 1 || body.rating > 10) return res.status(400).json({ error: 'Choose a rating from 1 to 10. Name and comments can be left blank.' });
   const item: Feedback = { id: randomUUID(), at: new Date().toISOString(), category: body.category, rating: body.rating, message: body.message.trim(), reporterName: body.reporterName?.trim() || undefined, status: 'new' };
   try {
-    const ip = String(req.headers['x-forwarded-for'] || req.socket?.remoteAddress || 'unknown').split(',')[0].trim();
+    const ip = clientIp(req);
     const bucket = createHmac('sha256', process.env.PLANORA_ADMIN_SESSION_SECRET || '').update(ip).digest('hex');
     const saved = await redis(['EVAL', SAVE, 3, `planora:feedback:limit:${bucket}`, FEEDBACK_IDS, FEEDBACK_DATA, item.id, JSON.stringify(item)]);
     if (saved === 0) return res.status(429).json({ error: 'Too many submissions. Please try again later.' });
