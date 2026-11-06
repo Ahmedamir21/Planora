@@ -1,6 +1,12 @@
 import { createHmac, randomUUID, timingSafeEqual } from 'node:crypto';
 import { rateLimited, storageConfigured } from './admin-store';
 import { jsonRequest, sameOrigin } from './security';
+import { clientIp } from './admin-security';
+
+// Messages per minute. A new cookie is free for a script, so the IP and global limits are the real ceiling.
+const LIMIT_BROWSER = 12;
+const LIMIT_IP = 90;
+const LIMIT_GLOBAL = 600;
 
 
 const ASSISTANT_RESPONSE_SCHEMA = {
@@ -27,12 +33,6 @@ const ASSISTANT_RESPONSE_SCHEMA = {
   },
   required: ['text', 'constraintsAdd', 'lockActions', 'proposal'],
 };
-
-function clientKey(req) {
-  const forwarded = req.headers['x-forwarded-for'];
-  if (typeof forwarded === 'string' && forwarded) return forwarded.split(',')[0].trim();
-  return req.socket?.remoteAddress || 'unknown';
-}
 
 function browserId(req, res, secret) {
   const raw = String(req.headers?.cookie || '').split(';').map(part => part.trim()).find(part => part.startsWith('planora_assistant='))?.slice('planora_assistant='.length);
@@ -147,10 +147,11 @@ export default async function handler(req: any, res: any) {
   if (!storageConfigured()) return res.status(503).json({ error: 'Assistant rate limiting is temporarily unavailable.' });
   try {
     const id = browserId(req, res, secret);
-    const ip = clientKey(req);
-    // A campus NAT can put the entire cohort behind one public address.
-    if (await rateLimited('assistant-browser', id, 12, 60, secret) ||
-        await rateLimited('assistant-ip', ip, 900, 60, secret)) {
+    const ip = clientIp(req);
+    // A campus NAT can put many students behind one public address, so the IP limit is generous but finite.
+    if (await rateLimited('assistant-ip', ip, LIMIT_IP, 60, secret) ||
+        await rateLimited('assistant-browser', id, LIMIT_BROWSER, 60, secret) ||
+        await rateLimited('assistant-global', 'all', LIMIT_GLOBAL, 60, secret)) {
       return res.status(429).json({ error: 'Too many messages right now. Please try again in a minute.' });
     }
   } catch {
