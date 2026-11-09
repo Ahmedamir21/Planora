@@ -58,7 +58,7 @@ const AboutPage = lazy(() => import('./components/AboutPage').then((m) => ({ def
 const BestSchedule = lazy(() => import('./components/BestSchedule').then((m) => ({ default: m.BestSchedule })));
 const CommandPalette = lazy(() => import('./components/CommandPalette').then((m) => ({ default: m.CommandPalette })));
 import { Toast, type ToastState } from './components/Toast';
-import type { AssistantLockAction, AssistantProposal, AssistantProposalPreview } from './components/ScheduleAssistant';
+import type { AssistantLockAction, AssistantProposal, AssistantProposalPreview } from './components/schedule-assistant/types';
 const ScheduleAssistant = lazy(() => import('./components/ScheduleAssistant').then((m) => ({ default: m.ScheduleAssistant })));
 const ShareScheduleImage = lazy(() => import('./components/ShareScheduleImage').then((m) => ({ default: m.ShareScheduleImage })));
 import { InstallAppButton } from './components/InstallAppButton';
