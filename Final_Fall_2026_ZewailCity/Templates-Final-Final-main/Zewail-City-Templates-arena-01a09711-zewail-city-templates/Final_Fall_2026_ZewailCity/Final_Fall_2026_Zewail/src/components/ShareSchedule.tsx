@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { buildShareUrl, type ShareExtras } from '../lib/share';
+import { buildShareUrl, type ShareExtras } from '../data/share';
 import type { Course } from '../types';
 import type { PickState } from '../lib/picks';
 import { SHARE_TEXT, SHARE_TITLE } from '../config/semester';
