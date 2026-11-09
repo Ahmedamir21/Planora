@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title desc">
+  <title id="title">Planora</title>
+  <desc id="desc">A rounded calendar grid with violet and blue gradient strokes and a warm highlighted schedule cell.</desc>
+  <defs>
+    <linearGradient id="g" x1="36" y1="36" x2="220" y2="224" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#8B5CF6"/>
+      <stop offset=".48" stop-color="#6D5EF6"/>
+      <stop offset="1" stop-color="#3B82F6"/>
+    </linearGradient>
+    <linearGradient id="warm" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FDBA45"/>
+      <stop offset="1" stop-color="#F59E0B"/>
+    </linearGradient>
+  </defs>
+  <rect x="35" y="47" width="186" height="174" rx="38" fill="none" stroke="url(#g)" stroke-width="18"/>
+  <path d="M35 93h186" stroke="url(#g)" stroke-width="18"/>
+  <path d="M82 30v38M174 30v38" stroke="url(#g)" stroke-width="20" stroke-linecap="round"/>
+  <rect x="65" y="119" width="35" height="31" rx="8" fill="#7563F4"/>
+  <rect x="111" y="119" width="35" height="31" rx="8" fill="#6755E9"/>
+  <rect x="157" y="119" width="35" height="31" rx="8" fill="url(#warm)"/>
+  <rect x="65" y="162" width="35" height="31" rx="8" fill="#5F55E8"/>
+  <rect x="111" y="162" width="35" height="31" rx="8" fill="#8B5CF6"/>
+  <rect x="157" y="162" width="35" height="31" rx="8" fill="#3B82F6"/>
+</svg>

@@ -1,0 +1,8 @@
+{
+  "name": "planora-self-service-sync",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "playwright": "1.55.0"
+  }
+}

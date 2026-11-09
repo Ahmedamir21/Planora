@@ -1,0 +1,354 @@
+[
+  {
+    "id": "sch163",
+    "code": "SCH 163",
+    "name": "Sustain, Social & Ethical Issues in Comp",
+    "c": 7,
+    "credits": 2,
+    "instructors": [
+      {
+        "name": "Sherif Hamdy ElGohary",
+        "lectures": [
+          {
+            "type": "Lecture",
+            "sec": "01",
+            "day": "Thu",
+            "start": 600,
+            "end": 720,
+            "room": "Online"
+          }
+        ],
+        "labs": [],
+        "tutorials": []
+      }
+    ]
+  },
+  {
+    "id": "sch105",
+    "code": "SCH 105",
+    "name": "Critical Thinking",
+    "c": 7,
+    "credits": 2,
+    "instructors": [
+      {
+        "name": "Ahmed Hamdy",
+        "lectures": [
+          {
+            "type": "Lecture",
+            "sec": "01",
+            "day": "Wed",
+            "start": 480,
+            "end": 600,
+            "room": "F26-B4"
+          },
+          {
+            "type": "Lecture",
+            "sec": "02",
+            "day": "Wed",
+            "start": 600,
+            "end": 720,
+            "room": "F26-B4"
+          }
+        ],
+        "labs": [],
+        "tutorials": []
+      }
+    ]
+  },
+  {
+    "id": "sch110",
+    "code": "SCH 110",
+    "name": "Creativity and Innovation",
+    "c": 7,
+    "credits": 2,
+    "instructors": [
+      {
+        "name": "Ahmed Hamdy",
+        "lectures": [
+          {
+            "type": "Lecture",
+            "sec": "01",
+            "day": "Tue",
+            "start": 480,
+            "end": 600,
+            "room": "F26-B4"
+          }
+        ],
+        "labs": [],
+        "tutorials": []
+      }
+    ]
+  },
+  {
+    "id": "sch201",
+    "code": "SCH 201",
+    "name": "World Literature",
+    "c": 7,
+    "credits": 2,
+    "instructors": [
+      {
+        "name": "Loubna Abdeltawab",
+        "lectures": [
+          {
+            "type": "Lecture",
+            "sec": "01",
+            "day": "Sun",
+            "start": 480,
+            "end": 600,
+            "room": "F29-B4"
+          }
+        ],
+        "labs": [],
+        "tutorials": []
+      }
+    ]
+  },
+  {
+    "id": "sch244",
+    "code": "SCH 244",
+    "name": "Leadership & Professionalism",
+    "c": 7,
+    "credits": 2,
+    "instructors": [
+      {
+        "name": "Hassan Darwish",
+        "lectures": [
+          {
+            "type": "Lecture",
+            "sec": "01",
+            "day": "Wed",
+            "start": 840,
+            "end": 960,
+            "room": "F29-B4"
+          },
+          {
+            "type": "Lecture",
+            "sec": "02",
+            "day": "Sun",
+            "start": 1200,
+            "end": 1320,
+            "room": "Online"
+          }
+        ],
+        "labs": [],
+        "tutorials": []
+      }
+    ]
+  },
+  {
+    "id": "sch258",
+    "code": "SCH 258",
+    "name": "Arabic Literature",
+    "c": 7,
+    "credits": 2,
+    "instructors": [
+      {
+        "name": "Samy Ahmed",
+        "lectures": [
+          {
+            "type": "Lecture",
+            "sec": "01",
+            "day": "Tue",
+            "start": 1080,
+            "end": 1200,
+            "room": "Online"
+          }
+        ],
+        "labs": [],
+        "tutorials": []
+      }
+    ]
+  },
+  {
+    "id": "sch260",
+    "code": "SCH 260",
+    "name": "Philosophical Thinking",
+    "c": 7,
+    "credits": 2,
+    "instructors": [
+      {
+        "name": "Ahmed Hamdy",
+        "lectures": [
+          {
+            "type": "Lecture",
+            "sec": "01",
+            "day": "Tue",
+            "start": 600,
+            "end": 720,
+            "room": "F30-B4"
+          },
+          {
+            "type": "Lecture",
+            "sec": "02",
+            "day": "Tue",
+            "start": 720,
+            "end": 840,
+            "room": "F012-E"
+          }
+        ],
+        "labs": [],
+        "tutorials": []
+      }
+    ]
+  },
+  {
+    "id": "sch261",
+    "code": "SCH 261",
+    "name": "Engineering Project Management",
+    "c": 7,
+    "credits": 2,
+    "instructors": [
+      {
+        "name": "Hassan Darwish",
+        "lectures": [
+          {
+            "type": "Lecture",
+            "sec": "01",
+            "day": "Wed",
+            "start": 600,
+            "end": 720,
+            "room": "G011-B"
+          },
+          {
+            "type": "Lecture",
+            "sec": "02",
+            "day": "Wed",
+            "start": 1140,
+            "end": 1260,
+            "room": "Online"
+          },
+          {
+            "type": "Lecture",
+            "sec": "03",
+            "day": "Wed",
+            "start": 1020,
+            "end": 1140,
+            "room": "Online"
+          }
+        ],
+        "labs": [],
+        "tutorials": []
+      }
+    ]
+  },
+  {
+    "id": "sch262",
+    "code": "SCH 262",
+    "name": "Engineering Project Economics",
+    "c": 7,
+    "credits": 2,
+    "instructors": [
+      {
+        "name": "Sherif Hamdy ElGohary",
+        "lectures": [
+          {
+            "type": "Lecture",
+            "sec": "01",
+            "day": "Tue",
+            "start": 600,
+            "end": 720,
+            "room": "G009-B"
+          }
+        ],
+        "labs": [],
+        "tutorials": []
+      }
+    ]
+  },
+  {
+    "id": "sch263",
+    "code": "SCH 263",
+    "name": "Engineering Ethics and Safety",
+    "c": 7,
+    "credits": 2,
+    "instructors": [
+      {
+        "name": "Ahmed Fahmy",
+        "lectures": [
+          {
+            "type": "Lecture",
+            "sec": "01",
+            "day": "Mon",
+            "start": 480,
+            "end": 600,
+            "room": "F010-D"
+          }
+        ],
+        "labs": [],
+        "tutorials": []
+      }
+    ]
+  },
+  {
+    "id": "sch264",
+    "code": "SCH 264",
+    "name": "Intro to Entrepreneurship & Small Mangm",
+    "c": 7,
+    "credits": 2,
+    "instructors": [
+      {
+        "name": "Sherif Hamdy ElGohary",
+        "lectures": [
+          {
+            "type": "Lecture",
+            "sec": "01",
+            "day": "Tue",
+            "start": 720,
+            "end": 840,
+            "room": "F012-D"
+          }
+        ],
+        "labs": [],
+        "tutorials": []
+      }
+    ]
+  },
+  {
+    "id": "sch273",
+    "code": "SCH 273",
+    "name": "Cognitive Psychology",
+    "c": 7,
+    "credits": 2,
+    "instructors": [
+      {
+        "name": "Nashwa Abdel Tawab Soliman",
+        "lectures": [
+          {
+            "type": "Lecture",
+            "sec": "01",
+            "day": "Tue",
+            "start": 600,
+            "end": 720,
+            "room": "F32-B4"
+          }
+        ],
+        "labs": [],
+        "tutorials": []
+      }
+    ]
+  },
+  {
+    "id": "sch277",
+    "code": "SCH 277",
+    "name": "Positive Psychology",
+    "c": 7,
+    "credits": 2,
+    "instructors": [
+      {
+        "name": "Nashwa Abdel Tawab Soliman",
+        "lectures": [
+          {
+            "type": "Lecture",
+            "sec": "01",
+            "day": "Tue",
+            "start": 720,
+            "end": 840,
+            "room": "F004-D"
+          }
+        ],
+        "labs": [],
+        "tutorials": []
+      }
+    ]
+  }
+]

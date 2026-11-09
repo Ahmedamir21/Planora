@@ -1,0 +1,8 @@
+{
+  "name": "zewail-city-templates",
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {
+    "build": "npm --prefix Final_Fall_2026_ZewailCity/Final_Fall_2026_Zewail install && npm --prefix Final_Fall_2026_ZewailCity/Final_Fall_2026_Zewail run build && rm -rf dist && cp -r Final_Fall_2026_ZewailCity/Final_Fall_2026_Zewail/dist dist"
+  }
+}

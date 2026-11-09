@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 840 220" role="img" aria-labelledby="title">
+  <title id="title">Planora — Build, Compare, Share</title>
+  <defs>
+    <linearGradient id="g" x1="20" y1="20" x2="190" y2="200" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#8B5CF6"/><stop offset=".5" stop-color="#6D5EF6"/><stop offset="1" stop-color="#3B82F6"/>
+    </linearGradient>
+  </defs>
+  <g transform="translate(18 20)">
+    <rect x="12" y="28" width="160" height="150" rx="32" fill="none" stroke="url(#g)" stroke-width="15"/>
+    <path d="M12 69h160" stroke="url(#g)" stroke-width="15"/>
+    <path d="M53 13v34M131 13v34" stroke="url(#g)" stroke-width="17" stroke-linecap="round"/>
+    <rect x="38" y="91" width="29" height="27" rx="6" fill="#7563F4"/>
+    <rect x="77" y="91" width="29" height="27" rx="6" fill="#6755E9"/>
+    <rect x="116" y="91" width="29" height="27" rx="6" fill="#F59E0B"/>
+    <rect x="38" y="128" width="29" height="27" rx="6" fill="#5F55E8"/>
+    <rect x="77" y="128" width="29" height="27" rx="6" fill="#8B5CF6"/>
+    <rect x="116" y="128" width="29" height="27" rx="6" fill="#3B82F6"/>
+  </g>
+  <text x="235" y="118" fill="#F8FAFC" font-family="Inter,Segoe UI,sans-serif" font-size="88" font-weight="800" letter-spacing="-3">Planora</text>
+  <text x="240" y="160" fill="#A8B0C3" font-family="Inter,Segoe UI,sans-serif" font-size="18" font-weight="600" letter-spacing="6">BUILD • COMPARE • SHARE</text>
+</svg>
