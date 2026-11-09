@@ -32,13 +32,13 @@ import {
 } from './lib/picks';
 import type { ComboMetrics, Course, Meeting, MeetingType, Pairing } from './types';
 import { formatRange, formatDuration, to12h } from './lib/time';
-import { readScheduleFromLocation, type ShareExtras } from './lib/share';
+import { readScheduleFromLocation, type ShareExtras } from './data/share';
 import { downloadCalendarIcs } from './lib/calendar';
 const ReportIssueDialog = lazy(() => import('./components/ReportIssueDialog').then((m) => ({ default: m.ReportIssueDialog })));
 const FeedbackDialog = lazy(() => import('./components/FeedbackDialog').then((m) => ({ default: m.FeedbackDialog })));
 import { Creators } from './components/Creators';
 import { loadPreferences, type SchedulePreferences } from './lib/preferences';
-import { effectiveCreditCap, loadAppState, saveAppState, wouldExceedCap, type CreditCap } from './lib/appState';
+import { effectiveCreditCap, loadAppState, saveAppState, wouldExceedCap, type CreditCap } from './data/appState';
 import { computeFreeTime, WINDOW_END, WINDOW_START } from './lib/freeTime';
 import type { GeneratedSchedule } from './lib/bestSchedule';
 import { ThemeToggle, useTheme } from './components/ThemeToggle';

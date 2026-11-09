@@ -1,8 +1,8 @@
-import { COURSE_BY_ID } from '../data/courses';
-import { MAJOR_BY_ID } from '../data/majors';
-import { emptyPick, optionsFor, type PickState } from './picks';
+import { COURSE_BY_ID } from './courses';
+import { MAJOR_BY_ID } from './majors';
+import { emptyPick, optionsFor, type PickState } from '../lib/picks';
 import type { MeetingType } from '../types';
-import { sanitizePreferences, type SchedulePreferences } from './preferences';
+import { sanitizePreferences, type SchedulePreferences } from '../lib/preferences';
 import { isValidCourseFilter, isValidTypeFilter, isValidYearId } from './stateValidation';
 import { LEGACY_UNTAGGED_SEMESTER_KEY, SEMESTER_CONFIG } from '../config/semester';
 

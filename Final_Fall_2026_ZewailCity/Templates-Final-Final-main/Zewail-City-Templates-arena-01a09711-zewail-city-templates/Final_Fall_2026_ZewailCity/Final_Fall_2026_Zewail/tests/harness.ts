@@ -9,15 +9,15 @@ globalThis.window = globalThis;
 
 import { COURSE_BY_ID, COURSES } from '../src/data/courses';
 import { MAJORS, allYearCourseIds, yearBadgeOf, yearPlanOf } from '../src/data/majors';
-import { isValidYearId } from '../src/lib/stateValidation';
-import { effectiveCreditCap, isValidCreditCap, registeredCredits, wouldExceedCap } from '../src/lib/appState';
+import { isValidYearId } from '../src/data/stateValidation';
+import { effectiveCreditCap, isValidCreditCap, registeredCredits, wouldExceedCap } from '../src/data/appState';
 import { overlaps, type Meeting } from '../src/lib/time';
 import { buildCoursePairings, buildPairings, measureSchedule, generateCombinations, findBestCombo, MAX_COMBOS } from '../src/lib/scheduler';
 import { generateBestSchedules, hardConstraintsActive, scheduleMatchesPicks } from '../src/lib/bestSchedule';
 import { DEFAULT_PREFERENCES, sanitizePreferences, toCompactPreferences, fromCompactPreferences } from '../src/lib/preferences';
 import { computeFreeTime, WINDOW_START, WINDOW_END } from '../src/lib/freeTime';
-import { encodeSchedule, decodeSchedule, buildShareUrl, readScheduleFromLocation } from '../src/lib/share';
-import { loadAppState, saveAppState, type PersistedState } from '../src/lib/appState';
+import { encodeSchedule, decodeSchedule, buildShareUrl, readScheduleFromLocation } from '../src/data/share';
+import { loadAppState, saveAppState, type PersistedState } from '../src/data/appState';
 import { SEMESTER_CONFIG } from '../src/config/semester';
 import {
   emptyPick,
