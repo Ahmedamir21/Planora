@@ -10,7 +10,7 @@ import {
   type GeneratedSchedule,
 } from '../lib/bestSchedule';
 import { withAssistantConstraints, type SchedulePreferences } from '../lib/preferences';
-import type { ShareExtras } from '../lib/share';
+import type { ShareExtras } from '../data/share';
 import type { PlannerLocks } from '../lib/assistantControls';
 import { SchedulePreferencesPanel } from './SchedulePreferences';
 import { CompareSchedules } from './CompareSchedules';

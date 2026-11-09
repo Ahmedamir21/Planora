@@ -1,4 +1,4 @@
-import type { CreditCap } from '../lib/appState';
+import type { CreditCap } from '../data/appState';
 
 /**
  * Manual planning-limit chooser. It only opens when the student asks to change
