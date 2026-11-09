@@ -27,7 +27,7 @@ import { ShareSchedule } from '../src/components/ShareSchedule';
 import { ShareScheduleImage } from '../src/components/ShareScheduleImage';
 import { COURSE_BY_ID } from '../src/data/courses';
 import { emptyPick, optionStates, uid, type PickState } from '../src/lib/picks';
-import { decodeSchedule } from '../src/lib/share';
+import { decodeSchedule } from '../src/data/share';
 import { DEFAULT_PREFERENCES } from '../src/lib/preferences';
 import type { Course } from '../src/types';
 
