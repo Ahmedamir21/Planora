@@ -1,14 +1,11 @@
-import { useEffect, useRef, useState } from 'react';
-import { DAYS, DAY_LABEL, parseHHMM, toHHMM } from '../lib/time';
-import {
-  DEFAULT_PREFERENCES,
-  GOAL_LABEL,
-  GOAL_ORDER,
-  isDefaultPreferences,
-  type ScheduleGoal,
-  type SchedulePreferences,
-} from '../lib/preferences';
-import type { Day } from '../types';
+import { useEffect, useState } from 'react';
+import { DEFAULT_PREFERENCES, isDefaultPreferences, type SchedulePreferences } from '../lib/preferences';
+import { GoalsSection } from './schedule-preferences/GoalsSection';
+import { PreferredDaysSection } from './schedule-preferences/PreferredDaysSection';
+import { FreeDaysSection } from './schedule-preferences/FreeDaysSection';
+import { HardToggle } from './schedule-preferences/HardToggle';
+import { MaxHoursDropdown } from './schedule-preferences/MaxHoursDropdown';
+import { TimeField } from './schedule-preferences/TimeField';
 
 interface Props {
   open: boolean;
@@ -16,18 +13,6 @@ interface Props {
   preferences: SchedulePreferences;
   onChange: (next: SchedulePreferences) => void;
   onGenerate: (prefs: SchedulePreferences) => void;
-}
-
-/** Short descriptions borrowed from Version B's preference sheet. */
-const GOAL_HINT: Record<ScheduleGoal, string> = {
-  minimizeGaps: 'Avoid long idle breaks between classes',
-  maximizeFreeDays: 'Compact the week into fewer campus days',
-  earliestFinish: 'Finish classes as early in the afternoon as possible',
-  latestStart: 'Avoid 8:00 AM starts when possible',
-};
-
-function toggleDay(list: Day[], day: Day): Day[] {
-  return list.includes(day) ? list.filter((d) => d !== day) : [...list, day];
 }
 
 export function SchedulePreferencesPanel({ open, onClose, preferences, onChange, onGenerate }: Props) {
@@ -85,91 +70,13 @@ export function SchedulePreferencesPanel({ open, onClose, preferences, onChange,
         </div>
 
         {/* Goals */}
-        <section className="mt-4">
-          <h3 className="text-[11px] font-bold uppercase tracking-[0.07em]" style={{ color: 'var(--muted-2)' }}>
-            Preferred goals
-          </h3>
-          <p className="mt-0.5 text-[11px]" style={{ color: 'var(--muted-2)' }}>
-            Goals are soft — they rank schedules; they never invalidate one.
-          </p>
-          <div className="mt-2 grid grid-cols-1 gap-1.5 sm:grid-cols-2">
-            {GOAL_ORDER.map((goal) => (
-              <label
-                key={goal}
-                className="tap-row flex items-start gap-2 rounded-lg px-2.5 py-2 text-[12.5px] font-semibold"
-                style={{ background: draft.goals[goal] ? 'var(--accent-soft, var(--surface-2))' : 'var(--surface)', border: '1px solid var(--line-soft)' }}
-              >
-                <input
-                  type="checkbox"
-                  className="tap-checkbox mt-0.5 accent-[var(--accent)]"
-                  checked={draft.goals[goal]}
-                  onChange={(e) => setDraft((d) => ({ ...d, goals: { ...d.goals, [goal]: e.target.checked } }))}
-                />
-                <span>
-                  {GOAL_LABEL[goal]}
-                  <span className="block text-[11px] font-medium" style={{ color: 'var(--muted)' }}>
-                    {GOAL_HINT[goal]}
-                  </span>
-                </span>
-              </label>
-            ))}
-          </div>
-        </section>
+        <GoalsSection draft={draft} setDraft={setDraft} />
 
         {/* Preferred days */}
-        <section className="mt-4">
-          <h3 className="text-[11px] font-bold uppercase tracking-[0.07em]" style={{ color: 'var(--muted-2)' }}>
-            Preferred days
-          </h3>
-          <p className="mt-0.5 text-[11px]" style={{ color: 'var(--muted-2)' }}>
-            Leave empty for no preference.
-          </p>
-          <div className="mt-2 flex flex-wrap gap-1.5">
-            {DAYS.map((day) => (
-              <DayChip
-                key={day}
-                label={DAY_LABEL[day]}
-                active={draft.preferredDays.includes(day)}
-                onClick={() => setDraft((d) => ({ ...d, preferredDays: toggleDay(d.preferredDays, day) }))}
-              />
-            ))}
-          </div>
-          <HardToggle
-            label="Treat as a requirement"
-            hint="Only schedules with classes exclusively on these days will be considered."
-            checked={draft.preferredDaysHard}
-            disabled={draft.preferredDays.length === 0}
-            onChange={(v) => setDraft((d) => ({ ...d, preferredDaysHard: v }))}
-          />
-        </section>
+        <PreferredDaysSection draft={draft} setDraft={setDraft} />
 
         {/* Keep free days */}
-        <section className="mt-4">
-          <h3 className="text-[11px] font-bold uppercase tracking-[0.07em]" style={{ color: 'var(--muted-2)' }}>
-            Days to keep free
-          </h3>
-          <p className="mt-0.5 text-[11px]" style={{ color: 'var(--muted-2)' }}>
-            Soft by default: strongly prioritized, and we tell you when it can't be honored.
-          </p>
-          <div className="mt-2 flex flex-wrap gap-1.5">
-            {DAYS.map((day) => (
-              <DayChip
-                key={day}
-                label={DAY_LABEL[day]}
-                active={draft.keepFreeDays.includes(day)}
-                tone="warn"
-                onClick={() => setDraft((d) => ({ ...d, keepFreeDays: toggleDay(d.keepFreeDays, day) }))}
-              />
-            ))}
-          </div>
-          <HardToggle
-            label="Treat as a requirement"
-            hint="Schedules that use any of these days will be rejected outright."
-            checked={draft.keepFreeDaysHard}
-            disabled={draft.keepFreeDays.length === 0}
-            onChange={(v) => setDraft((d) => ({ ...d, keepFreeDaysHard: v }))}
-          />
-        </section>
+        <FreeDaysSection draft={draft} setDraft={setDraft} />
 
         {/* Preferred time range */}
         <section className="mt-4">
@@ -331,171 +238,3 @@ export function SchedulePreferencesPanel({ open, onClose, preferences, onChange,
  * results); ticked = hard (violating combinations are rejected, and we say so if nothing
  * survives rather than silently ignoring the request).
  */
-function HardToggle({
-  label,
-  hint,
-  checked,
-  disabled,
-  onChange,
-}: {
-  label: string;
-  hint: string;
-  checked: boolean;
-  disabled?: boolean;
-  onChange: (v: boolean) => void;
-}) {
-  return (
-    <label
-      className="mt-2 flex items-start gap-2 rounded-lg px-2.5 py-2 text-[11.5px] leading-relaxed"
-      style={{
-        background: checked ? 'var(--accent-soft, var(--surface-2))' : 'var(--surface)',
-        border: `1px solid ${checked ? 'var(--accent)' : 'var(--line-soft)'}`,
-        color: disabled ? 'var(--muted-2)' : 'var(--muted)',
-        opacity: disabled ? 0.55 : 1,
-      }}
-    >
-      <input
-        type="checkbox"
-        className="tap-checkbox mt-0.5 accent-[var(--accent)]"
-        checked={checked}
-        disabled={disabled}
-        onChange={(e) => onChange(e.target.checked)}
-      />
-      <span>
-        <strong style={{ color: disabled ? 'var(--muted-2)' : 'var(--ink)' }}>{label}</strong> — {hint}
-      </span>
-    </label>
-  );
-}
-
-/** The existing value set — unchanged: No limit (null) plus 2…10 hours. */
-const MAX_HOURS_CHOICES: number[] = [2, 3, 4, 5, 6, 7, 8, 9, 10];
-
-/**
- * A single, normal press opens the hour choices in a compact menu; one normal click
- * selects and closes it. Deliberately NOT a native <select> (OS-picker feel on touch)
- * and never a slider/long-press. Styled with the project's own `.select` + `.panel-soft`.
- */
-function MaxHoursDropdown({ value, onSelect }: { value: number | null; onSelect: (v: number | null) => void }) {
-  const [open, setOpen] = useState(false);
-  const wrapRef = useRef<HTMLDivElement | null>(null);
-  const triggerRef = useRef<HTMLButtonElement | null>(null);
-
-  // Any press outside closes the menu — real mouse and touch via pointerdown.
-  useEffect(() => {
-    if (!open) return;
-    const onDown = (e: Event) => {
-      if (!wrapRef.current?.contains(e.target as Node)) setOpen(false);
-    };
-    document.addEventListener('pointerdown', onDown);
-    return () => document.removeEventListener('pointerdown', onDown);
-  }, [open]);
-
-  const pick = (v: number | null) => {
-    onSelect(v);
-    setOpen(false);
-    triggerRef.current?.focus();
-  };
-
-  return (
-    <div
-      ref={wrapRef}
-      className="relative"
-      onKeyDown={(e) => {
-        // Escape closes just this menu — stopPropagation keeps the settings modal open.
-        if (e.key === 'Escape' && open) {
-          e.stopPropagation();
-          setOpen(false);
-        }
-      }}
-    >
-      <button
-        ref={triggerRef}
-        type="button"
-        aria-haspopup="listbox"
-        aria-expanded={open}
-        onClick={() => setOpen((o) => !o)}
-        className="select btn-tap text-left"
-        style={{ fontWeight: 600 }}
-      >
-        {value == null ? 'Maximum Hours Per Day: No limit' : `Maximum Hours Per Day: ${value} hours`}
-      </button>
-      {open && (
-        <div
-          role="listbox"
-          aria-label="Maximum hours per day"
-          className="panel-soft absolute left-0 right-0 top-[calc(100%+4px)] z-30 max-h-56 overflow-y-auto p-1"
-          style={{ boxShadow: '0 12px 32px -12px rgba(0,0,0,0.35)' }}
-        >
-          <MaxHoursOption label="No limit" selected={value == null} onClick={() => pick(null)} />
-          {MAX_HOURS_CHOICES.map((h) => (
-            <MaxHoursOption key={h} label={`${h} hours`} selected={value === h} onClick={() => pick(h)} />
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function MaxHoursOption({ label, selected, onClick }: { label: string; selected: boolean; onClick: () => void }) {
-  return (
-    <button
-      type="button"
-      role="option"
-      aria-selected={selected}
-      onClick={onClick}
-      className="btn-tap flex w-full items-center justify-between rounded-lg px-3 text-[12.5px] font-semibold transition-colors"
-      style={
-        selected
-          ? { color: 'var(--accent)', background: 'color-mix(in srgb, var(--accent) 12%, var(--paper))' }
-          : { color: 'var(--ink)' }
-      }
-    >
-      {label}
-      {selected && (
-        <span aria-hidden style={{ color: 'var(--accent)' }}>
-          ✓
-        </span>
-      )}
-    </button>
-  );
-}
-
-function DayChip({ label, active, onClick, tone = 'accent' }: { label: string; active: boolean; onClick: () => void; tone?: 'accent' | 'warn' }) {
-  const color = tone === 'warn' ? 'var(--warn)' : 'var(--accent)';
-  const bg = tone === 'warn' ? 'var(--warn-bg)' : 'color-mix(in srgb, var(--accent) 14%, var(--paper))';
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-pressed={active}
-      className="btn-tap rounded-full px-3 py-1.5 text-[12px] font-semibold transition-colors"
-      style={{
-        border: `1px solid ${active ? color : 'var(--line)'}`,
-        background: active ? bg : 'var(--surface)',
-        color: active ? color : 'var(--muted)',
-      }}
-    >
-      {label.slice(0, 3)}
-    </button>
-  );
-}
-
-function TimeField({ label, value, onChange }: { label: string; value: number | null; onChange: (v: number | null) => void }) {
-  return (
-    <label className="block">
-      <span className="mb-1 block text-[11px] font-semibold" style={{ color: 'var(--muted)' }}>
-        {label}
-      </span>
-      <input
-        type="time"
-        className="select"
-        value={value != null ? toHHMM(value) : ''}
-        onChange={(e) => {
-          const v = e.target.value;
-          onChange(v ? parseHHMM(v) : null);
-        }}
-      />
-    </label>
-  );
-}
