@@ -22,7 +22,7 @@ The app lives in:
 Backup before cleanup: branch `backup-before-cleanup-2026-11-10`
 
 - [x] `src/lib`: saving and loading files moved to `src/data` (appState, share, recovery, stateValidation)
-- [ ] `src/components`: big files to split (CoursePicker 727, SchedulePreferences 501, ScheduleAssistant 431, BestSchedule 407, Timetable and others near 300)
+- [ ] `src/components`: CoursePicker is done (split into `components/course-picker`). Still to split: SchedulePreferences 501, ScheduleAssistant 431, BestSchedule 407
 - [ ] `src/pages`: does not exist yet, the screens are still inside `App.tsx` (2223 lines)
 - [ ] `src/lib`: big files to split (bestSchedule 561, scheduler 428, picks 366, preferences 347)
 - [ ] `src/index.css` (1482 lines)
