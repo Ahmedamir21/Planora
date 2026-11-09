@@ -1,5 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
-import { clearPlannerState } from '../lib/recovery';
+import { clearPlannerState } from '../data/recovery';
 
 interface Props {
   children: ReactNode;

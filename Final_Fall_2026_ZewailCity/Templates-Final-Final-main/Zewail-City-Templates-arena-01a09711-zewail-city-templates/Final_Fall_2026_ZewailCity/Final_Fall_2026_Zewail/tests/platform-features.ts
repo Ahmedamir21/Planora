@@ -1,7 +1,7 @@
 import { COURSE_BY_ID } from '../src/data/courses';
 import { buildCalendarIcs } from '../src/lib/calendar';
 import { courseIssueText, generalIssueText } from '../src/lib/reportIssue';
-import { clearPlannerState } from '../src/lib/recovery';
+import { clearPlannerState } from '../src/data/recovery';
 import { optionsFor, type DraftMeeting } from '../src/lib/picks';
 
 let pass = 0;
