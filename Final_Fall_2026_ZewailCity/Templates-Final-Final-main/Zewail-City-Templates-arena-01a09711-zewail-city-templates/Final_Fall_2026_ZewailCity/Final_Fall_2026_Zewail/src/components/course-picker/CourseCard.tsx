@@ -1,14 +1,7 @@
 import { useState } from 'react';
 import type { Course, MeetingType } from '../../types';
-import {
-  emptyPick,
-  mergeHiddenSummaries,
-  optionStates,
-  summarizeHidden,
-  type OptionState,
-  type Pick,
-  type PickState,
-} from '../../lib/picks';
+import { emptyPick, type Pick, type PickState } from '../../lib/picks';
+import { mergeHiddenSummaries, optionStates, summarizeHidden, type OptionState } from '../../lib/picks-parts/optionStates';
 import type { SchedulePreferences } from '../../lib/preferences';
 import { isFullyLocked, type PlannerLocks } from '../../lib/assistantControls';
 import { Icon } from '../Icon';

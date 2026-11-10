@@ -1,7 +1,7 @@
 import { COURSE_BY_ID } from '../src/data/courses';
 import { generateBestSchedules } from '../src/lib/bestSchedule';
 import { DEFAULT_PREFERENCES } from '../src/lib/preferences';
-import { buildCoursePairings } from '../src/lib/scheduler';
+import { buildCoursePairings } from '../src/lib/scheduler-parts/pairings';
 import { uid, type PickState } from '../src/lib/picks';
 import {
   isComponentLocked,

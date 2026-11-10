@@ -24,7 +24,7 @@ Backup before cleanup: branch `backup-before-cleanup-2026-11-10`
 - [x] `src/lib`: saving and loading files moved to `src/data` (appState, share, recovery, stateValidation)
 - [x] `src/components`: all big files split (course-picker, best-schedule, schedule-assistant, schedule-preferences), nothing over 300 lines
 - [ ] `src/pages`: does not exist yet, the screens are still inside `App.tsx` (2223 lines)
-- [ ] `src/lib`: big files to split (bestSchedule 561, scheduler 428, picks 366, preferences 347)
+- [x] `src/lib`: big files split into `bestSchedule-parts`, `scheduler-parts`, `picks-parts`, `preferences-parts` (each folder sits next to the file it came from)
 - [ ] `src/index.css` (1482 lines)
 - [ ] folders outside src: `docs`, `scripts`, `sync`, `assets`, root files
 

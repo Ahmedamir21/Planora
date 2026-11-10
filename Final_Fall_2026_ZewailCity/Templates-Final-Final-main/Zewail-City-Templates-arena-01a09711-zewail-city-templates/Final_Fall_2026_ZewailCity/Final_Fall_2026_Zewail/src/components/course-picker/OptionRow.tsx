@@ -1,6 +1,6 @@
 import type { Course } from '../../types';
 import { DAY_LABEL, formatRange } from '../../lib/time';
-import { hiddenReasons, isOptionDisabled, type OptionState } from '../../lib/picks';
+import { hiddenReasons, isOptionDisabled, type OptionState } from '../../lib/picks-parts/optionStates';
 import { Icon } from '../Icon';
 
 export function OptionRow({

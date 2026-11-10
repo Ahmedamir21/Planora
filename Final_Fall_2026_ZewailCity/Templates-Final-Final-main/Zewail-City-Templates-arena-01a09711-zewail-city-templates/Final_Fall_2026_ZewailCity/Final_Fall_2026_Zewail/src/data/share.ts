@@ -2,12 +2,8 @@ import { COURSE_BY_ID } from './courses';
 import { emptyPick, optionsFor, type PickState } from '../lib/picks';
 import { MAJOR_BY_ID } from './majors';
 import type { Course, MeetingType } from '../types';
-import {
-  fromCompactPreferences,
-  toCompactPreferences,
-  type CompactPreferences,
-  type SchedulePreferences,
-} from '../lib/preferences';
+import { type SchedulePreferences } from '../lib/preferences';
+import { fromCompactPreferences, toCompactPreferences, type CompactPreferences } from '../lib/preferences-parts/compact';
 import { isValidCourseFilter, isValidTypeFilter, isValidYearId, VALID_DAYS_SAFE } from './stateValidation';
 import { LEGACY_UNTAGGED_SEMESTER_KEY, SEMESTER_CONFIG } from '../config/semester';
 

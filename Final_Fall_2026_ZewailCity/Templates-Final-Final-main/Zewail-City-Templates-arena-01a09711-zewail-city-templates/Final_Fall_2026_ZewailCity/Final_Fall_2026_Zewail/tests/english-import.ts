@@ -1,6 +1,6 @@
 import { COURSES } from '../src/data/courses';
 import { ENGLISH_CSV_HEADER, previewEnglishImport } from '../src/lib/englishImport';
-import { buildCoursePairings } from '../src/lib/scheduler';
+import { buildCoursePairings } from '../src/lib/scheduler-parts/pairings';
 
 const check = (value: unknown, message: string) => { if (!value) throw new Error(message); };
 const line = (code: string, section: string, start = '10:00', end = '12:00') => `${code},Verified English Course,3,Lecture,${section},Tue,${start},${end},G015-E,Verified Instructor`;

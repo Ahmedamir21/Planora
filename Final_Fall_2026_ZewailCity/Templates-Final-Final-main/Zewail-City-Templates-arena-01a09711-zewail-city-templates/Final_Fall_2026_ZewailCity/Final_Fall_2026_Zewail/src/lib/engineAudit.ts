@@ -1,5 +1,6 @@
 import type { Course, Meeting } from '../types';
-import { buildCourseOptions, buildCoursePairings, measureSchedule } from './scheduler';
+import { buildCourseOptions, buildCoursePairings } from './scheduler-parts/pairings';
+import { measureSchedule } from './scheduler-parts/measure';
 import { generateBestSchedules } from './bestSchedule';
 import { DEFAULT_PREFERENCES } from './preferences';
 import { DAY_LABEL, formatRange, overlaps } from './time';

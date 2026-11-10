@@ -1,5 +1,5 @@
 import type { Course, Instructor, MeetingType } from '../../types';
-import { isOptionDisabled, summarizeHidden, type OptionState } from '../../lib/picks';
+import { isOptionDisabled, summarizeHidden, type OptionState } from '../../lib/picks-parts/optionStates';
 import { isComponentLocked, type PlannerLocks } from '../../lib/assistantControls';
 import { OptionRow } from './OptionRow';
 import { KIND_ICON } from './kinds';
