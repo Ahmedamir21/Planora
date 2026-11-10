@@ -23,7 +23,7 @@ Backup before cleanup: branch `backup-before-cleanup-2026-11-10`
 
 - [x] `src/lib`: saving and loading files moved to `src/data` (appState, share, recovery, stateValidation)
 - [x] `src/components`: all big files split (course-picker, best-schedule, schedule-assistant, schedule-preferences), nothing over 300 lines
-- [ ] `src/pages`: does not exist yet, the screens are still inside `App.tsx` (2223 lines)
+- [x] `src/pages`: `App.tsx` (21 lines) now only connects the hooks in `pages/planner-state` to the screens in `pages` and `pages/planner-parts`; nothing over 300 lines
 - [x] `src/lib`: big files split into `bestSchedule-parts`, `scheduler-parts`, `picks-parts`, `preferences-parts` (each folder sits next to the file it came from)
 - [x] `src/index.css`: split into `src/styles/*.css` (the built CSS is byte for byte the same as before)
 - [x] folders outside src: already small, `docs/PROJECT_MAP.md` updated to the new layout
