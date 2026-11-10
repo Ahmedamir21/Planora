@@ -1,0 +1,172 @@
+/* Comfortable, consistent touch targets for checkboxes/radios everywhere. */
+.tap-checkbox,
+.tap-radio {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+.tap-row {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn-tap {
+  min-height: 34px;
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.fade-up {
+  animation: fadeUp 0.28s ease both;
+}
+
+/* ------------------------------------------------------------------ */
+/* Mobile & touch refinements                                          */
+/* ------------------------------------------------------------------ */
+@media (max-width: 640px) {
+  .btn {
+    min-height: 44px;
+    padding: 10px 16px;
+  }
+  .btn-tap {
+    min-height: 40px;
+  }
+  .select,
+  input[type='text'],
+  input[type='search'] {
+    min-height: 44px;
+    font-size: 16px; /* prevents iOS Safari from auto-zooming on focus */
+  }
+  .tap-checkbox,
+  .tap-radio {
+    width: 20px;
+    height: 20px;
+  }
+  input[type='checkbox'],
+  input[type='radio'] {
+    width: 18px;
+    height: 18px;
+  }
+  .pill {
+    font-size: 11px;
+    padding: 4px 9px;
+  }
+  .course-card {
+    border-radius: 12px;
+  }
+}
+
+/* Best Schedule / Compare modals: keep content readable and never overflow the viewport. */
+@media (max-width: 640px) {
+  table {
+    font-size: 12px;
+  }
+}
+
+/* Horizontally-scrolling regions (the weekly timetable) get a visible, intentional
+   affordance on touch devices instead of silently overflowing the page. */
+.scroll-shadow {
+  position: relative;
+}
+.scroll-hint {
+  display: none;
+}
+@media (max-width: 900px) {
+  .scroll-hint {
+    display: flex;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Mobile quick-action bar (Version B pattern): primary workflow stays   */
+/* one tap away while scrolling the course list on small screens.       */
+/* ------------------------------------------------------------------ */
+.mobile-actionbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 60;
+  display: flex;
+  gap: 8px;
+  padding: 8px 12px calc(8px + env(safe-area-inset-bottom));
+  background: color-mix(in srgb, var(--paper) 94%, transparent);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-top: 1px solid var(--line);
+  box-shadow: 0 -8px 24px -18px rgba(0, 0, 0, 0.6);
+}
+@media (min-width: 640px) {
+  .mobile-actionbar {
+    display: none;
+  }
+}
+@media (max-width: 639px) {
+  body {
+    /* keep page content clear of the fixed action bar */
+    padding-bottom: 76px;
+  }
+}
+
+/* Live dot used by the Credits Dashboard header. */
+.live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--accent-fill);
+  display: inline-block;
+  flex: none;
+  animation: livePulse 1.6s ease-in-out infinite;
+}
+@keyframes livePulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+/* Rejected-addition feedback: brief horizontal jitter (3 oscillations, ~360ms) on the
+   course card whose registration would exceed the active credit cap — the same visual
+   language as a shaking invalid form field. Disabled under prefers-reduced-motion below. */
+@keyframes capShake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  15% {
+    transform: translateX(-6px);
+  }
+  30% {
+    transform: translateX(5px);
+  }
+  45% {
+    transform: translateX(-4px);
+  }
+  60% {
+    transform: translateX(3px);
+  }
+  75% {
+    transform: translateX(-2px);
+  }
+}
+.shake {
+  animation: capShake 0.36s ease both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .live-dot,
+  .fade-up,
+  .shake {
+    animation: none;
+  }
+}

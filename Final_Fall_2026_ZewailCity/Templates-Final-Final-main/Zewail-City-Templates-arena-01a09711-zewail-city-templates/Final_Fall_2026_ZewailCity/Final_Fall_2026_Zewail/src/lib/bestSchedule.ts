@@ -1,6 +1,6 @@
-import { hardConstraintLabels } from './best-schedule/hardConstraints';
-import { buildCandidates, buildDaySpans, countAllPairings, dayMinutesTotal, scoreCandidate } from './best-schedule/scoring';
-import type { BestScheduleReport, GeneratedSchedule, ScheduleCourseEntry } from './best-schedule/types';
+import { hardConstraintLabels } from './bestSchedule-parts/hardConstraints';
+import { buildCandidates, buildDaySpans, countAllPairings, dayMinutesTotal, scoreCandidate } from './bestSchedule-parts/scoring';
+import type { BestScheduleReport, GeneratedSchedule, ScheduleCourseEntry } from './bestSchedule-parts/types';
 import type { Course, Day, Meeting } from '../types';
 import { measureSchedule } from './scheduler-parts/measure';
 import { DAYS, overlaps, sortMeetings } from './time';
@@ -296,5 +296,5 @@ export function scheduleLabel(index: number): string {
 }
 
 // kept so other files can still import these from here
-export type { ScheduleCourseEntry, DaySpan, GeneratedSchedule, BestScheduleReport } from './best-schedule/types';
-export { hardConstraintsActive } from './best-schedule/hardConstraints';
+export type { ScheduleCourseEntry, DaySpan, GeneratedSchedule, BestScheduleReport } from './bestSchedule-parts/types';
+export { hardConstraintsActive } from './bestSchedule-parts/hardConstraints';

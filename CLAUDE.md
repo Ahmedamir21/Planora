@@ -25,7 +25,7 @@ Backup before cleanup: branch `backup-before-cleanup-2026-11-10`
 - [x] `src/components`: all big files split (course-picker, best-schedule, schedule-assistant, schedule-preferences), nothing over 300 lines
 - [ ] `src/pages`: does not exist yet, the screens are still inside `App.tsx` (2223 lines)
 - [x] `src/lib`: big files split into `bestSchedule-parts`, `scheduler-parts`, `picks-parts`, `preferences-parts` (each folder sits next to the file it came from)
-- [ ] `src/index.css` (1482 lines)
-- [ ] folders outside src: `docs`, `scripts`, `sync`, `assets`, root files
+- [x] `src/index.css`: split into `src/styles/*.css` (the built CSS is byte for byte the same as before)
+- [x] folders outside src: already small, `docs/PROJECT_MAP.md` updated to the new layout
 
 The json files in `src/semester` are data, not code, so the 300 lines rule does not apply to them.
