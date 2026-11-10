@@ -1,0 +1,223 @@
+/* Printing always produces a clean, light timetable regardless of the on-screen theme. */
+@media print {
+  :root,
+  [data-theme='dark'],
+  [data-theme='light'] {
+    --bg: #ffffff;
+    --paper: #ffffff;
+    --surface: #ffffff;
+    --surface-2: #f4f6fa;
+    --line: #c9d0dc;
+    --line-soft: #e2e7ef;
+    --ink: #000000;
+    --muted: #444b58;
+    --muted-2: #666e7d;
+    --grid-line: #e6eaf1;
+    --shadow: none;
+  }
+  body {
+    background: #fff;
+  }
+  .panel {
+    box-shadow: none;
+    break-inside: avoid;
+  }
+  details,
+  .btn,
+  .no-print {
+    display: none !important;
+  }
+  /* The printed artifact is the schedule itself: dashboard, timetable, stats, details. */
+  .print-compact {
+    padding: 8px !important;
+    margin: 0 0 8px 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+  .event-card {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+
+.assistant-constraints{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  padding:8px 12px 0;
+}
+.assistant-constraint-chip{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  max-width:100%;
+  border:1px solid color-mix(in srgb, var(--accent) 45%, var(--line));
+  border-radius:999px;
+  background:color-mix(in srgb, var(--accent) 10%, var(--surface));
+  color:var(--ink);
+  padding:5px 8px 5px 10px;
+  font-size:10.5px;
+  font-weight:700;
+}
+.assistant-constraint-chip span{
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.assistant-constraint-chip button{
+  border:0;
+  background:transparent;
+  color:var(--muted);
+  cursor:pointer;
+  font:inherit;
+  font-size:14px;
+  line-height:1;
+  padding:0;
+}
+.assistant-proposal-diff strong{
+  display:block;
+  font-size:11.5px;
+}
+.assistant-before-after{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);
+  align-items:center;
+  gap:6px;
+  margin-top:6px;
+}
+.assistant-before-after span{
+  min-width:0;
+  border:1px solid var(--line-soft);
+  border-radius:8px;
+  background:var(--paper);
+  padding:6px 7px;
+  font-size:10px;
+  line-height:1.35;
+}
+.assistant-before-after small{
+  display:block;
+  margin-bottom:2px;
+  color:var(--muted-2);
+  font-size:8px;
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:.05em;
+}
+.assistant-before-after b{
+  color:var(--accent);
+  font-size:12px;
+}
+.assistant-change-reason{
+  margin-top:6px;
+  color:var(--muted);
+  font-size:10.5px;
+  line-height:1.4;
+}
+.assistant-conflict-details{
+  margin-top:7px;
+  border-top:1px solid color-mix(in srgb, var(--warn) 28%, transparent);
+  padding-top:6px;
+}
+.assistant-conflict-details summary{
+  cursor:pointer;
+  font-weight:800;
+}
+.assistant-conflict-details strong,
+.assistant-conflict-details span{
+  display:block;
+  margin-top:4px;
+  font-size:10.5px;
+  line-height:1.4;
+}
+
+/* Assistant proposals + non-blocking credit notices */
+.assistant-proposal{
+  border:1px solid var(--line);
+  background:var(--paper);
+  border-radius:14px;
+  margin:10px 0;
+  padding:11px;
+}
+.assistant-proposal-row{
+  border:1px solid var(--line-soft);
+  background:var(--surface);
+  border-radius:10px;
+  display:flex;
+  align-items:flex-start;
+  gap:8px;
+  padding:8px 9px;
+  font-size:11.5px;
+  line-height:1.45;
+}
+.toast-icon{
+  width:20px;
+  height:20px;
+  flex:none;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:999px;
+  font-size:11px;
+  font-weight:900;
+  background:var(--surface-2);
+  color:var(--ink);
+}
+.toast-info{border-color:var(--line)}
+.toast-info .toast-icon{color:var(--accent)}
+.toast-warning{border-color:var(--warn-line);background:var(--warn-bg)}
+.toast-warning .toast-icon{color:var(--warn)}
+.toast-danger{border-color:var(--warn);background:var(--warn-bg)}
+.toast-danger .toast-icon{background:var(--warn);color:#fff}
+
+.assistant-proposal-stats{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:6px;
+}
+.assistant-proposal-stats span{
+  border:1px solid var(--line-soft);
+  background:var(--surface);
+  border-radius:10px;
+  padding:7px 8px;
+  min-width:0;
+}
+.assistant-proposal-stats strong{
+  display:block;
+  color:var(--muted-2);
+  font-size:9.5px;
+  text-transform:uppercase;
+  letter-spacing:.05em;
+}
+.assistant-proposal-stats small{
+  display:block;
+  margin-top:2px;
+  color:var(--ink);
+  font-size:11px;
+  font-weight:800;
+  line-height:1.3;
+}
+
+
+.status-banner {
+  position: sticky;
+  top: 0;
+  z-index: 150;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 38px;
+  padding: 6px 14px;
+  border-bottom: 1px solid var(--line);
+  font-size: 11.5px;
+  backdrop-filter: blur(14px);
+}
+.status-offline {
+  background: color-mix(in srgb, var(--brand-warm) 14%, var(--paper));
+  color: var(--ink);
+}
+.status-update {
+  background: color-mix(in srgb, var(--accent) 14%, var(--paper));
+  color: var(--ink);
+}

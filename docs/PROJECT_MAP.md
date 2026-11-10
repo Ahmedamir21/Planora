@@ -22,10 +22,11 @@ Planora is an independent student planner. Its Vercel project root is `app/`; it
 | `scripts/hash-admin-password.mjs` | Generates a private password hash for a single admin. |
 | Planner `src/semester/*.json` | Published semester metadata, course sections, major mappings and SCH data. Do not invent academic facts. |
 | Planner `semester-template/` | Blank shape for the next term's data. |
-| Planner `src/data/`, `src/config/semester.ts` | Typed adapters for the JSON semester data and planner labels. |
+| Planner `src/data/`, `src/config/semester.ts` | Everything about saving and loading: typed adapters for the JSON semester data, plus `appState`, `share`, `recovery` and `stateValidation` (browser storage and share links). |
 | Planner `src/App.tsx`, `src/admin.tsx` | Student planner and admin page entry components. |
-| Planner `src/components/` | Course picker, timetable, details, AI, sharing, reports, feedback and admin UI. |
-| Planner `src/lib/` | Scheduler, conflict logic, share URLs, calendar, persistence and import utilities. |
+| Planner `src/components/` | Course picker, timetable, details, AI, sharing, reports, feedback and admin UI. Big components keep their small pieces in a folder next to them (`course-picker/`, `best-schedule/`, `schedule-assistant/`, `schedule-preferences/`). |
+| Planner `src/styles/`, `src/index.css` | `index.css` only imports the files in `styles/`, in order: base, mobile, interactions, assistant, print-and-notices, glass-icons, light-theme. Keep the order, it controls which rule wins. |
+| Planner `src/lib/` | Scheduler, conflict logic, calendar and import utilities. Big files keep their parts in `bestSchedule-parts/`, `scheduler-parts/`, `picks-parts/` and `preferences-parts/`. |
 | Planner `src/types.ts`, `src/utils/` | Shared types and small helpers. |
 | Planner `public/` | PWA manifest, service worker, logo and icon. `public/brand/` holds optional source brand variants. |
 | Planner `scripts/` | Semester validation and PWA build stamping. |
