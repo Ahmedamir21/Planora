@@ -12,27 +12,19 @@ import { MAJORS, allYearCourseIds, yearBadgeOf, yearPlanOf } from '../src/data/m
 import { isValidYearId } from '../src/data/stateValidation';
 import { effectiveCreditCap, isValidCreditCap, registeredCredits, wouldExceedCap } from '../src/data/appState';
 import { overlaps, type Meeting } from '../src/lib/time';
-import { buildCoursePairings, buildPairings, measureSchedule, generateCombinations, findBestCombo, MAX_COMBOS } from '../src/lib/scheduler';
+import { generateCombinations, findBestCombo, MAX_COMBOS } from '../src/lib/scheduler';
+import { buildCoursePairings, buildPairings } from '../src/lib/scheduler-parts/pairings';
+import { measureSchedule } from '../src/lib/scheduler-parts/measure';
 import { generateBestSchedules, hardConstraintsActive, scheduleMatchesPicks } from '../src/lib/bestSchedule';
-import { DEFAULT_PREFERENCES, sanitizePreferences, toCompactPreferences, fromCompactPreferences } from '../src/lib/preferences';
+import { DEFAULT_PREFERENCES, sanitizePreferences } from '../src/lib/preferences';
+import { toCompactPreferences, fromCompactPreferences } from '../src/lib/preferences-parts/compact';
 import { computeFreeTime, WINDOW_START, WINDOW_END } from '../src/lib/freeTime';
 import { encodeSchedule, decodeSchedule, buildShareUrl, readScheduleFromLocation } from '../src/data/share';
 import { loadAppState, saveAppState, type PersistedState } from '../src/data/appState';
 import { SEMESTER_CONFIG } from '../src/config/semester';
-import {
-  emptyPick,
-  optionStates,
-  summarizeHidden,
-  hiddenReasons,
-  pickIssues,
-  draftMeetings,
-  draftOverlaps,
-  meetingOption,
-  publishedKinds,
-  resolvedInstructorIdx,
-  uid,
-  type PickState,
-} from '../src/lib/picks';
+import { emptyPick, draftMeetings, draftOverlaps, meetingOption, publishedKinds, resolvedInstructorIdx, uid, type PickState } from '../src/lib/picks';
+import { optionStates, summarizeHidden, hiddenReasons } from '../src/lib/picks-parts/optionStates';
+import { pickIssues } from '../src/lib/picks-parts/issues';
 
 /** Same base64url encoding the share codec uses — for crafting legacy/junk payloads. */
 function base64UrlEncodeShim(input: string): string {
