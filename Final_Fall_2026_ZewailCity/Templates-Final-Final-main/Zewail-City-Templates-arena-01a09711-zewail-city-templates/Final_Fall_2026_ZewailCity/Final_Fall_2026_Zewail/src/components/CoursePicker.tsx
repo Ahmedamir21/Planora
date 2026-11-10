@@ -1,12 +1,7 @@
 import { useState } from 'react';
 import type { Course, MeetingType } from '../types';
-import {
-  mergeHiddenSummaries,
-  optionStates,
-  summarizeHidden,
-  type Pick,
-  type PickState,
-} from '../lib/picks';
+import { type Pick, type PickState } from '../lib/picks';
+import { mergeHiddenSummaries, optionStates, summarizeHidden } from '../lib/picks-parts/optionStates';
 import type { SchedulePreferences } from '../lib/preferences';
 import type { PlannerLocks } from '../lib/assistantControls';
 import { CourseCard } from './course-picker/CourseCard';

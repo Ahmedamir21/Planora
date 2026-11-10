@@ -8,28 +8,12 @@ import {
   yearBadgeOf,
   yearPlanOf,
 } from './data/majors';
-import {
-  buildCoursePairings,
-  comboAt,
-  findBestCombo,
-  generateCombinations,
-  measureSchedule,
-  type GenerationResult,
-} from './lib/scheduler';
-import {
-  draftMeetings,
-  draftOverlaps,
-  emptyPick,
-  meetingOption,
-  mergeHiddenSummaries,
-  optionStates,
-  optionsFor,
-  pickIssues,
-  summarizeHidden,
-  uid,
-  type Pick,
-  type PickState,
-} from './lib/picks';
+import { comboAt, findBestCombo, generateCombinations, type GenerationResult } from './lib/scheduler';
+import { buildCoursePairings } from './lib/scheduler-parts/pairings';
+import { measureSchedule } from './lib/scheduler-parts/measure';
+import { draftMeetings, draftOverlaps, emptyPick, meetingOption, optionsFor, uid, type Pick, type PickState } from './lib/picks';
+import { mergeHiddenSummaries, optionStates, summarizeHidden } from './lib/picks-parts/optionStates';
+import { pickIssues } from './lib/picks-parts/issues';
 import type { ComboMetrics, Course, Meeting, MeetingType, Pairing } from './types';
 import { formatRange, formatDuration, to12h } from './lib/time';
 import { readScheduleFromLocation, type ShareExtras } from './data/share';

@@ -1,6 +1,6 @@
 import { COURSES, ENGLISH_LEVEL_CODES, ENGLISH_LEVEL_COURSE_IDS } from '../src/data/courses';
 import { MAJORS, allAvailableCourseIds, sharedCourseIdsForMajor } from '../src/data/majors';
-import { buildCoursePairings } from '../src/lib/scheduler';
+import { buildCoursePairings } from '../src/lib/scheduler-parts/pairings';
 import { overlaps } from '../src/lib/time';
 import type { Course } from '../src/types';
 
