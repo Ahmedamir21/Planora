@@ -1,0 +1,231 @@
+/* ------------------------------------------------------------------ */
+/* Professional interaction layer: search, command palette, toasts,   */
+/* course-to-timetable highlighting and restrained micro-interactions. */
+/* ------------------------------------------------------------------ */
+.course-search-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  transition: border-color 0.16s ease, background 0.16s ease, box-shadow 0.16s ease;
+}
+.course-search-wrap:focus-within {
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--line));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 12%, transparent);
+  background: var(--paper);
+}
+.course-search-input {
+  min-width: 0;
+  flex: 1;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: 13px;
+}
+.course-search-input::placeholder {
+  color: var(--muted-2);
+}
+.course-search-clear {
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 18px;
+}
+.course-search-clear:hover {
+  background: var(--surface-2);
+  color: var(--ink);
+}
+
+.course-group-toggle {
+  display: flex;
+  width: 100%;
+  min-height: 48px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 10px;
+  border: 1px solid var(--line-soft);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+  font: inherit;
+  transition: border-color 0.15s ease, background 0.15s ease, transform 0.1s ease;
+}
+.course-group-toggle:hover {
+  border-color: var(--muted-2);
+  background: var(--surface-2);
+}
+.course-group-toggle:active {
+  transform: translateY(1px);
+}
+
+.command-palette {
+  animation: commandIn 0.18s ease both;
+}
+.command-row {
+  display: flex;
+  width: 100%;
+  min-height: 44px;
+  align-items: center;
+  gap: 10px;
+  border: 0;
+  border-radius: 10px;
+  padding: 9px 10px;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  font: inherit;
+  font-size: 12.5px;
+  transition: background 0.14s ease, transform 0.1s ease;
+}
+.command-row:hover,
+.command-row:focus-visible {
+  background: var(--surface);
+}
+.command-row:active {
+  transform: translateY(1px);
+}
+@keyframes commandIn {
+  from { opacity: 0; transform: translateY(-6px) scale(0.99); }
+  to { opacity: 1; transform: none; }
+}
+
+.toast-shell {
+  position: fixed;
+  left: 50%;
+  bottom: calc(88px + env(safe-area-inset-bottom));
+  z-index: 150;
+  width: min(92vw, 460px);
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+.toast-card {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 48px;
+  padding: 9px 10px 9px 13px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--paper) 96%, transparent);
+  color: var(--ink);
+  box-shadow: 0 16px 34px -20px rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  font-size: 12.5px;
+  font-weight: 600;
+  animation: toastIn 0.22s ease both;
+}
+.toast-action,
+.toast-close {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+}
+.toast-action {
+  color: var(--accent);
+  font-weight: 800;
+  padding: 7px 8px;
+  border-radius: 9px;
+}
+.toast-action:hover {
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+}
+.toast-close {
+  color: var(--muted);
+  font-size: 18px;
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+}
+.toast-close:hover {
+  background: var(--surface);
+  color: var(--ink);
+}
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+
+.course-card {
+  transform: translateZ(0);
+  isolation: isolate;
+}
+@media (hover: hover) and (pointer: fine) {
+  .course-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    border-radius: inherit;
+    opacity: 0;
+    background:
+      radial-gradient(
+        260px circle at var(--spot-x, 50%) var(--spot-y, 50%),
+        color-mix(in srgb, var(--accent) 7%, transparent),
+        transparent 70%
+      );
+    transition: opacity 0.18s ease;
+  }
+  .course-card:hover::before {
+    opacity: 1;
+  }
+  .course-card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 14px 34px -28px rgba(0, 0, 0, 0.8);
+  }
+}
+.course-focus-flash {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 14%, transparent), var(--shadow) !important;
+}
+
+.event-card {
+  transition: opacity 0.16s ease, transform 0.16s ease, filter 0.16s ease, box-shadow 0.16s ease;
+}
+.event-dimmed-by-course {
+  opacity: 0.18;
+  filter: grayscale(0.45);
+}
+.event-course-highlight {
+  z-index: 35;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px -12px currentColor;
+  filter: saturate(1.1) brightness(1.05);
+}
+
+@media (min-width: 640px) {
+  .toast-shell {
+    left: auto;
+    right: 20px;
+    bottom: 20px;
+    transform: none;
+    width: min(420px, calc(100vw - 40px));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .command-palette,
+  .toast-card {
+    animation: none;
+  }
+  .course-card,
+  .event-card,
+  .command-row {
+    transition: none;
+  }
+}
