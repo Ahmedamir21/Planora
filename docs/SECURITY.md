@@ -18,4 +18,4 @@ Planora has no SQL database, database row-level security (RLS), self-service acc
 
 Keep real environment values in the Vercel project settings, scoped to the intended environment. Commit only `.env.example`. Check `git status` and `git check-ignore app/.env.production` before publishing. Rotate credentials immediately if they were ever committed.
 
-The optional Anthropic pull-request review in `.github/workflows/security-review.yml` runs only for same-repository pull requests after a maintainer sets `CLAUDE_API_KEY` as a GitHub Actions secret. Anthropic warns its action is not hardened against prompt injection; do not enable it for untrusted external PRs. CI also audits dependencies. A security review cannot guarantee the absence of vulnerabilities.
+CI also audits dependencies. A security review cannot guarantee the absence of vulnerabilities.
