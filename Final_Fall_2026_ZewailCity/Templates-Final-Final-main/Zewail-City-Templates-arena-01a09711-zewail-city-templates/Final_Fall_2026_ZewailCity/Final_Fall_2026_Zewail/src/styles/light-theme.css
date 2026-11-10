@@ -1,0 +1,85 @@
+/* Light theme */
+[data-theme='light'] .btn {
+  background: rgba(255, 255, 255, 0.6);
+  border-color: rgba(18, 23, 42, 0.12);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+[data-theme='light'] .btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.85);
+  border-color: rgba(0, 51, 133, 0.32);
+}
+[data-theme='light'] .btn-accent {
+  background: rgba(0, 51, 133, 0.88);
+  border-color: rgba(0, 51, 133, 0.5);
+}
+[data-theme='light'] .btn-accent:hover:not(:disabled) {
+  background: rgba(0, 51, 133, 0.96);
+  border-color: rgba(0, 51, 133, 0.7);
+}
+[data-theme='light'] .glass-icon {
+  color: var(--accent-fill);
+  background:
+    linear-gradient(160deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.2) 60%),
+    rgba(0, 51, 133, 0.08);
+  border-color: rgba(0, 51, 133, 0.28);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95);
+}
+[data-theme='light'] .glass-icon::before {
+  background: rgba(255, 255, 255, 0.9);
+}
+[data-theme='light'] .btn-accent .glass-icon {
+  color: #ffffff;
+  background:
+    linear-gradient(160deg, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0) 55%),
+    rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.36);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+@media (hover: hover) {
+  [data-theme='light'] button:hover .glass-icon,
+  [data-theme='light'] a:hover .glass-icon {
+    color: var(--accent-fill);
+    background:
+      linear-gradient(160deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.3) 60%),
+      rgba(0, 51, 133, 0.14);
+    border-color: rgba(0, 51, 133, 0.45);
+  }
+  [data-theme='light'] .btn-accent:hover .glass-icon {
+    color: #ffffff;
+    background:
+      linear-gradient(160deg, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0) 55%),
+      rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.45);
+  }
+}
+
+/* No blur support or reduced transparency: fall back to solid surfaces. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .btn { background: var(--surface); }
+  .btn-accent { background: var(--accent-fill); }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .btn,
+  .glass-icon {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+/* Bare icon: no chip, just the glyph. */
+.glass-icon.glass-icon-bare {
+  --chip: 20px;
+  --glyph: 15px;
+  margin-right: 0;
+  color: inherit !important;
+  background: none !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+.glass-icon-bare::before {
+  display: none !important;
+}
+
+/* ================================================================== */
