@@ -1,5 +1,8 @@
 import { createHash, createHmac, randomUUID, scryptSync, timingSafeEqual } from 'node:crypto';
 import { draftKey, liveKey, HISTORY_KEY, rateLimited, redis, saveWithHistory, saveLive, undoLive, undoWithHistory, storageConfigured } from './admin-store';
+import { postgresRuntimeSelected, postgresConfigured, readCatalogDocument, readPostgresCatalogSnapshot, savePostgresDraft, publishPostgresDraft, restorePostgresRevision, undoPostgresDraft } from './postgres-store';
+import { listPostgresAuditEvents, readPostgresRevisionContent } from '../lib/postgres-history';
+import { discardPostgresSyncDraft, listPostgresSyncBackups, publishPostgresSyncDraft, readPostgresSyncBackup, readPostgresSyncDraft, restorePostgresSyncBackup, stagePostgresSyncDraft } from '../lib/postgres-sync-store';
 import { isCatalogFile } from './catalog';
 import { jsonRequest, sameOrigin } from './security';
 import { validateDataset } from '../dataset-validation.cjs';
@@ -152,6 +155,10 @@ function syncStatus(value: Record<string, unknown>) {
 }
 export default async function handler(req: any, res: any) {
   res.setHeader('Cache-Control', 'no-store, private'); res.setHeader('X-Content-Type-Options', 'nosniff');
+  // PostgreSQL mode exposes migrated read-only admin views, but all mutations remain
+  // fail-closed until every write path has been migrated to transactional SQL.
+  const postgresMode = postgresRuntimeSelected();
+  if (postgresMode && !postgresConfigured()) return res.status(503).json({ error: 'PostgreSQL storage is selected but DATABASE_URL is not configured. No data was read or changed.' });
   const config = configured();
   if (!config) return res.status(503).json({ error: 'Set both admin password hashes and the session secret, and connect Upstash Redis to Production in Vercel.' });
   if (!['GET', 'POST', 'DELETE'].includes(req.method)) return res.status(405).json({ error: 'Method not allowed' });
@@ -162,6 +169,52 @@ export default async function handler(req: any, res: any) {
   try {
     if (req.method === 'GET') {
       const action = req.query?.action;
+      if (postgresMode) {
+        if (action === 'history') {
+          const page = Math.min(1000, Math.max(0, Number(req.query?.page) || 0));
+          const result = await listPostgresAuditEvents({ page, pageSize: 20 });
+          return res.status(200).json({ entries: result.entries.map(row => ({
+            id: `${row.createdAt}:${row.action}:${row.actorId || 'system'}`,
+            ...row.metadata,
+            at: row.createdAt, adminId: row.actorId || 'system', adminName: row.actorName || 'System',
+            action: row.action,
+          })) });
+        }
+        if (action === 'draft' || action === 'live') {
+          if (!allowedFile(req.query?.file)) return res.status(400).json({ error: 'Invalid filename.' });
+          const name = req.query.file as typeof FILES[number];
+          const doc = action === 'draft'
+            ? await readCatalogDocument(name, 'draft')
+            : (await readPostgresCatalogSnapshot()).published[name];
+          return res.status(200).json({
+            content: doc?.content ?? null,
+            revision: doc?.contentSha256 ?? '',
+            updatedAt: doc?.updatedAt ?? null,
+          });
+        }
+        if (action === 'sync_status') {
+          const [draft, backups] = await Promise.all([
+            readPostgresSyncDraft(), listPostgresSyncBackups(0, 20),
+          ]);
+          return res.status(200).json({
+            status: draft?.status || { state: 'Not run', phase: 'idle' },
+            draft: draft ? { ...draft.content, courses: undefined, sch: undefined } : null,
+            draftRevision: draft?.contentSha256 || '',
+            backups: backups.entries.map(entry => entry.version),
+          });
+        }
+        if (action === 'sync_backup') {
+          const version = typeof req.query?.version === 'string' ? req.query.version : '';
+          if (!/^v\d{4}-\d{2}-\d{2}-\d{4}-\d{2}(?:-\d{2})?$/.test(version)) return res.status(400).json({ error: 'Invalid backup version.' });
+          const backup = await readPostgresSyncBackup(version);
+          if (!backup) return res.status(404).json({ error: 'Backup not found.' });
+          return res.status(200).json({ backup });
+        }
+        if (action === 'reports' || action === 'feedback' || action === 'security') {
+          return res.status(503).json({ error: 'This admin view still uses the legacy store and is unavailable in PostgreSQL mode.' });
+        }
+        return res.status(200).json({ authenticated: true, user: { id: admin!.id, name: admin!.name } });
+      }
       if (action === 'reports') {
         const rawIds = await redis(['LRANGE', REPORTS_KEY, 0, 499]);
         const rows = rawIds?.length ? await redis(['HMGET', REPORTS_DATA, ...rawIds]) : [];
@@ -245,6 +298,222 @@ export default async function handler(req: any, res: any) {
       return res.status(200).json({ authenticated: true, user: { id: candidate.id, name: candidate.name } });
     }
     if (!admin) return res.status(401).json({ error: 'Sign in again.' });
+    if (postgresMode && body.action === 'save_draft') {
+      if (!allowedFile(body.file) || typeof body.content !== 'string' || typeof body.expectedRevision !== 'string') return res.status(400).json({ error: 'Invalid draft request.' });
+      const source = typeof body.source === 'string' ? body.source.trim().slice(0, 240) : '';
+      const error = validData(body.file, body.content);
+      if (error || !source) return res.status(400).json({ error: error || 'Add a source or reason for this change.' });
+      const snapshot = await readPostgresCatalogSnapshot();
+      const current = snapshot.drafts[body.file];
+      if ((current?.contentSha256 || '') !== body.expectedRevision) return res.status(409).json({ error: 'Another admin updated this draft. Reload it before saving.' });
+      const values: Record<string, any> = {};
+      for (const name of FILES) values[name.replace('.json', '')] = JSON.parse(name === body.file ? body.content : snapshot.drafts[name]?.content || snapshot.published[name].content);
+      const check = validateDataset(values);
+      if (check.errors.length) return res.status(400).json({ error: 'Fix semester validation errors before saving.', errors: check.errors.slice(0, 20) });
+      if (current?.content === body.content) return res.status(400).json({ error: 'There are no changes to save.' });
+      const result = await savePostgresDraft({ documentName: body.file, content: body.content, expectedHash: body.expectedRevision, actorId: admin.id, actorName: admin.name, reason: source });
+      if (!result.saved) return res.status(409).json({ error: 'Another admin updated this draft. Reload it before saving.' });
+      return res.status(200).json({ revision: result.contentSha256, entry: { at: new Date().toISOString(), adminId: admin.id, adminName: admin.name, action: 'save_draft', file: body.file, source } });
+    }
+    if (postgresMode && body.action === 'publish_draft') {
+      if (!allowedFile(body.file) || typeof body.expectedRevision !== 'string' || typeof body.expectedLiveRevision !== 'string') {
+        return res.status(400).json({ error: 'Choose a draft and provide its current draft and published revisions.' });
+      }
+      const reason = typeof body.source === 'string' ? body.source.trim().slice(0, 240) : '';
+      if (!reason) return res.status(400).json({ error: 'Add what you reviewed before publishing this draft.' });
+      const snapshot = await readPostgresCatalogSnapshot();
+      const draft = snapshot.drafts[body.file];
+      const live = snapshot.published[body.file];
+      if (!draft || draft.contentSha256 !== body.expectedRevision || live.contentSha256 !== body.expectedLiveRevision) {
+        return res.status(409).json({ error: 'The draft or published catalog changed. Reload and review both versions before publishing.' });
+      }
+      const values: Record<string, any> = {};
+      for (const name of FILES) {
+        // Validate against the published catalog, not other drafts: only one document is published here.
+        const content = name === body.file ? draft.content : snapshot.published[name].content;
+        values[name.replace('.json', '')] = JSON.parse(content);
+      }
+      const check = validateDataset(values);
+      if (check.errors.length) {
+        return res.status(400).json({ error: 'Fix semester validation errors before publishing.', errors: check.errors.slice(0, 20) });
+      }
+      if (JSON.stringify(JSON.parse(draft.content)) === JSON.stringify(JSON.parse(live.content))) {
+        return res.status(400).json({ error: 'The draft has no changes compared with the published version.' });
+      }
+      const result = await publishPostgresDraft({
+        documentName: body.file,
+        expectedDraftHash: body.expectedRevision,
+        expectedPublishedHash: body.expectedLiveRevision,
+        expectedCatalogHashes: Object.fromEntries(FILES.map(name => [name, snapshot.published[name].contentSha256])) as Record<typeof FILES[number], string>,
+        actorId: admin.id,
+        actorName: admin.name,
+        reason,
+      });
+      if (!result.published) return res.status(409).json({ error: 'The draft or published catalog changed. Nothing was published; reload and review again.' });
+      return res.status(200).json({
+        published: true,
+        revision: result.contentSha256,
+        liveRevision: result.contentSha256,
+        entry: { at: new Date().toISOString(), adminId: admin.id, adminName: admin.name, action: 'publish', file: body.file, source: reason, revision: result.revision },
+      });
+    }
+    if (postgresMode && body.action === 'restore_revision') {
+      if (!allowedFile(body.file) || typeof body.expectedLiveRevision !== 'string' ||
+          !Number.isSafeInteger(body.revision) || body.revision < 1) {
+        return res.status(400).json({ error: 'Choose a file, a positive historical revision, and the current published revision.' });
+      }
+      const reason = typeof body.source === 'string' ? body.source.trim().slice(0, 240) : '';
+      if (!reason) return res.status(400).json({ error: 'Add a reason for restoring this revision.' });
+      const snapshot = await readPostgresCatalogSnapshot();
+      if (snapshot.published[body.file].contentSha256 !== body.expectedLiveRevision) {
+        return res.status(409).json({ error: 'The published catalog changed. Reload before restoring a revision.' });
+      }
+      const historicalContent = await readPostgresRevisionContent({ documentName: body.file, state: 'published', revision: body.revision });
+      if (historicalContent === null) return res.status(404).json({ error: 'Published revision content not found.' });
+      const values: Record<string, any> = {};
+      for (const name of FILES) {
+        // A restore creates one published revision; validate it against other published documents.
+        const raw = name === body.file ? historicalContent : snapshot.published[name].content;
+        values[name.replace('.json', '')] = JSON.parse(raw);
+      }
+      const check = validateDataset(values);
+      if (check.errors.length) {
+        return res.status(400).json({ error: 'This historical revision is incompatible with the current semester data.', errors: check.errors.slice(0, 20) });
+      }
+      const result = await restorePostgresRevision({
+        documentName: body.file,
+        sourceRevision: body.revision,
+        expectedPublishedHash: body.expectedLiveRevision,
+        expectedCatalogHashes: Object.fromEntries(FILES.map(name => [name, snapshot.published[name].contentSha256])) as Record<typeof FILES[number], string>,
+        actorId: admin.id,
+        actorName: admin.name,
+        reason,
+      });
+      if (!result.restored) return res.status(409).json({ error: 'The published catalog changed. Nothing was restored; reload and retry.' });
+      return res.status(200).json({
+        restored: true,
+        revision: result.contentSha256,
+        liveRevision: result.contentSha256,
+        entry: { at: new Date().toISOString(), adminId: admin.id, adminName: admin.name, action: 'restore', file: body.file, source: reason, revision: result.revision },
+      });
+    }
+    if (postgresMode && body.action === 'undo') {
+      if (!allowedFile(body.file) || typeof body.expectedRevision !== 'string') return res.status(400).json({ error: 'Choose a draft and its current revision.' });
+      const source = typeof body.source === 'string' ? body.source.trim().slice(0, 240) : '';
+      if (!source) return res.status(400).json({ error: 'Add a reason for undoing this draft.' });
+      const result = await undoPostgresDraft({ documentName: body.file, expectedHash: body.expectedRevision, actorId: admin.id, actorName: admin.name, reason: source });
+      if (!result.undone) return res.status(409).json({ error: 'The draft changed or no longer exists. Reload before undoing.' });
+      return res.status(200).json({ revision: result.contentSha256, entry: { at: new Date().toISOString(), adminId: admin.id, adminName: admin.name, action: 'undo_draft', file: body.file, source, revision: result.revision } });
+    }
+    if (postgresMode && body.action === 'sync_stage') {
+      const source = typeof body.source === 'string' ? body.source.trim().slice(0, 240) : '';
+      const expectedRevision = typeof body.expectedSyncRevision === 'string' ? body.expectedSyncRevision : '';
+      const dataset = body.dataset && typeof body.dataset === 'object' ? body.dataset : null;
+      if (!source || !dataset || !Array.isArray(dataset.courses) || !Array.isArray(dataset.sch)) {
+        return res.status(400).json({ error: 'Add the fetched courses, SCH data, and a source label.' });
+      }
+      const currentDraft = await readPostgresSyncDraft();
+      if ((currentDraft?.contentSha256 || '') !== expectedRevision) {
+        return res.status(409).json({ error: 'The sync draft changed. Refresh Self-Service Sync before staging again.' });
+      }
+      const snapshot = await readPostgresCatalogSnapshot();
+      const semester = JSON.parse(snapshot.published['semester.json'].content);
+      const majors = JSON.parse(snapshot.published['majors.json'].content);
+      const check = validateDataset({ semester, majors, courses: dataset.courses, sch: dataset.sch });
+      if (check.errors.length) {
+        return res.status(400).json({ error: `Fetched data has ${check.errors.length} blocking validation errors. Live data was not changed.`, errors: check.errors.slice(0, 30) });
+      }
+      const liveCourses = JSON.parse(snapshot.published['courses.json'].content);
+      const liveSch = JSON.parse(snapshot.published['sch.json'].content);
+      const diff = syncChangeSummary(liveCourses, liveSch, dataset.courses, dataset.sch);
+      const warnings = [...check.warnings];
+      const sectionBase = Math.max(1, diff.previousSections);
+      if (Math.abs(diff.sectionDelta) > Math.max(20, Math.ceil(sectionBase * 0.25))) warnings.unshift(`Large section-count change: ${diff.previousSections} → ${diff.sections}. Review before publishing.`);
+      if (diff.addedCourses || diff.removedCourses) warnings.unshift(`Course set changed: +${diff.addedCourses} / -${diff.removedCourses}. Review course mapping before publishing.`);
+      const now = new Date().toISOString();
+      const draft = {
+        source, fetchedAt: typeof body.fetchedAt === 'string' ? body.fetchedAt : now, stagedAt: now,
+        courses: dataset.courses, sch: dataset.sch,
+        validation: { warnings, summary: check.summary }, changes: diff,
+      };
+      const state = warnings.length ? 'Warning' : 'Success';
+      const status = {
+        state, phase: 'draft_ready',
+        startedAt: typeof body.startedAt === 'string' ? body.startedAt : now,
+        finishedAt: now, source, ...syncCounts(dataset.courses, dataset.sch), warnings: warnings.length,
+      };
+      const result = await stagePostgresSyncDraft({
+        draft, expectedDraftHash: expectedRevision, actorId: admin.id, actorName: admin.name, status,
+      });
+      if (!result.staged) return res.status(409).json({ error: 'The sync draft changed while staging. Refresh and retry.' });
+      return res.status(200).json({ draftRevision: result.contentSha256, state, warnings, changes: diff, summary: check.summary });
+    }
+    if (postgresMode && body.action === 'sync_discard') {
+      const expectedRevision = typeof body.expectedSyncRevision === 'string' ? body.expectedSyncRevision : '';
+      const reason = typeof body.source === 'string' && body.source.trim()
+        ? body.source.trim().slice(0, 240) : 'Discarded by admin.';
+      if (!expectedRevision) return res.status(400).json({ error: 'Reload the current sync draft before discarding it.' });
+      const result = await discardPostgresSyncDraft({
+        expectedDraftHash: expectedRevision, actorId: admin.id, actorName: admin.name, reason,
+      });
+      if (!result.discarded) return res.status(409).json({ error: 'The sync draft changed or no longer exists. Refresh before discarding it.' });
+      return res.status(200).json({ discarded: true });
+    }
+    if (postgresMode && body.action === 'sync_publish') {
+      const expectedRevision = typeof body.expectedSyncRevision === 'string' ? body.expectedSyncRevision : '';
+      const reason = typeof body.source === 'string' ? body.source.trim().slice(0, 240) : '';
+      if (!expectedRevision) return res.status(400).json({ error: 'Reload the latest Self-Service sync draft before publishing.' });
+      if (!reason) return res.status(400).json({ error: 'Add what you verified before publishing this draft.' });
+      const draft = await readPostgresSyncDraft();
+      if (!draft || draft.contentSha256 !== expectedRevision) return res.status(409).json({ error: 'Reload the latest Self-Service sync draft before publishing.' });
+      const snapshot = await readPostgresCatalogSnapshot();
+      const semester = JSON.parse(snapshot.published['semester.json'].content);
+      const majors = JSON.parse(snapshot.published['majors.json'].content);
+      const check = validateDataset({ semester, majors, courses: draft.content.courses, sch: draft.content.sch });
+      if (check.errors.length) return res.status(400).json({ error: `Draft has ${check.errors.length} blocking errors.`, errors: check.errors.slice(0, 30) });
+      const now = new Date();
+      const version = `v${now.getUTCFullYear()}-${String(now.getUTCMonth()+1).padStart(2,'0')}-${String(now.getUTCDate()).padStart(2,'0')}-${String(now.getUTCHours()).padStart(2,'0')}${String(now.getUTCMinutes()).padStart(2,'0')}-${String(now.getUTCSeconds()).padStart(2,'0')}`;
+      const result = await publishPostgresSyncDraft({
+        expectedDraftHash: expectedRevision,
+        expectedCoursesHash: snapshot.published['courses.json'].contentSha256,
+        expectedSchHash: snapshot.published['sch.json'].contentSha256,
+        expectedSemesterHash: snapshot.published['semester.json'].contentSha256,
+        expectedMajorsHash: snapshot.published['majors.json'].contentSha256,
+        actorId: admin.id, actorName: admin.name, reason, version,
+      });
+      if (!result.published) return res.status(409).json({ error: 'Live data or the sync draft changed. Nothing was published; refresh and review again.' });
+      return res.status(200).json({ published: true, backupVersion: result.backupVersion });
+    }
+    if (postgresMode && body.action === 'sync_restore') {
+      const version = typeof body.version === 'string' ? body.version : '';
+      const reason = typeof body.source === 'string' ? body.source.trim().slice(0, 240) : '';
+      if (!/^v\\d{4}-\\d{2}-\\d{2}-\\d{4}-\\d{2}(?:-\\d{2})?$/.test(version) || !reason) {
+        return res.status(400).json({ error: 'Choose a backup and add a restore reason.' });
+      }
+      const rawBackup = await readPostgresSyncBackup(version);
+      if (!rawBackup) return res.status(404).json({ error: 'Backup not found.' });
+      const backup = rawBackup as { semesterKey?: string; semester?: unknown; majors?: unknown; courses?: unknown; sch?: unknown };
+      const snapshot = await readPostgresCatalogSnapshot();
+      const semester = JSON.parse(snapshot.published['semester.json'].content);
+      const majors = JSON.parse(snapshot.published['majors.json'].content);
+      const check = validateDataset({
+        semester, majors,
+        courses: Array.isArray(backup.courses) ? backup.courses : [],
+        sch: Array.isArray(backup.sch) ? backup.sch : [],
+      });
+      if (check.errors.length) return res.status(400).json({ error: 'This backup failed validation against the current semester and was not restored.', errors: check.errors.slice(0, 30) });
+      const result = await restorePostgresSyncBackup({
+        version,
+        expectedCoursesHash: snapshot.published['courses.json'].contentSha256,
+        expectedSchHash: snapshot.published['sch.json'].contentSha256,
+        expectedSemesterHash: snapshot.published['semester.json'].contentSha256,
+        expectedMajorsHash: snapshot.published['majors.json'].contentSha256,
+        actorId: admin.id, actorName: admin.name, reason,
+      });
+      if (!result.restored) return res.status(409).json({ error: 'Live data changed while restoring. Nothing was restored; refresh and retry.' });
+      return res.status(200).json({ restored: true, version, safetyBackupVersion: result.backupVersion });
+    }
+    if (postgresMode) return res.status(503).json({ error: 'PostgreSQL admin write action is not migrated. No changes were made.' });
     if (body.action === 'sync_stage') {
       const source = typeof body.source === 'string' ? body.source.trim().slice(0, 240) : '';
       const expectedRevision = typeof body.expectedSyncRevision === 'string' ? body.expectedSyncRevision : '';

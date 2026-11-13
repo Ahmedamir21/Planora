@@ -3,6 +3,7 @@ import handler from '../../../../../../app/api/admin';
 import catalogHandler from '../../../../../../app/api/catalog';
 import reportHandler from '../../../../../../app/api/reports';
 import feedbackHandler from '../../../../../../app/api/feedback';
+import syncIngestHandler from '../../../../../../app/api/sync-ingest';
 import { redis, storageConfigured } from '../../../../../../app/api/admin-store';
 import semester from '../src/semester/semester.json';
 import courses from '../src/semester/courses.json';
@@ -101,6 +102,12 @@ async function catalogCall() {
   const result: { code: number; body: any } = { code: 0, body: null };
   const response = { setHeader: () => {}, status: (code: number) => { result.code = code; return response; }, json: (body: any) => { result.body = body; return response; } };
   await catalogHandler({ method: 'GET' }, response);
+  return result;
+}
+async function syncIngestCall() {
+  const result: { code: number; body: any } = { code: 0, body: null };
+  const response = { setHeader: () => {}, status: (code: number) => { result.code = code; return response; }, json: (data: any) => { result.body = data; return response; } };
+  await syncIngestHandler({ method: 'POST', headers: { 'content-type': 'application/json' }, body: {} }, response);
   return result;
 }
 async function feedbackCall(body: unknown, origin = 'https://example.test') {
@@ -245,6 +252,16 @@ async function main() {
   assert(storageConfigured(), 'Vercel Upstash KV integration was not detected');
   assert((await redis(['GET', 'test:key'])) === null, 'Vercel Upstash KV REST access failed');
   assert((await call('GET')).code === 200, 'Admin unavailable with Vercel Upstash KV integration');
+
+  // PostgreSQL selection must fail closed without a configured/initialized DB;
+  // it must never silently fall back to Redis or bundled JSON.
+  process.env.PLANORA_STORAGE_BACKEND = 'postgres';
+  delete process.env.DATABASE_URL;
+  assert((await catalogCall()).code === 503, 'PostgreSQL catalog silently fell back without DATABASE_URL');
+  assert((await call('GET')).code === 503, 'Admin route did not fail closed in PostgreSQL mode');
+  assert((await syncIngestCall()).code === 503, 'Sync ingest did not fail closed in PostgreSQL mode');
+  delete process.env.PLANORA_STORAGE_BACKEND;
+  console.log('Admin: two accounts, session security, durable attribution, history, stale-save protection, backend fail-closed guards and storage failure OK');
   console.log('Admin: two accounts, session security, durable attribution, history, stale-save protection and storage failure OK');
 }
 void main().catch(error => { console.error(error); process.exitCode = 1; });
