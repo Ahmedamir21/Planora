@@ -3,10 +3,10 @@ import { jsonRequest } from './security';
 import { liveKey, HISTORY_KEY, rateLimited, redis, storageConfigured } from './admin-store';
 import { SYNC_DRAFT_KEY, SYNC_STATUS_KEY, stageSyncDraft } from './sync-store';
 import { validateDataset } from '../dataset-validation.cjs';
-import publishedSemester from '../../Final_Fall_2026_ZewailCity/Templates-Final-Final-main/Zewail-City-Templates-arena-01a09711-zewail-city-templates/Final_Fall_2026_ZewailCity/Final_Fall_2026_Zewail/src/semester/semester.json';
-import publishedCourses from '../../Final_Fall_2026_ZewailCity/Templates-Final-Final-main/Zewail-City-Templates-arena-01a09711-zewail-city-templates/Final_Fall_2026_ZewailCity/Final_Fall_2026_Zewail/src/semester/courses.json';
-import publishedMajors from '../../Final_Fall_2026_ZewailCity/Templates-Final-Final-main/Zewail-City-Templates-arena-01a09711-zewail-city-templates/Final_Fall_2026_ZewailCity/Final_Fall_2026_Zewail/src/semester/majors.json';
-import publishedSch from '../../Final_Fall_2026_ZewailCity/Templates-Final-Final-main/Zewail-City-Templates-arena-01a09711-zewail-city-templates/Final_Fall_2026_ZewailCity/Final_Fall_2026_Zewail/src/semester/sch.json';
+import publishedSemester from '../../planner/src/semester/semester.json';
+import publishedCourses from '../../planner/src/semester/courses.json';
+import publishedMajors from '../../planner/src/semester/majors.json';
+import publishedSch from '../../planner/src/semester/sch.json';
 
 const sha = (text: string) => createHash('sha256').update(text).digest('hex');
 function equal(a: string, b: string) {

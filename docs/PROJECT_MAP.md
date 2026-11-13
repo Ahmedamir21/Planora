@@ -1,6 +1,6 @@
 # Planora project map
 
-Planora is an independent student planner. Its Vercel project root is `app/`; its React planner is in `Final_Fall_2026_ZewailCity/Templates-Final-Final-main/Zewail-City-Templates-arena-01a09711-zewail-city-templates/Final_Fall_2026_ZewailCity/Final_Fall_2026_Zewail/` (called **planner package** below). The long directory name is inherited from the original project and remains necessary for the current build commands. Changing it means updating the Vercel build path and import paths together.
+Planora is an independent student planner. Its Vercel project root is `app/`; its React planner is in `planner/` (called **planner package** below). The build wrapper in `app/package.json` installs, builds and copies the planner's `dist/` for Vercel.
 
 | Location | Responsibility |
 | --- | --- |

@@ -74,7 +74,7 @@ It can:
 
 > **Created by:** Ahmed Amir (IT Representative) and Youssef Taha (AI Representative).
 
-> **Brand assets:** [Planora logo](Final_Fall_2026_ZewailCity/Templates-Final-Final-main/Zewail-City-Templates-arena-01a09711-zewail-city-templates/Final_Fall_2026_ZewailCity/Final_Fall_2026_Zewail/public/planora-logo.svg) · [App icon](Final_Fall_2026_ZewailCity/Templates-Final-Final-main/Zewail-City-Templates-arena-01a09711-zewail-city-templates/Final_Fall_2026_ZewailCity/Final_Fall_2026_Zewail/public/icons/planner-icon.svg)
+> **Brand assets:** [Planora logo](planner/public/planora-logo.svg) · [App icon](planner/public/icons/planner-icon.svg)
 
 > **Course data last verified:** **September 24, 2026**
 
@@ -481,25 +481,21 @@ Planora/
 ├── scripts/
 │   ├── hash-admin-password.mjs
 │   └── planora-report-mailer.gs
-└── Final_Fall_2026_ZewailCity/
-    └── Templates-Final-Final-main/
-        └── Zewail-City-Templates-arena-01a09711-zewail-city-templates/
-            └── Final_Fall_2026_ZewailCity/
-                └── Final_Fall_2026_Zewail/
-                    ├── src/
-                    │   ├── components/
-                    │   ├── data/
-                    │   ├── lib/
-                    │   ├── semester/       # Four current JSON datasets
-                    │   ├── utils/
-                    │   ├── App.tsx
-                    │   ├── index.css
-                    │   └── types.ts
-                    ├── semester-template/  # Blank dataset template
-                    ├── scripts/            # Data and PWA build checks
-                    ├── tests/
-                    ├── package.json
-                    └── vite.config.ts
+└── planner/
+    ├── src/
+    │   ├── components/
+    │   ├── data/
+    │   ├── lib/
+    │   ├── semester/       # Four current JSON datasets
+    │   ├── utils/
+    │   ├── App.tsx
+    │   ├── index.css
+    │   └── types.ts
+    ├── semester-template/  # Blank dataset template
+    ├── scripts/            # Data and PWA build checks
+    ├── tests/
+    ├── package.json
+    └── vite.config.ts
 ```
 
 > The nested source layout is a legacy repository structure. The production Vercel wrapper under `app/` exists to keep the deployed serverless API path short and reliable.
@@ -528,7 +524,7 @@ cd Planora
 ### Open the planner package
 
 ```bash
-cd "Final_Fall_2026_ZewailCity/Templates-Final-Final-main/Zewail-City-Templates-arena-01a09711-zewail-city-templates/Final_Fall_2026_ZewailCity/Final_Fall_2026_Zewail"
+cd "planner"
 ```
 
 ### Install and run

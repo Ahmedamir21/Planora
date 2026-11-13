@@ -1,6 +1,6 @@
 import { liveKey, redis, storageConfigured } from './admin-store';
-import courses from '../../Final_Fall_2026_ZewailCity/Templates-Final-Final-main/Zewail-City-Templates-arena-01a09711-zewail-city-templates/Final_Fall_2026_ZewailCity/Final_Fall_2026_Zewail/src/semester/courses.json';
-import sch from '../../Final_Fall_2026_ZewailCity/Templates-Final-Final-main/Zewail-City-Templates-arena-01a09711-zewail-city-templates/Final_Fall_2026_ZewailCity/Final_Fall_2026_Zewail/src/semester/sch.json';
+import courses from '../../planner/src/semester/courses.json';
+import sch from '../../planner/src/semester/sch.json';
 
 export const bundledCatalog = { 'courses.json': courses, 'sch.json': sch };
 export type CatalogFile = keyof typeof bundledCatalog;

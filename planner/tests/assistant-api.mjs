@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import handler from '../../../../../../app/api/assistant';
+import handler from '../../app/api/assistant';
 process.env.GEMINI_API_KEY = 'test-only';
 process.env.UPSTASH_REDIS_REST_URL = 'https://redis.example.test';
 process.env.UPSTASH_REDIS_REST_TOKEN = 'test-redis-token';

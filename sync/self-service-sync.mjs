@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const SEMESTER_DIR = path.join(ROOT, 'Final_Fall_2026_ZewailCity', 'Templates-Final-Final-main', 'Zewail-City-Templates-arena-01a09711-zewail-city-templates', 'Final_Fall_2026_ZewailCity', 'Final_Fall_2026_Zewail', 'src', 'semester');
+const SEMESTER_DIR = path.join(ROOT, 'planner', 'src', 'semester');
 const COURSES_URL = process.env.SELF_SERVICE_COURSES_URL || 'https://sisselfservice.zewailcity.edu.eg/PowerCampusSelfService/Registration/Courses';
 const LOGIN_URL = process.env.SELF_SERVICE_LOGIN_URL || 'https://sisselfservice.zewailcity.edu.eg/PowerCampusSelfService/Home/LogIn';
 const INGEST_URL = process.env.PLANORA_SYNC_INGEST_URL;

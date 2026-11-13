@@ -1,5 +1,5 @@
 import { readFileSync } from 'node:fs';
-import checks from '../../../../../../app/dataset-validation.cjs';
+import checks from '../../app/dataset-validation.cjs';
 const { validateDataset } = checks;
 
 const load = name => JSON.parse(readFileSync(new URL(`../src/semester/${name}.json`, import.meta.url), 'utf8'));

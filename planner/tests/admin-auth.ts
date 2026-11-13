@@ -1,9 +1,9 @@
 import { createHash, randomBytes, scryptSync } from 'node:crypto';
-import handler from '../../../../../../app/api/admin';
-import catalogHandler from '../../../../../../app/api/catalog';
-import reportHandler from '../../../../../../app/api/reports';
-import feedbackHandler from '../../../../../../app/api/feedback';
-import { redis, storageConfigured } from '../../../../../../app/api/admin-store';
+import handler from '../../app/api/admin';
+import catalogHandler from '../../app/api/catalog';
+import reportHandler from '../../app/api/reports';
+import feedbackHandler from '../../app/api/feedback';
+import { redis, storageConfigured } from '../../app/api/admin-store';
 import semester from '../src/semester/semester.json';
 import courses from '../src/semester/courses.json';
 import sch from '../src/semester/sch.json';

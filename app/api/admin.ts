@@ -3,10 +3,10 @@ import { draftKey, liveKey, HISTORY_KEY, rateLimited, redis, saveWithHistory, sa
 import { isCatalogFile } from './catalog';
 import { jsonRequest, sameOrigin } from './security';
 import { validateDataset } from '../dataset-validation.cjs';
-import publishedSemester from '../../Final_Fall_2026_ZewailCity/Templates-Final-Final-main/Zewail-City-Templates-arena-01a09711-zewail-city-templates/Final_Fall_2026_ZewailCity/Final_Fall_2026_Zewail/src/semester/semester.json';
-import publishedCourses from '../../Final_Fall_2026_ZewailCity/Templates-Final-Final-main/Zewail-City-Templates-arena-01a09711-zewail-city-templates/Final_Fall_2026_ZewailCity/Final_Fall_2026_Zewail/src/semester/courses.json';
-import publishedMajors from '../../Final_Fall_2026_ZewailCity/Templates-Final-Final-main/Zewail-City-Templates-arena-01a09711-zewail-city-templates/Final_Fall_2026_ZewailCity/Final_Fall_2026_Zewail/src/semester/majors.json';
-import publishedSch from '../../Final_Fall_2026_ZewailCity/Templates-Final-Final-main/Zewail-City-Templates-arena-01a09711-zewail-city-templates/Final_Fall_2026_ZewailCity/Final_Fall_2026_Zewail/src/semester/sch.json';
+import publishedSemester from '../../planner/src/semester/semester.json';
+import publishedCourses from '../../planner/src/semester/courses.json';
+import publishedMajors from '../../planner/src/semester/majors.json';
+import publishedSch from '../../planner/src/semester/sch.json';
 import { ADMIN_ACCOUNTS } from '../admin-accounts';
 import { REPORTS_DATA, REPORTS_KEY } from './reports';
 import { REPORT_EMAIL_STATUS } from './report-email';
