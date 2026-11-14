@@ -11,6 +11,7 @@ Planora is an independent student planner. Its Vercel project root is `app/`; it
 | `app/vercel.json`, `app/package.json` | Vercel deployment configuration and build wrapper. |
 | `app/admin-accounts.ts` | Public account identifiers and display names; no secrets. |
 | `app/api/admin.ts`, `app/api/admin-store.ts` | Admin login, private draft workflow and durable audit history. |
+| `app/server/` | Small helpers for the admin and assistant endpoints (session, drafts, sync, reviews, login, prompt, reply cleaning). They live outside `app/api/` so Vercel does not count each one as its own function. |
 | `app/api/reports.ts`, `app/api/report-email.ts` | Private course data reports and optional email alert delivery. |
 | `app/api/feedback.ts` | Student rating and optional written feedback inbox. |
 | `app/api/assistant.ts` | AI assistant server endpoint. |
@@ -31,6 +32,6 @@ Planora is an independent student planner. Its Vercel project root is `app/`; it
 | Planner `src/types.ts`, `src/utils/` | Shared types and small helpers. |
 | Planner `public/` | PWA manifest, service worker, logo and icon. `public/brand/` holds optional source brand variants. |
 | Planner `scripts/` | Semester validation and PWA build stamping. |
-| Planner `tests/` | Scheduler, admin, import, data, SSR and UI checks. |
+| Planner `tests/` | Scheduler, admin, import, data, SSR and UI checks. `tests/harness.ts` runs the parts in `tests/harness/` in order. |
 
 The current production branch is `main`. Some reviewed work is still on the separate local `internal-planora-branding` branch. Remote `internal-planora-final` and `planora-branding-completion` each contain commits not reachable from the current `main`; they should not be deleted until their changes are reconciled. The current password for each admin is the one corresponding to that account's Vercel Production hash. There are no hard-coded fallback passwords in this project.
